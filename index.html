@@ -88,4 +88,45 @@
 </head>
 <body>
   <!-- Google Tag Manager (noscript) -->
-  <noscript><if
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-N2BBPNCC"
+  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- End Google Tag Manager (noscript) -->
+
+  <header>
+    <!-- ✅ H1에 주요 키워드 포함 -->
+    <h1>온라인 빈줄 제거 · 텍스트 줄바꿈 공백 삭제 — Thenaom Tools</h1>
+    <p class="sub">브라우저에서만 처리되는 가벼운 텍스트 도구 모음 (개인정보 전송 없음)</p>
+  </header>
+
+  <main>
+    <section aria-labelledby="tools-heading">
+      <h2 id="tools-heading" style="position:absolute;left:-9999px;">텍스트 도구 목록</h2>
+      <div class="grid">
+        <article class="card">
+          <h3>온라인 빈줄 제거 도구</h3>
+          <p>여러 줄 텍스트에서 <strong>빈 줄(공백 줄)</strong>과 불필요한 줄바꿈을 한 번에 제거합니다. 자동 처리 및 트림 옵션 제공.</p>
+          <a class="btn" href="tools/blankline.html" title="온라인 빈줄 제거 도구 바로가기">도구 열기</a>
+          <p class="note">키워드: 빈줄 없애기, 텍스트 빈줄 제거, 줄바꿈 삭제</p>
+        </article>
+
+        <article class="card">
+          <h3>30줄마다 [a]/[b] 자동 태깅</h3>
+          <p>지정 간격(기본 30줄)마다 블록을 나누고 <code>[a]</code>/<code>[b]</code> 태그를 교대로 붙입니다. 빈 줄 건너뛰기 옵션 제공.</p>
+          <a class="btn" href="tools/tag30.html" title="[a]/[b] 자동 태깅 도구 바로가기">도구 열기</a>
+          <p class="note">키워드: 30줄 태깅, 자동 라벨링, a/b 교대 태그</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>새 도구를 추가하려면 <code>/tools/</code> 폴더에 HTML 파일을 넣고, 이 페이지에 링크만 하나 더 추가하세요.</p>
+    <p>© <span id="y"></span> Thenaom Tools</p>
+  </footer>
+
+  <script>
+    // 푸터 연도 자동 표기(사소하지만 신뢰도 +)
+    document.getElementById('y').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
