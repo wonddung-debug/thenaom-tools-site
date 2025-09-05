@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>빈줄 제거기 | Thenaom Tools</title>
+  <style>
+    :root { --bg:#f7f8fb; --card:#fff; --ink:#0f172a; --muted:#64748b; --line:#e2e8f0; --brand:#111827; }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:linear-gradient(#f8fafc,#eef2f7);color:var(--ink);font:14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Noto Sans KR, sans-serif}
+    header{position:sticky;top:0;backdrop-filter:saturate(1.2) blur(6px);border-bottom:1px solid var(--line);background:rgba(255,255,255,.6)}
+    .container{max-width:1100px;margin:0 auto;padding:16px}
+    h1{margin:6px 0 4px;font-size:20px}
+    .sub{color:var(--muted);font-size:12px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:0 1px 6px rgba(15,23,42,.04)}
+    .row{display:grid;grid-template-columns:1fr;gap:14px}
+    @media (min-width:1000px){.row{grid-template-columns:1fr 1fr}}
+    textarea{width:100%;height:54vh;border:0;outline:none;resize:none;padding:14px;border-top:1px solid var(--line);font:12.5px/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, "Noto Sans Mono", monospace}
+    .area-head{display:flex;align-items:center;gap:10px;justify-content:space-between;padding:10px 14px}
+    .area-head h2{margin:0;font-size:14px}
+    .badge{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:#f8fafc;border-radius:999px;padding:4px 10px;color:var(--muted);font-size:12px}
+    .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+    .controls label{display:inline-flex;align-items:center;gap:6px;font-size:13px;cursor:pointer}
+    input[type=checkbox]{width:16px;height:16px}
+    button{appearance:none;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:12px;padding:8px 12px;font-size:13px;cursor:pointer}
+    .primary{background:var(--brand);color:#fff;border-color:#0b1220}
+    .stat{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 12px;font-size:12px}
+    .divider{height:10px}
+    kbd{border:1px solid var(--line);background:#f1f5f9;border-bottom-width:2px;padding:2px 6px;border-radius:6px}
+    footer{color:var(--muted);font-size:12px;margin-top:16px}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container" style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+      <div>
+        <h1>빈줄 제거기</h1>
+        <div class="sub">브라우저에서만 처리 • 개인정보 전송 없음</div>
+      </div>
+      <div class="badge">Ctrl/⌘ + Enter → 즉시 처리</div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="card" style="padding:14px 14px 8px; margin-bottom:12px;">
+      <div class="controls">
+        <label><input id="auto" type="checkbox" checked> 입력 시 자동 처리</label>
+        <label><input id="wsblank" type="checkbox" checked> 공백만 있는 줄도 빈줄로 간주</label>
+        <label><input id="trimline" type="checkbox"> 각 줄 앞뒤 공백 제거</label>
+        <span style="margin-left:auto"></span>
+        <button class="primary" id="runBtn" title="Ctrl/⌘+Enter">즉시 처리</button>
+        <button id="clearBtn">모두 지우기</button>
+        <button id="copyBtn">복사</button>
+        <button id="saveBtn">.txt 저장</button>
+      </div>
+      <div class="divider"></div>
+      <div class="controls" id="stats" aria-live="polite">
+        <span class="stat">입력 줄수 <strong id="inLines">0</strong></span>
+        <span class="stat">제거된 줄수 <strong id="removed">0</strong></span>
+        <span class="stat">결과 줄수 <strong id="outLines">0</strong></span>
+      </div>
+    </section>
+
+    <section class="row">
+      <div class="card">
+        <div class="area-head"><h2>입력</h2><span class="sub">여기에 텍스트를 붙여넣으세요</span></div>
+        <textarea id="input" placeholder="예시 입력
+
+빈 줄이 여러 개 섞인
+
+텍스트입니다.
+        	         (공백만 있는 줄도 빈줄로 간주)
+
+이 줄은 유지됩니다."></textarea>
+      </div>
+      <div class="card">
+        <div class="area-head"><h2>결과</h2><span class="sub">읽기 전용</span></div>
+        <textarea id="output" readonly placeholder="처리된 결과가 여기에 표시됩니다"></textarea>
+      </div>
+    </section>
+
+    <footer>
+      <p>도움말: 빈줄의 기준은 옵션에서 바꿀 수 있어요. 모든 처리는 로컬 브라우저에서 이루어집니다.</p>
+    </footer>
+  </main>
+
+  <script>
+    const $ = (s)=>document.querySelector(s);
+    const input = $('#input');
+    const output = $('#output');
+    const auto = $('#auto');
+    const wsblank = $('#wsblank');
+    const trimline = $('#trimline');
+
+    const inLinesEl = $('#inLines');
+    const outLinesEl = $('#outLines');
+    const removedEl = $('#removed');
+
+    function normalizeNewlines(text){ return text.replace(/\r\n?/g,'\n'); }
+
+    function process(text){
+      const normalized = normalizeNewlines(text);
+      const lines = normalized.split('\n');
+      const mapped = lines.map(line => trimline.checked ? line.trim() : line);
+      const filtered = mapped.filter(line => wsblank.checked ? line.trim() !== '' : line !== '');
+      return filtered.join('\n');
+    }
+
+    function update(){
+      const out = process(input.value);
+      output.value = out;
+      const inNorm = normalizeNewlines(input.value);
+      const inLines = inNorm.length ? inNorm.split('\n').length : 0;
+      const outNorm = normalizeNewlines(out);
+      const outLines = outNorm.length ? outNorm.split('\n').length : 0;
+      const removed = Math.max(inLines - outLines, 0);
+      inLinesEl.textContent = inLines; outLinesEl.textContent = outLines; removedEl.textContent = removed;
+    }
+
+    // 이벤트
+    input.addEventListener('input', ()=>{ if(auto.checked) update(); });
+    wsblank.addEventListener('change', ()=>{ if(auto.checked) update(); });
+    trimline.addEventListener('change', ()=>{ if(auto.checked) update(); });
+    $('#runBtn').addEventListener('click', update);
+    $('#clearBtn').addEventListener('click', ()=>{ input.value=''; output.value=''; update(); input.focus(); });
+
+    $('#copyBtn').addEventListener('click', async ()=>{
+      try{ await navigator.clipboard.writeText(output.value); alert('복사되었습니다.'); }
+      catch(e){ alert('클립보드 복사 실패'); }
+    });
+
+    $('#saveBtn').addEventListener('click', ()=>{
+      try{
+        const blob = new Blob([output.value], {type:'text/plain;charset=utf-8'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'no-blank-lines.txt';
+        document.body.appendChild(a); a.click(); a.remove();
+        URL.revokeObjectURL(url);
+      }catch(e){ alert('파일 저장 실패'); }
+    });
+
+    // 단축키 Ctrl/Cmd + Enter
+    window.addEventListener('keydown', (e)=>{
+      if((e.ctrlKey||e.metaKey) && e.key==='Enter'){ e.preventDefault(); update(); }
+    });
+
+    // 초기 렌더
+    update();
+  </script>
+</body>
+</html>

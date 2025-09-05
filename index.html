@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Thenaom Tools</title>
+  <style>
+    :root{--bg:#0b1220;--ink:#0b1220;--line:#e2e8f0;--card:#ffffff}
+    *{box-sizing:border-box}
+    body{margin:0;font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Noto Sans KR,sans-serif;background:linear-gradient(180deg,#f8fafc,#eef2f7)}
+    header{padding:28px 16px;text-align:center}
+    h1{margin:0 0 8px 0;font-size:26px;color:#0f172a}
+    p.sub{margin:0;color:#64748b}
+    main{max-width:900px;margin:20px auto;padding:0 16px 24px}
+    .grid{display:grid;grid-template-columns:1fr;gap:16px}
+    @media(min-width:800px){.grid{grid-template-columns:1fr 1fr}}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 2px 6px rgba(15,23,42,.06)}
+    .card h2{margin:0 0 8px 0;font-size:18px}
+    .card p{margin:0 0 12px 0;color:#475569;font-size:14px}
+    a.btn{display:inline-block;padding:10px 14px;border-radius:10px;text-decoration:none;border:1px solid #0b1220;color:#fff;background:#0b1220}
+    footer{max-width:900px;margin:0 auto 40px;padding:0 16px;color:#64748b;font-size:13px}
+    code{background:#f1f5f9;border:1px solid #e2e8f0;border-radius:6px;padding:0 6px}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Thenaom Tools</h1>
+    <p class="sub">브라우저에서만 처리되는 가벼운 도구 모음 (개인정보 전송 없음)</p>
+  </header>
+  <main>
+    <div class="grid">
+      <div class="card">
+        <h2>빈줄 제거기</h2>
+        <p>여러 줄 텍스트에서 빈 줄(공백만 있는 줄 포함)을 한 번에 제거합니다. 자동 처리/라인 트림 옵션 제공.</p>
+        <a class="btn" href="tools/blankline.html">열기</a>
+      </div>
+      <div class="card">
+        <h2>30줄마다 [a]/[b] 자동 태깅</h2>
+        <p>줄 간격을 지정(기본 30줄)하고, 블록마다 [a]/[b] 태그를 교대로 붙입니다. 빈 줄 건너뛰기/블록 전체 태깅 옵션 제공.</p>
+        <a class="btn" href="tools/tag30.html">열기</a>
+      </div>
+    </div>
+  </main>
+  <footer>
+    <p>새 도구를 추가하려면 <code>tools/</code> 폴더에 HTML 파일을 넣고, 이 페이지에 링크만 하나 더 추가하면 됩니다.</p>
+  </footer>
+</body>
+</html>
