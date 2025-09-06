@@ -1,77 +1,173 @@
+/* ==========================================================================
+   Thenaom Tools — styles.css (Final)
+   - 가독성 강화(폰트/행간/대비)
+   - 반응형 레이아웃 + 사이드바(데스크톱) → 모바일 자동 스택
+   - 카드/버튼/네비/히어로/배지 일관 스타일
+   - 광고 블록 여백 조정(.adsbygoogle)
+   - 접근성: 포커스 링, 색 대비, 키보드 내비
+   ========================================================================== */
+
+/* === Color system (CSS Variables) === */
 :root{
-  --ink:#0b1220; --muted:#64748b; --line:#e2e8f0; --card:#fff; --bg:#f6f8fb;
-  --brand:#0b1220; --focus:#2563eb;
+  --ink:#0b1220;        /* 본문 글자색(짙음) */
+  --muted:#64748b;      /* 보조 텍스트 */
+  --line:#e2e8f0;       /* 구분선/테두리 */
+  --card:#ffffff;       /* 카드 배경 */
+  --bg:#f6f8fb;         /* 페이지 배경 */
+  --brand:#1b4fd7;      /* 브랜드(링크/버튼) */
+  --focus:#2563eb;      /* 포커스 링 */
 }
 
-/* Reset & base */
+/* === Reset & Base === */
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
+html{font-size:17px} /* 가독 베이스 업 */
 body{
   font:16px/1.65 system-ui,-apple-system,Segoe UI,Roboto,"Noto Sans KR",sans-serif;
-  color:#0f172a;background:var(--bg)
+  color:var(--ink);
+  background:var(--bg);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
 }
-a{color:inherit;text-decoration:none}
-a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible{
-  outline:2px solid var(--focus); outline-offset:2px; border-radius:6px;
+img{max-width:100%;height:auto;display:block}
+a{color:var(--brand);text-decoration:none}
+a:hover{text-decoration:underline}
+a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{
+  outline:3px solid var(--focus);outline-offset:2px;border-radius:6px
 }
 
-/* Layout */
+/* === Layout === */
 .container{max-width:1100px;margin:0 auto;padding:0 20px}
+section + section{margin-top:10px}
 
-/* Header / Nav */
-header.site{
-  padding:22px 0;border-bottom:1px solid var(--line);
-  background:#fff;position:sticky;top:0;z-index:10
+/* 2-컬럼 본문 + 사이드바(데스크톱) */
+.layout{display:flex;gap:20px;align-items:flex-start}
+.layout main{flex:1}
+.layout aside{width:300px;flex-shrink:0}
+@media (max-width:768px){
+  .layout{flex-direction:column}
+  .layout aside{width:100%;margin-top:16px}
 }
-.brand{font-weight:700}
+
+/* === Header / Nav === */
+header.site{
+  padding:22px 0;
+  border-bottom:1px solid var(--line);
+  background:#fff;
+  position:sticky;top:0;z-index:10;
+  backdrop-filter:saturate(120%) blur(6px);
+}
+.brand{font-weight:800;color:var(--ink);font-size:20px}
 nav ul{display:flex;gap:14px;list-style:none;margin:0;padding:0}
-nav a{padding:8px 10px;border-radius:8px;color:#0f172a}
+nav a{
+  color:var(--ink);
+  padding:10px 10px;border-radius:8px
+}
 nav a.active, nav a:hover{background:#eef2f7}
 
-/* Hero */
-.hero{padding:26px 0 14px;text-align:center}
-.hero h1{margin:0 0 6px;font-size:26px}
-.hero p{margin:0;color:var(--muted)}
+/* === Hero === */
+.hero{
+  padding:28px 0 18px;
+  text-align:center;
+  background:linear-gradient(180deg,#f6f8ff 0%,#ffffff 100%);
+  border-bottom:1px solid #eef1f6;
+}
+.hero h1{
+  margin:0 0 6px;
+  font-size:clamp(28px,4vw,40px);
+  font-weight:800;
+  letter-spacing:-0.01em;
+  text-shadow:0 1px 0 #fff;
+}
+.hero p{
+  margin:0;color:#24324a;font-size:1.05rem
+}
 
-/* Cards & grid */
+/* === Sections / Titles === */
+.section-title{
+  margin:20px 0 12px;
+  font-size:clamp(20px,2.6vw,26px);
+  font-weight:700
+}
+
+/* === Grid & Cards === */
 .grid{display:grid;gap:16px}
 @media(min-width:900px){.grid.cols2{grid-template-columns:1fr 1fr}}
-.card{
-  background:var(--card);border:1px solid var(--line);border-radius:16px;
-  padding:18px;box-shadow:0 2px 6px rgba(15,23,42,.06)
-}
-.card h2{margin:0 0 8px;font-size:18px}
-.card p{margin:0 0 12px;color:#475569;font-size:14px}
+@media(max-width:899px){.grid.cols2{grid-template-columns:1fr}}
 
-/* Buttons */
+.card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:18px;
+  box-shadow:0 2px 6px rgba(15,23,42,.06)
+}
+.card h2{
+  margin:0 0 8px;
+  font-size:18px;
+  color:var(--ink)
+}
+.card p{margin:0 0 12px;color:#475569;font-size:14px}
+.badge{
+  display:inline-block;
+  font-size:12px;color:#334155;background:#e2e8f0;
+  border-radius:999px;padding:3px 8px;margin-left:6px;vertical-align:middle
+}
+
+/* === Buttons === */
 .btn{
   display:inline-block;padding:10px 14px;border-radius:10px;
   border:1px solid var(--brand);background:var(--brand);color:#fff;
-  transition:transform .02s ease-in-out
+  font-weight:700;
+  transition:transform .02s ease-in-out, filter .15s ease
 }
 .btn:active{transform:scale(.98)}
-.btn.secondary{background:#fff;color:#0f172a}
+.btn:hover{filter:brightness(.96)}
+.btn.secondary{background:#fff;color:var(--ink);border-color:#cbd5e1}
 
-/* Sections / misc */
-.section-title{margin:18px 0 10px;font-size:18px}
-footer.site{margin:30px 0 40px;color:var(--muted);font-size:13px}
-.badge{display:inline-block;font-size:12px;color:#334155;background:#e2e8f0;border-radius:999px;padding:3px 8px;margin-left:6px}
-
-/* Lists / rows */
+/* === Lists / Rows / Misc === */
 .list{display:grid;gap:12px}
 .item-row{display:flex;gap:10px;align-items:center;justify-content:space-between}
 .item-row span{color:#475569}
 .muted{color:var(--muted)}
 
-/* Ad placeholders (승인 전 표시용) */
+/* === Footer === */
+footer.site{
+  margin:30px 0 40px;
+  color:var(--muted);
+  font-size:13px
+}
+
+/* === Ads === */
+.adsbygoogle{margin:14px 0}  /* 광고 주변 여백으로 가독성 유지 */
+
+/* 승인 전 임시 자리 스타일(필요 시 유지) */
 .ad-placeholder{
-  border:2px dashed var(--line);border-radius:14px;background:#fff;
+  border:2px dashed var(--line);
+  border-radius:14px;background:#fff;
   padding:14px;margin:16px 0;text-align:center;color:var(--muted)
 }
 .ad-placeholder small{display:block}
 
-/* Utility */
+/* === Utilities === */
 .hidden-visually{
   position:absolute!important;height:1px;width:1px;overflow:hidden;
   clip:rect(1px,1px,1px,1px);white-space:nowrap
+}
+
+/* === Optional: Table / Code blocks (향후 확장 대비) === */
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:14px}
+th,td{border:1px solid var(--line);padding:10px 12px;text-align:left}
+th{background:#f8fafc}
+code,pre{
+  font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+  background:#f8fafc;border:1px solid var(--line);border-radius:8px
+}
+pre{padding:12px;overflow:auto}
+code{padding:2px 6px}
+
+/* === Print (선택) === */
+@media print{
+  header.site, .adsbygoogle{display:none!important}
+  .container{max-width:100%;padding:0}
 }

@@ -1,23 +1,24 @@
 <!doctype html>
-<html lang="ko">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>자동 태깅 — 30줄/바이트 간격 · 3값 로테이션 | Thenaom Tools</title>
-  <meta name="description" content="문서에 자동으로 태그를 삽입합니다. 30줄 같은 라인 간격 또는 1024바이트 같은 바이트 간격으로, 지정한 3가지 태그 값을 번갈아 넣어 문서를 자동 마킹합니다. 맨 앞 삽입·인라인 삽입·자동 저장 지원." />
+  <title>Auto Tagging — Line/Byte Interval · 3-value Rotation | Thenaom Tools</title>
+  <meta name="description" content="Automatically insert tags into your text at fixed intervals. Use line intervals (e.g., every 30 lines) or byte intervals (e.g., every 1024 bytes), rotating up to 3 tag values. Supports insert-at-start, inline insertion, line-break control, and auto-saving." />
   <meta name="robots" content="index,follow" />
-  <link rel="canonical" href="https://tools.thenaom.com/tools/tag30.html">
-  <link rel="alternate" hreflang="ko" href="https://tools.thenaom.com/tools/tag30.html">
+  <link rel="canonical" href="https://tools.thenaom.com/en/tools/tag30.html">
   <link rel="alternate" hreflang="en" href="https://tools.thenaom.com/en/tools/tag30.html">
+  <link rel="alternate" hreflang="ko" href="https://tools.thenaom.com/tools/tag30.html">
+  <link rel="alternate" hreflang="x-default" href="https://tools.thenaom.com/tools/tag30.html">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
 
   <!-- Open Graph -->
-  <meta property="og:title" content="자동 태깅 — 30줄/바이트 간격 · 3값 로테이션" />
-  <meta property="og:description" content="라인 간격 또는 바이트 간격으로, 3개의 태그 값을 번갈아 문서에 삽입합니다. 맨 앞/인라인/자동 저장 지원." />
-  <meta property="og:image" content="https://tools.thenaom.com/assets/og-tool-tag30-ko.png" />
-  <meta property="og:url" content="https://tools.thenaom.com/tools/tag30.html" />
+  <meta property="og:title" content="Auto Tagging — Line/Byte Interval · 3-value Rotation" />
+  <meta property="og:description" content="Insert up to 3 tags in rotation at fixed line or byte intervals." />
+  <meta property="og:image" content="https://tools.thenaom.com/assets/og-tool-tag30-en.png" />
+  <meta property="og:url" content="https://tools.thenaom.com/en/tools/tag30.html" />
   <meta property="og:type" content="website" />
-  <meta property="og:locale" content="ko_KR" />
+  <meta property="og:locale" content="en_US" />
 
   <!-- Theme: set early to avoid FOUC -->
   <script>
@@ -31,7 +32,7 @@
     })();
   </script>
 
-  <!-- GTM -->
+  <!-- Google Tag Manager -->
   <script>
     (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});
       var f=d.getElementsByTagName(s)[0], j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:''; j.async=true;
@@ -46,9 +47,11 @@
     :root{ --bg:#ffffff; --text:#0b1220; --muted:#475569; --border:#e5e7eb; --card:#ffffff; --accent:#2563eb; --btn-text:#ffffff; --shadow:0 6px 18px rgba(0,0,0,.06); --focus: color-mix(in srgb, var(--accent) 35%, transparent); --hero-tint:#eff3ff; --hero-grid:#e8ecf6; --hero-ring:#cfe1ff; --input:#0b1220; --input-bg:var(--card); }
     [data-theme="dark"]{ --bg:#0b1220; --text:#f1f5f9; --muted:#cbd5e1; --border:#334155; --card:#111827; --accent:#60a5fa; --btn-text:#0b1220; --shadow:0 8px 22px rgba(0,0,0,.55); --focus: color-mix(in srgb, var(--accent) 45%, transparent); --hero-tint:#0f172a; --hero-grid:#162036; --hero-ring:#1f3b76; --input:#e5e7eb; --input-bg:#0f172a; }
     html,body{background:var(--bg)!important}
-    body{color:var(--text)!important;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Noto Sans KR,Arial,sans-serif}
+    body{color:var(--text)!important;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Noto Sans,Arial,sans-serif}
     a{color:var(--accent);text-decoration:none}
     .container{max-width:1120px;margin:0 auto;padding:0 16px}
+
+    /* Header */
     header.site{position:sticky;top:0;z-index:100;background:var(--bg)!important;border-bottom:1px solid var(--border)}
     .brand{color:var(--text)!important;font-weight:800;text-decoration:none}
     header.site nav{display:flex;align-items:center;gap:12px}
@@ -56,6 +59,8 @@
     .lang-switch:hover,.theme-toggle:hover,.theme-toggle:focus-visible,.btn:hover{color:var(--accent)!important;border-color:var(--accent)!important;box-shadow:0 0 0 3px var(--focus), var(--shadow)}
     .theme-toggle:active,.btn:active{transform:translateY(1px)}
     .theme-toggle[aria-pressed="true"]{background:linear-gradient(180deg,color-mix(in srgb,var(--accent)22%,var(--card)),var(--accent));border-color:var(--accent)!important;color:var(--btn-text)!important}
+
+    /* Hero */
     .hero{position:relative;overflow:hidden;padding:28px 0 18px;text-align:start;isolation:isolate}
     .hero::before{content:"";position:absolute;inset:0;background:radial-gradient(900px 360px at 50% -15%, var(--hero-ring), transparent 65%),linear-gradient(180deg, color-mix(in srgb, var(--hero-tint) 88%, transparent), transparent 60%);z-index:-2}
     .hero::after{content:"";position:absolute;inset:0;background:linear-gradient(to right, color-mix(in srgb,var(--hero-grid) 35%, transparent) 1px, transparent 1px) 0 0/28px 28px,linear-gradient(to bottom, color-mix(in srgb,var(--hero-grid) 35%, transparent) 1px, transparent 1px) 0 0/28px 28px;opacity:.5;z-index:-1}
@@ -64,6 +69,8 @@
     .crumb{margin:10px 0 0;font-size:.95rem}
     .crumb a{color:var(--muted)}
     .hl{background:color-mix(in srgb, var(--accent) 14%, transparent);padding:0 4px;border-radius:6px}
+
+    /* Main layout */
     main .section{margin:12px 0}
     .ad-space{margin:8px 0}
     .panel{border:1px solid var(--border);border-radius:12px;background:linear-gradient(180deg, color-mix(in srgb, var(--card) 95%, transparent), var(--card));box-shadow:var(--shadow);padding:12px}
@@ -72,7 +79,7 @@
     @media(min-width:980px){.row{grid-template-columns:1fr 1fr}}
     .controls{display:flex;flex-wrap:wrap;gap:8px}
     .controls .btn-primary{background:linear-gradient(180deg,color-mix(in srgb,var(--accent)18%,var(--card)),var(--accent));color:var(--btn-text)!important;border-color:var(--accent)}
-    .controls .btn-secondary{background:linear-gradient(180deg, color-mix(in srgb,var(--card)95%, transparent), var(--card))}
+    .controls .btn-secondary{background:linear-gradient(180deg, color-mix(in srgb, var(--card) 95%, transparent), var(--card))}
     textarea.input, textarea.output{ width:100%;min-height:260px;padding:12px;border-radius:10px;border:1px solid var(--border); background:var(--input-bg);color:var(--input);font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:.98rem;line-height:1.45;resize:vertical }
     input[type="number"]{width:120px}
     .small{font-size:.92rem;color:var(--muted)}
@@ -81,6 +88,7 @@
     .opt{display:flex;align-items:center;gap:6px}
     .opt .hint{font-size:.9em;color:var(--muted)}
     .notice{border-left:3px solid var(--accent);padding:8px 10px;background:color-mix(in srgb, var(--card) 92%, transparent);border-radius:8px}
+
     footer.site{margin-top:16px;padding:14px 0;border-top:1px solid var(--border);font-size:.95rem;color:var(--muted)!important}
     .footer-row{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
     .footer-links{display:flex;gap:14px;flex-wrap:wrap}
@@ -95,10 +103,10 @@
   <!-- Header -->
   <header class="site">
     <div class="container" style="display:flex;justify-content:space-between;align-items:center">
-      <a href="/" class="brand">Thenaom Tools</a>
-      <nav aria-label="보조 탐색">
-        <a class="lang-switch" href="/en/tools/tag30.html" hreflang="en">English</a>
-        <button id="themeToggle" class="theme-toggle" aria-pressed="false" title="테마 전환"><span class="icon">🌞</span><span class="label">라이트</span></button>
+      <a href="/en/" class="brand">Thenaom Tools</a>
+      <nav aria-label="Secondary navigation">
+        <a class="lang-switch" href="/tools/tag30.html" hreflang="ko">한국어</a>
+        <button id="themeToggle" class="theme-toggle" aria-pressed="false" title="Toggle theme"><span class="icon">🌞</span><span class="label">Light</span></button>
       </nav>
     </div>
   </header>
@@ -106,161 +114,169 @@
   <!-- Hero -->
   <section class="hero">
     <div class="container">
-      <div class="crumb"><a href="/">홈</a> &nbsp;>&nbsp; <a href="/utility/">업무 유틸</a> &nbsp;>&nbsp; 자동 태깅</div>
-      <h1>자동 태깅 (라인/바이트) · 3값 로테이션</h1>
-      <p>지정한 간격마다 <span class="hl">태그 3개를 번갈아</span> 넣어 문서를 자동으로 마킹합니다. 라인 기준(예: 30줄) 또는 바이트 기준(예: 1024바이트)을 고를 수 있어요.</p>
+      <div class="crumb"><a href="/en/">Home</a> &nbsp;>&nbsp; <a href="/utility/">Utilities</a> &nbsp;>&nbsp; Auto Tagging</div>
+      <h1>Auto Tagging (Line/Byte) · 3-value Rotation</h1>
+      <p>Automatically insert <span class="hl">up to three tags in rotation</span> into your text. Choose line-based (e.g., every 30 lines) or byte-based (e.g., every 1024 bytes) insertion.</p>
     </div>
   </section>
 
   <main class="container" id="main">
-    <!-- 상단 광고 -->
+    <!-- Top ad -->
     <div class="ad-space">
-      <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3006330103681332" data-ad-slot="6703005412" data-ad-format="auto" data-full-width-responsive="true"></ins>
+      <ins class="adsbygoogle" style="display:block"
+           data-ad-client="ca-pub-3006330103681332"
+           data-ad-slot="6703005412"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
     </div>
     <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
 
-    <!-- 사용법 -->
+    <!-- How to -->
     <section class="section panel">
-      <h2>어떻게 쓰나요?</h2>
-      <p class="small">1) 본문 붙여넣기 → 2) 간격·태그 옵션 고르기 → 3) <strong>실행</strong> (단축키: <kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Enter</kbd>)</p>
+      <h2>How to use</h2>
+      <p class="small">1) Paste your text → 2) Set intervals & tags → 3) <strong>Run</strong> (shortcut: <kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Enter</kbd>)</p>
     </section>
 
-    <!-- 본문 -->
+    <!-- Body -->
     <section class="section">
       <div class="row">
-        <!-- 입력 -->
-        <div class="panel" aria-label="입력">
-          <h2>입력</h2>
-          <textarea id="input" class="input" placeholder="여기에 텍스트 붙여넣기"></textarea>
+        <!-- Input -->
+        <div class="panel" aria-label="Input">
+          <h2>Input</h2>
+          <textarea id="input" class="input" placeholder="Paste your text here"></textarea>
           <div class="counter" id="inStats" aria-live="polite"></div>
         </div>
 
-        <!-- 옵션/출력 -->
-        <div class="panel" aria-label="옵션과 출력">
-          <h2>옵션 & 실행</h2>
+        <!-- Options / Output -->
+        <div class="panel" aria-label="Options and output">
+          <h2>Options & Run</h2>
 
           <div class="options" style="margin-bottom:8px">
-            <!-- 공통 빠른 옵션 -->
-            <label class="opt"><input type="checkbox" id="insertAtStart"> 맨 앞에도 태그 삽입</label>
-            <label class="opt"><input type="checkbox" id="inlineInsert"> 문장에 바로 붙여 삽입(줄바꿈 없음)</label>
-            <label class="opt"><input type="checkbox" id="addNewlineAfter"> 태그 뒤에 줄바꿈 추가</label>
+            <!-- Common quick options -->
+            <label class="opt"><input type="checkbox" id="insertAtStart"> Insert tag at beginning</label>
+            <label class="opt"><input type="checkbox" id="inlineInsert"> Inline insert (no line break)</label>
+            <label class="opt"><input type="checkbox" id="addNewlineAfter"> Add line break after tag</label>
 
-            <!-- 모드 -->
+            <!-- Mode -->
             <fieldset class="opt" style="border:none;padding:0;margin:0;display:flex;gap:10px;flex-wrap:wrap">
-              <legend class="hidden-visually">모드 선택</legend>
-              <label class="opt"><input type="radio" name="mode" value="line" checked> <strong>라인 간격</strong> (예: 30줄)</label>
-              <label class="opt"><input type="radio" name="mode" value="byte"> <strong>바이트 간격</strong> (예: 1024바이트)</label>
+              <legend class="hidden-visually">Mode</legend>
+              <label class="opt"><input type="radio" name="mode" value="line" checked> <strong>Line interval</strong> (e.g., 30 lines)</label>
+              <label class="opt"><input type="radio" name="mode" value="byte"> <strong>Byte interval</strong> (e.g., 1024 bytes)</label>
             </fieldset>
 
-            <!-- 라인 간격 옵션 -->
+            <!-- Line interval options -->
             <div id="lineOpts" class="opt" style="flex-direction:column;gap:8px">
-              <label class="opt">간격(줄 수)
+              <label class="opt">Interval (lines)
                 <input id="lineInterval" type="number" value="30" min="1">
               </label>
-              <label class="opt">앞부분 건너뛰기 (줄)
+              <label class="opt">Skip first lines
                 <input id="lineStartOffset" type="number" value="0" min="0">
-                <span class="hint">0이면 30줄 → 31번째 줄부터 삽입</span>
+                <span class="hint">0 means: 30 lines → insert at line 31 first</span>
               </label>
-              <label class="opt">삽입 위치
+              <label class="opt">Insert position
                 <select id="lineInsertWhere">
-                  <option value="newline">다음 줄로 새 줄 삽입 (기본)</option>
-                  <option value="append">현재 줄 끝에 덧붙이기</option>
-                  <option value="prepend">현재 줄 앞에 덧붙이기</option>
+                  <option value="newline">Insert as a new line (default)</option>
+                  <option value="append">Append to end of current line</option>
+                  <option value="prepend">Prepend to start of current line</option>
                 </select>
               </label>
             </div>
 
-            <!-- 바이트 간격 옵션 -->
+            <!-- Byte interval options -->
             <div id="byteOpts" class="opt" style="flex-direction:column;gap:8px;display:none">
-              <label class="opt">간격(바이트)
+              <label class="opt">Interval (bytes)
                 <input id="byteInterval" type="number" value="1024" min="1">
               </label>
-              <label class="opt">앞부분 건너뛰기 (바이트 단위)
+              <label class="opt">Skip first bytes
                 <input id="byteStartOffset" type="number" value="0" min="0">
               </label>
-              <label class="opt">방식
+              <label class="opt">Mode
                 <select id="byteMode">
-                  <option value="friendly">사람이 읽기 좋게 (다음 줄의 선두에 삽입)</option>
-                  <option value="exact">정확한 바이트 (해당 위치에 삽입)</option>
+                  <option value="friendly">Friendly (insert at start of next line)</option>
+                  <option value="exact">Exact byte position</option>
                 </select>
               </label>
-              <label class="opt" id="byteExactSideWrap" style="display:none">정밀 삽입 위치
+              <label class="opt" id="byteExactSideWrap" style="display:none">Exact insert side
                 <select id="byteExactSide">
-                  <option value="after">경계 뒤에 붙이기</option>
-                  <option value="before">경계 전에 넣기</option>
+                  <option value="after">After boundary</option>
+                  <option value="before">Before boundary</option>
                 </select>
               </label>
             </div>
 
-            <!-- 태그 & 템플릿 -->
+            <!-- Tags & Template -->
             <fieldset class="opt" style="border:1px dashed var(--border);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px">
-              <legend class="small" style="padding:0 6px">태그 값 (최대 3개, 번갈아 삽입)</legend>
-              <label class="opt">태그 1 <input id="tag1" type="text" placeholder="예: [A]"></label>
-              <label class="opt">태그 2 <input id="tag2" type="text" placeholder="예: [B]"></label>
-              <label class="opt">태그 3 <input id="tag3" type="text" placeholder="예: [C]"></label>
-              <label class="opt">삽입 서식(템플릿)
+              <legend class="small" style="padding:0 6px">Tag values (up to 3, rotate)</legend>
+              <label class="opt">Tag 1 <input id="tag1" type="text" placeholder="[A]"></label>
+              <label class="opt">Tag 2 <input id="tag2" type="text" placeholder="[B]"></label>
+              <label class="opt">Tag 3 <input id="tag3" type="text" placeholder="[C]"></label>
+              <label class="opt">Template (where the tag goes)
                 <input id="template" type="text" value="{TAG}">
-                <span class="hint">{TAG} 자리에 입력한 태그 값이 그대로 들어갑니다. 공백이나 대괄호 등 꾸밈이 필요하면 템플릿에 직접 넣어주세요. 예: <code>--{TAG}--</code>, <code> [{TAG}]</code></span>
+                <span class="hint">{TAG} is replaced by your tag value. Add your own spaces/brackets if needed. e.g., <code>--{TAG}--</code>, <code> [{TAG}]</code></span>
               </label>
-              <label class="opt"><input type="checkbox" id="avoidDup" checked> 중복 방지 (같은 태그가 이미 있으면 건너뛰기)</label>
-              <label class="opt"><input type="checkbox" id="trimInserted"> 삽입 줄 앞뒤 빈칸 지우기</label>
+              <label class="opt"><input type="checkbox" id="avoidDup" checked> Avoid duplicates (skip when the same tag is already there)</label>
+              <label class="opt"><input type="checkbox" id="trimInserted"> Trim whitespace on the inserted tag line</label>
             </fieldset>
 
-            <!-- 줄바꿈 & 기타 -->
-            <label class="opt">줄바꿈 방식 맞추기
+            <!-- Newline normalization -->
+            <label class="opt">Normalize line endings
               <select id="newline">
-                <option value="as-is">그대로 두기</option>
-                <option value="lf">줄바꿈(맥·리눅스, LF)</option>
-                <option value="crlf">줄바꿈(윈도우, CRLF)</option>
+                <option value="as-is">Keep as-is</option>
+                <option value="lf">LF (Unix/macOS)</option>
+                <option value="crlf">CRLF (Windows)</option>
               </select>
             </label>
           </div>
 
           <div class="controls" style="margin-bottom:10px">
-            <button class="btn btn-primary" id="runBtn">실행</button>
-            <button class="btn btn-secondary" id="resetBtn">초기화</button>
-            <button class="btn btn-secondary" id="copyBtn">복사</button>
-            <button class="btn btn-secondary" id="downloadBtn">다운로드</button>
+            <button class="btn btn-primary" id="runBtn">Run</button>
+            <button class="btn btn-secondary" id="resetBtn">Reset</button>
+            <button class="btn btn-secondary" id="copyBtn">Copy</button>
+            <button class="btn btn-secondary" id="downloadBtn">Download</button>
           </div>
 
-          <textarea id="output" class="output" placeholder="여기에 결과가 표시됩니다" aria-live="polite" readonly></textarea>
+          <textarea id="output" class="output" placeholder="The result will appear here" aria-live="polite" readonly></textarea>
           <div class="counter" id="outStats" aria-live="polite"></div>
 
           <p class="small notice" style="margin-top:10px">
-            👉 <strong>팁</strong>: 자동 공백을 추가하지 않습니다. 공백이 필요하면 태그나 템플릿에 직접 넣어주세요. 예: 템플릿을 <code> {TAG}</code>로 두면 태그 앞에 한 칸이 생깁니다.
+            👉 <strong>Tip</strong>: No automatic spaces are added. If you want a space, include it in your template or tag (e.g., template <code> {TAG}</code> to add one leading space).
           </p>
         </div>
       </div>
     </section>
 
-    <!-- 하단 광고 -->
+    <!-- Bottom ad -->
     <div class="ad-space">
-      <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3006330103681332" data-ad-slot="9867638073" data-ad-format="auto" data-full-width-responsive="true"></ins>
+      <ins class="adsbygoogle" style="display:block"
+           data-ad-client="ca-pub-3006330103681332"
+           data-ad-slot="9867638073"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
     </div>
     <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
 
     <!-- FAQ -->
     <section class="section panel faq">
       <h2>FAQ</h2>
-      <div class="qa"><h3>라인 기준과 바이트 기준, 뭐가 다른가요?</h3><p>라인 기준은 줄 수(예: 30줄), 바이트 기준은 파일 크기(예: 1024바이트)로 간격을 계산합니다. 바이트 기준은 한글이 보통 3바이트(UTF‑8)라는 점을 고려합니다.</p></div>
-      <div class="qa"><h3>사람이 읽기 좋게 vs 정확한 바이트</h3><p>읽기 좋게: 지정 지점 근처의 <b>다음 줄 시작</b>에 태그를 새 줄로 넣습니다. 정확한 바이트: <b>딱 해당 바이트</b> 경계에 태그를 꽂습니다(문자 중간 분할 없음).</p></div>
-      <div class="qa"><h3>맨 앞에도 태그 삽입은 어떻게 되나요?</h3><p>옵션을 켜면 결과 맨 앞(0바이트/첫 줄)에 템플릿 적용 태그를 먼저 넣고, 이후부터 간격 규칙대로 계속 삽입합니다. 중복 방지 ON이면 동일 태그로 이미 시작할 때 첫 삽입은 스킵합니다.</p></div>
-      <div class="qa"><h3>문장에 바로 붙여 삽입(줄바꿈 없음)은?</h3><p>태그를 새 줄로 넣지 않고 <b>해당 줄 끝에 바로 이어</b> 붙입니다. 공백은 자동으로 넣지 않습니다. 공백이 필요하면 템플릿을 <code>{TAG} </code> 또는 <code> {TAG}</code>처럼 지정하세요.</p></div>
-      <div class="qa"><h3>태그 뒤에 줄바꿈 추가</h3><p>체크하면 태그 뒤에 엔터를 강제로 추가합니다. 인라인 삽입과 함께 쓰면 <code>...문장{TAG}\n다음줄...</code> 형태가 됩니다.</p></div>
-      <div class="qa"><h3>삽입 서식(템플릿) {TAG}는 무엇인가요?</h3><p><code>{TAG}</code>는 자리표시자입니다. 여기에 입력한 태그 값이 치환됩니다. 예: 템플릿 <code>--{TAG}--</code>, 태그1 <code>[A]</code> → <code>--[A]--</code>.</p></div>
-      <div class="qa"><h3>앞부분 건너뛰기(줄/바이트)는 언제 쓰나요?</h3><p>머리말/표지 등 앞부분을 제외하고 그 다음부터만 태깅하고 싶을 때 씁니다. 줄 기준은 줄 수로, 바이트 기준은 크기로 스킵합니다.</p></div>
-      <div class="qa"><h3>중복 방지와 삽입 줄 트림</h3><p>중복 방지: 같은 태그가 연속으로 겹치면 건너뜁니다. 삽입 줄 트림: 삽입되는 태그 줄의 앞뒤 공백을 제거합니다(본문 줄은 그대로).</p></div>
-      <div class="qa"><h3>줄바꿈(LF/CRLF) 맞추기는 왜 필요하죠?</h3><p>운영체제마다 줄바꿈 코드가 달라 문서가 깨질 수 있습니다. 맥·리눅스는 LF, 윈도우는 CRLF를 주로 사용합니다. 한 가지로 통일하면 안전합니다.</p></div>
-      <div class="qa"><h3>태그 3개 로테이션 규칙</h3><p>입력한 순서대로 <code>태그1 → 태그2 → 태그3 → 태그1...</code> 반복합니다. 비워둔 태그는 건너뜁니다.</p></div>
-      <div class="qa"><h3>설정이 저장되나요?</h3><p>네. 브라우저 <code>localStorage</code>에 자동 저장/복원됩니다. 초기화 버튼을 누르면 저장값도 지워집니다.</p></div>
-      <div class="qa"><h3>멀티바이트(한글 등) 안전한가요?</h3><p>정확한 바이트 모드에서도 UTF‑8 문자 경계를 지켜 <b>문자 중간을 절대 자르지 않습니다</b>.</p></div>
+      <div class="qa"><h3>What’s the difference between line and byte intervals?</h3><p>Line mode counts lines (e.g., every 30 lines). Byte mode counts UTF‑8 bytes (e.g., every 1024 bytes). Note that many non‑ASCII characters occupy multiple bytes.</p></div>
+      <div class="qa"><h3>“Friendly” vs “Exact” in byte mode</h3><p><b>Friendly</b> snaps to the <b>start of the next line</b>, keeping text readable. <b>Exact</b> inserts at the exact byte boundary (without splitting multibyte characters).</p></div>
+      <div class="qa"><h3>Insert tag at beginning</h3><p>When enabled, the first tag (with your template applied) is inserted at the very start (byte 0 / line 1). With “avoid duplicates” on, it skips if the text already starts with the same tag.</p></div>
+      <div class="qa"><h3>Inline insert (no line break)</h3><p>Append the tag directly to the current line instead of creating a new line. No spaces are added automatically—add them in your template if needed.</p></div>
+      <div class="qa"><h3>Add line break after tag</h3><p>Forces a newline right after every inserted tag. Combining with inline insert gives <code>...text{TAG}\nNext line...</code>.</p></div>
+      <div class="qa"><h3>What does the <code>{TAG}</code> placeholder do?</h3><p><code>{TAG}</code> is replaced with your Tag 1/2/3 values in rotation. Example: template <code>--{TAG}--</code> with Tag 1 = <code>[A]</code> becomes <code>--[A]--</code>.</p></div>
+      <div class="qa"><h3>Skip first lines/bytes</h3><p>Skip a header or front matter: start tagging after the first N lines/bytes.</p></div>
+      <div class="qa"><h3>Avoid duplicates & Trim</h3><p>Avoid duplicates skips insertion if the exact tag text is already present at that point. Trim removes leading/trailing whitespace on the inserted tag line.</p></div>
+      <div class="qa"><h3>Normalize line endings (LF/CRLF)</h3><p>Different OSes use different line breaks. Normalize them to avoid formatting issues across platforms.</p></div>
+      <div class="qa"><h3>How does 3‑tag rotation work?</h3><p>They cycle as Tag 1 → Tag 2 → Tag 3 → Tag 1… Empty tag fields are skipped.</p></div>
+      <div class="qa"><h3>Are my settings saved?</h3><p>Yes. Options and tag values are saved to <code>localStorage</code> and restored on reload. Use Reset to clear.</p></div>
+      <div class="qa"><h3>Is it safe with UTF‑8 characters?</h3><p>Yes. In Exact mode, insertion only happens at UTF‑8 code point boundaries—no character is ever split.</p></div>
     </section>
 
-    <!-- 문의 -->
-    <section class="section contact panel" aria-label="문의하기">
-      <h2>문의하기</h2>
-      <p class="small">사용 중 불편사항이나 제안이 있다면 이메일로 연락해주세요.</p>
-      <p><strong>이메일:</strong> <a href="mailto:thenaom@naver.com">thenaom@naver.com</a></p>
+    <!-- Contact -->
+    <section class="section contact panel" aria-label="Contact">
+      <h2>Contact</h2>
+      <p class="small">Questions or suggestions? Email us.</p>
+      <p><strong>Email:</strong> <a href="mailto:thenaom@naver.com">thenaom@naver.com</a></p>
     </section>
   </main>
 
@@ -268,10 +284,10 @@
   <footer class="site">
     <div class="container footer-row">
       <div>© <span id="y"></span> Thenaom Tools. All rights reserved.</div>
-      <nav class="footer-links" aria-label="푸터 링크">
-        <a href="/privacy.html">개인정보처리방침</a>
-        <a href="/terms.html">이용약관</a>
-        <a href="#" id="cookiePrefs">쿠키 설정</a>
+      <nav class="footer-links" aria-label="Footer links">
+        <a href="/privacy.html">Privacy Policy</a>
+        <a href="/terms.html">Terms</a>
+        <a href="#" id="cookiePrefs">Cookie Settings</a>
         <a href="/sitemap.xml">Sitemap</a>
         <a href="/ads.txt">ads.txt</a>
         <a href="mailto:thenaom@naver.com">Contact</a>
@@ -288,7 +304,7 @@
       const btn=document.getElementById('themeToggle');
       const root=document.documentElement;
       const get=()=> (root.getAttribute('data-theme')==='dark'?'dark':'light');
-      const setUI=(m)=>{ if(!btn) return; btn.setAttribute('aria-pressed',m==='dark'); const ic=btn.querySelector('.icon'); const lb=btn.querySelector('.label'); if(ic) ic.textContent=m==='dark'?'🌙':'🌞'; if(lb) lb.textContent=m==='dark'?'다크':'라이트'; };
+      const setUI=(m)=>{ if(!btn) return; btn.setAttribute('aria-pressed',m==='dark'); const ic=btn.querySelector('.icon'); const lb=btn.querySelector('.label'); if(ic) ic.textContent=m==='dark'?'🌙':'🌞'; if(lb) lb.textContent=m==='dark'?'Dark':'Light'; };
       setUI(get());
       btn&&btn.addEventListener('click',()=>{ const next=get()==='dark'?'light':'dark'; root.setAttribute('data-theme',next); try{localStorage.setItem('theme',next);}catch(e){} setUI(next); });
       const mq=window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
@@ -298,9 +314,8 @@
     // helpers
     function byteLen(str){ return new TextEncoder().encode(str).length; }
     function countLines(str){ if(!str) return 0; return str.split(/\r\n|\r|\n/).length; }
-    function statHtml(str){ return `<span>줄: ${countLines(str).toLocaleString()}</span><span>바이트: ${byteLen(str).toLocaleString()}</span><span>문자: ${[...str].length.toLocaleString()}</span>`; }
+    function statHtml(str){ return `<span>Lines: ${countLines(str).toLocaleString()}</span><span>Bytes: ${byteLen(str).toLocaleString()}</span><span>Chars: ${[...str].length.toLocaleString()}</span>`; }
     function normalizeNewlines(text){ return text.replace(/\r\n?|\n/g, '\n'); }
-    function toNewline(text, mode){ if(mode==='as-is') return text; if(mode==='lf') return text.replace(/\r\n|\r|\n/g, '\n'); if(mode==='crlf') return text.replace(/\r\n|\r|\n/g, '\r\n'); return text; }
     function safeTemplate(tpl, tag){ return (tpl||'{TAG}').replaceAll('{TAG}', tag); }
 
     // UTF-8 map helpers
@@ -328,17 +343,17 @@
       const startOffset = Math.max(0, opts.lineStartOffset|0);
       const where = opts.lineInsertWhere; // newline, append, prepend
 
-      // 맨 앞 삽입
+      // insert at beginning
       if(opts.insertAtStart){
         const tag0 = safeTemplate(opts.template, tags[ti % tags.length]); ti++;
         const tag0Text = opts.inlineInsert ? (tag0 + (opts.addNewlineAfter?'\n':'')) : (opts.addNewlineAfter? (tag0+'\n') : tag0);
         if(opts.inlineInsert || where==='append'){
           if(!lines.length) lines=[''];
-          lines[0] = lines[0] + tag0Text; // 바로 붙임
+          lines[0] = lines[0] + tag0Text;
         }else if(where==='prepend'){
           if(!lines.length) lines=[''];
           lines[0] = tag0Text + lines[0];
-        }else{ // newline 별도 줄
+        }else{
           out.push(tag0Text.replace(/\n$/,''));
         }
       }
@@ -365,25 +380,24 @@
       return joined.replace(/\n/g, NL_IN==='\r\n'?'\r\n':(NL_IN==='\r'?'\r':'\n'));
     }
 
-    // BYTE MODE (pos는 항상 원본 기준 간격으로만 전진 — 태그 길이는 간격에 포함하지 않음)
+    // BYTE MODE (interval measured on original text; tags do not shift the next interval)
     function processByteMode(input, opts){
       const enc = new TextEncoder();
       const dec = new TextDecoder();
       const {bytes, map, lineStarts} = buildUtf8Map(input);
       const tags = opts.tags; let ti = 0;
       const interval = Math.max(1, opts.byteInterval|0);
-      let pos = Math.max(0, opts.byteStartOffset|0) + interval; // 첫 지점
+      let pos = Math.max(0, opts.byteStartOffset|0) + interval;
 
       const chunks = [];
       let cursor = 0;
       const addChunk = (from, to) => { if(to>from) chunks.push(new Uint8Array(bytes.slice(from, to))); };
 
-      // 맨 앞 삽입
+      // insert at beginning
       if(opts.insertAtStart){
         const tag0 = safeTemplate(opts.template, tags[ti % tags.length]); ti++;
         const tag0Text = opts.inlineInsert ? (tag0 + (opts.addNewlineAfter?'\n':'')) : (opts.addNewlineAfter? (tag0+'\n') : tag0);
         const tag0Bytes = enc.encode(tag0Text);
-        // 중복 방지
         let skip0=false; if(opts.avoidDup){ const slice0 = new Uint8Array(bytes.slice(0, tag0Bytes.length)); if(slice0.length===tag0Bytes.length){ let eq=true; for(let i=0;i<tag0Bytes.length;i++){ if(tag0Bytes[i]!==slice0[i]){ eq=false; break; } } if(eq) skip0=true; } }
         if(!skip0) chunks.push(tag0Bytes);
       }
@@ -394,7 +408,7 @@
           const nextLineStart = findNextLineStartOffset(lineStarts, pos);
           if(nextLineStart==null){ break; }
           insertAtByte = nextLineStart;
-        }else{ // exact
+        }else{
           insertAtByte = findCodepointStartAtOrBeforeByte(map, bytes.length, pos);
           if(opts.byteExactSide==='after'){
             for(let i=0;i<map.length;i++){ if(map[i]>insertAtByte){ insertAtByte = map[i]; break; } }
@@ -404,17 +418,15 @@
         const tagText = opts.inlineInsert ? (tag + (opts.addNewlineAfter?'\n':'')) : (opts.addNewlineAfter? (tag+'\n') : tag);
         const tagBytes = enc.encode(tagText);
 
-        // 중복 방지
         let skip=false; if(opts.avoidDup){ const nextSlice = new Uint8Array(bytes.slice(insertAtByte, insertAtByte + tagBytes.length)); if(nextSlice.length===tagBytes.length){ let eq=true; for(let i=0;i<tagBytes.length;i++){ if(tagBytes[i]!==nextSlice[i]){ eq=false; break; } } if(eq) skip=true; } }
 
         addChunk(cursor, insertAtByte);
         if(!skip) chunks.push(tagBytes);
         cursor = insertAtByte;
-        pos = insertAtByte + interval; // 태그 길이를 간격에 포함하지 않음
+        pos = insertAtByte + interval;
       }
       addChunk(cursor, bytes.length);
 
-      // concat
       let total=0; for(const c of chunks) total+=c.length;
       const out = new Uint8Array(total);
       let off=0; for(const c of chunks){ out.set(c, off); off+=c.length; }
@@ -468,7 +480,7 @@
     function run(){
       if(!$in.value) return;
       const tags = [$tag1.value,$tag2.value,$tag3.value].filter(Boolean);
-      if(tags.length===0){ alert('태그를 최소 1개 이상 입력하세요.'); return; }
+      if(tags.length===0){ alert('Enter at least one tag.'); return; }
       const common = {
         tags,
         template: $template.value || '{TAG}',
@@ -510,10 +522,10 @@
         byteInterval:$byteInterval.value, byteStartOffset:$byteStartOffset.value, byteMode:$byteMode.value, byteExactSide:$byteExactSide.value,
         insertAtStart:$insertAtStart.checked, inlineInsert:$inlineInsert.checked, addNewlineAfter:$addNewlineAfter.checked
       };
-      try{ localStorage.setItem('tag30_opts', JSON.stringify(data)); }catch(e){}
+      try{ localStorage.setItem('tag30_opts_en', JSON.stringify(data)); }catch(e){}
     }
     function load(){
-      const raw = localStorage.getItem('tag30_opts'); if(!raw) return;
+      const raw = localStorage.getItem('tag30_opts_en'); if(!raw) return;
       try{
         const o = JSON.parse(raw);
         if(o.tag1!==undefined) $tag1.value=o.tag1; if(o.tag2!==undefined) $tag2.value=o.tag2; if(o.tag3!==undefined) $tag3.value=o.tag3;
@@ -531,7 +543,7 @@
       const m=$mode();
       $lineOpts.style.display = (m==='line')?'':'none';
       $byteOpts.style.display = (m==='byte')?'':'none';
-      $byteExactSideWrap.style.display = ($byteMode.value==='exact')? '' : 'none';
+      document.getElementById('byteExactSideWrap').style.display = ($byteMode.value==='exact')? '' : 'none';
     }
 
     [$tag1,$tag2,$tag3,$template,$avoidDup,$trimInserted,$newline,$lineInterval,$lineStartOffset,$lineInsertWhere,$byteInterval,$byteStartOffset,$byteMode,$byteExactSide,$insertAtStart,$inlineInsert,$addNewlineAfter].forEach(el=>{
@@ -542,47 +554,47 @@
     // events
     $in.addEventListener('input', updateInStats);
     document.addEventListener('keydown', (e)=>{ if((e.ctrlKey||e.metaKey) && e.key==='Enter'){ e.preventDefault(); run(); }});
-    document.addEventListener('change',(e)=>{ const t=e.target; if(t && t.name==='mode'){ syncModeUI(); save(); } if(t && t.id==='byteMode'){ $byteExactSideWrap.style.display = ($byteMode.value==='exact') ? '' : 'none'; save(); } });
+    document.addEventListener('change',(e)=>{ const t=e.target; if(t && t.name==='mode'){ syncModeUI(); save(); } if(t && t.id==='byteMode'){ document.getElementById('byteExactSideWrap').style.display = ($byteMode.value==='exact') ? '' : 'none'; save(); } });
     document.querySelectorAll('input[name="mode"]').forEach(r=>{ r.addEventListener('change', ()=>{ syncModeUI(); save(); }); });
 
     document.getElementById('runBtn').addEventListener('click', run);
 
-    document.getElementById('resetBtn').addEventListener('click', ()=>{ $in.value=''; $out.value=''; updateInStats(); updateOutStats(); try{localStorage.removeItem('tag30_opts');}catch(e){} $in.focus(); });
+    document.getElementById('resetBtn').addEventListener('click', ()=>{ $in.value=''; $out.value=''; updateInStats(); updateOutStats(); try{localStorage.removeItem('tag30_opts_en');}catch(e){} $in.focus(); });
 
-    document.getElementById('copyBtn').addEventListener('click', async ()=>{ if(!$out.value) return; try{ await navigator.clipboard.writeText($out.value); alert('복사됨'); }catch(e){}; window.dataLayer=window.dataLayer||[]; window.dataLayer.push({event:'copy_click', tool:'tag30'}); });
+    document.getElementById('copyBtn').addEventListener('click', async ()=>{ if(!$out.value) return; try{ await navigator.clipboard.writeText($out.value); alert('Copied'); }catch(e){}; window.dataLayer=window.dataLayer||[]; window.dataLayer.push({event:'copy_click', tool:'tag30_en'}); });
 
     document.getElementById('downloadBtn').addEventListener('click', ()=>{
       const blob = new Blob([$out.value||''], {type:'text/plain;charset=utf-8'});
       const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'tag30-result.txt';
       document.body.appendChild(a); a.click(); a.remove();
-      window.dataLayer=window.dataLayer||[]; window.dataLayer.push({event:'download_click', tool:'tag30'});
+      window.dataLayer=window.dataLayer||[]; window.dataLayer.push({event:'download_click', tool:'tag30_en'});
     });
 
     // init
     updateInStats(); updateOutStats(); load(); syncModeUI();
 
-    document.getElementById('cookiePrefs')?.addEventListener('click',function(e){ e.preventDefault(); alert('쿠키 설정 창을 연결하세요 (CMP 연동 필요)'); });
+    document.getElementById('cookiePrefs')?.addEventListener('click',function(e){ e.preventDefault(); alert('Connect your CMP for a cookie preference dialog.'); });
 
     // track
     window.dataLayer = window.dataLayer || [];
-    window.dataLayer.push({event:'tool_use', tool:'tag30'});
+    window.dataLayer.push({event:'tool_use', tool:'tag30_en'});
   </script>
 
-  <!-- JSON-LD: FAQ 확장 -->
+  <!-- JSON-LD: FAQ -->
   <script type="application/ld+json">
   {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
-    {"@type":"Question","name":"라인 기준과 바이트 기준은 무엇이 다른가요?","acceptedAnswer":{"@type":"Answer","text":"라인 기준은 줄 수(예: 30줄), 바이트 기준은 크기(예: 1024바이트)로 간격을 계산합니다."}},
-    {"@type":"Question","name":"사람이 읽기 좋게와 정확한 바이트 차이","acceptedAnswer":{"@type":"Answer","text":"읽기 좋게: 다음 줄 시작에 새 줄로 삽입. 정확한 바이트: 지정 바이트 경계에 삽입(문자 중간 분할 없음)."}},
-    {"@type":"Question","name":"맨 앞에도 태그 삽입 옵션","acceptedAnswer":{"@type":"Answer","text":"결과 맨 앞에 태그를 먼저 넣고 이후 간격대로 삽입합니다. 중복 방지 ON이면 동일 태그 시작 시 첫 삽입을 건너뜁니다."}},
-    {"@type":"Question","name":"문장에 바로 붙여 삽입(줄바꿈 없음)","acceptedAnswer":{"@type":"Answer","text":"태그를 새 줄이 아니라 해당 줄 끝에 바로 이어 붙입니다. 공백은 자동 추가하지 않습니다."}},
-    {"@type":"Question","name":"태그 뒤에 줄바꿈 추가","acceptedAnswer":{"@type":"Answer","text":"체크 시 태그 뒤에 엔터를 넣어 다음 줄로 넘깁니다."}},
-    {"@type":"Question","name":"템플릿 {TAG} 의미","acceptedAnswer":{"@type":"Answer","text":"{TAG}는 자리표시자이며 입력한 태그 값으로 치환됩니다."}},
-    {"@type":"Question","name":"앞부분 건너뛰기","acceptedAnswer":{"@type":"Answer","text":"줄 또는 바이트 단위로 앞부분을 스킵하고 그 다음부터 태깅을 시작합니다."}},
-    {"@type":"Question","name":"중복 방지와 트림","acceptedAnswer":{"@type":"Answer","text":"같은 태그가 있으면 건너뛰고, 삽입 줄의 앞뒤 공백을 제거합니다."}},
-    {"@type":"Question","name":"줄바꿈(LF/CRLF) 통일","acceptedAnswer":{"@type":"Answer","text":"운영체제별 줄바꿈 차이로 인한 깨짐을 예방하기 위해 한 가지로 통일합니다."}},
-    {"@type":"Question","name":"태그 로테이션","acceptedAnswer":{"@type":"Answer","text":"태그1→태그2→태그3 순서로 반복, 비어있는 항목은 건너뜁니다."}},
-    {"@type":"Question","name":"설정 저장/복원","acceptedAnswer":{"@type":"Answer","text":"브라우저 localStorage에 자동 저장/복원됩니다. 초기화 시 삭제됩니다."}},
-    {"@type":"Question","name":"멀티바이트 안전","acceptedAnswer":{"@type":"Answer","text":"UTF-8 문자 경계를 지켜 문자 중간을 자르지 않습니다."}}
+    {"@type":"Question","name":"What’s the difference between line and byte intervals?","acceptedAnswer":{"@type":"Answer","text":"Line mode counts lines (e.g., every 30 lines). Byte mode counts UTF‑8 bytes (e.g., every 1024 bytes)."}},
+    {"@type":"Question","name":"What does Friendly vs Exact mean in byte mode?","acceptedAnswer":{"@type":"Answer","text":"Friendly snaps to the start of the next line; Exact inserts at the exact byte boundary without splitting multibyte characters."}},
+    {"@type":"Question","name":"How does ‘Insert tag at beginning’ work?","acceptedAnswer":{"@type":"Answer","text":"When enabled, it prepends the first tag at byte 0 / line 1, then continues at your chosen interval. With avoid-duplicates, it skips if the same tag is already present at the start."}},
+    {"@type":"Question","name":"What is Inline insert (no line break)?","acceptedAnswer":{"@type":"Answer","text":"It appends the tag directly to the current line instead of creating a new line. Include spaces in your template if needed."}},
+    {"@type":"Question","name":"What does ‘Add line break after tag’ do?","acceptedAnswer":{"@type":"Answer","text":"It forces a newline immediately after each inserted tag."}},
+    {"@type":"Question","name":"What does the {TAG} placeholder mean?","acceptedAnswer":{"@type":"Answer","text":"{TAG} is replaced by your Tag 1/2/3 values in rotation. Example: template --{TAG}-- with Tag 1 = [A] becomes --[A]--."}},
+    {"@type":"Question","name":"What is ‘Skip first lines/bytes’ for?","acceptedAnswer":{"@type":"Answer","text":"It lets you ignore headers/front matter and start tagging after the first N lines/bytes."}},
+    {"@type":"Question","name":"Avoid duplicates and Trim options","acceptedAnswer":{"@type":"Answer","text":"Avoid duplicates skips if the same tag already exists at that point; Trim removes leading/trailing whitespace on the inserted tag line."}},
+    {"@type":"Question","name":"Why normalize line endings (LF/CRLF)?","acceptedAnswer":{"@type":"Answer","text":"Different operating systems use different line breaks. Normalization prevents formatting issues across platforms."}},
+    {"@type":"Question","name":"How do the 3 tags rotate?","acceptedAnswer":{"@type":"Answer","text":"They cycle Tag 1 → Tag 2 → Tag 3 → Tag 1… Empty tag fields are skipped."}},
+    {"@type":"Question","name":"Are settings saved and restored?","acceptedAnswer":{"@type":"Answer","text":"Yes. We save to localStorage and restore on reload. Use Reset to clear."}},
+    {"@type":"Question","name":"Is it safe with multibyte UTF‑8 characters?","acceptedAnswer":{"@type":"Answer","text":"Yes, Exact mode only inserts on UTF‑8 code point boundaries; characters are never split."}}
   ]}
   </script>
 </body>

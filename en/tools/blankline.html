@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Remove Blank Lines · Collapse Multiple Blank Lines · Whitespace & Newline (LF/CRLF) Cleaner | Thenaom Tools</title>
+  <meta name="description" content="Remove all blank lines or collapse multiple blank lines to one. Trim leading/trailing spaces, strip trailing spaces, convert tabs to spaces (you choose the count), and unify newline style to LF or CRLF. Runs in your browser only." />
+  <meta name="robots" content="index,follow" />
+  <link rel="canonical" href="https://tools.thenaom.com/en/tools/blankline.html">
+  <link rel="alternate" hreflang="en" href="https://tools.thenaom.com/en/tools/blankline.html">
+  <link rel="alternate" hreflang="ko" href="https://tools.thenaom.com/tools/blankline.html">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+
+  <!-- Theme (early, bulletproof) -->
+  <script>
+    (function(){
+      try{
+        var saved = localStorage.getItem('theme');
+        var sys = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+        var mode = (saved==='dark'||saved==='light') ? saved : sys;
+        var root = document.documentElement;
+        root.setAttribute('data-theme', mode);
+        if(root.classList){
+          root.classList.toggle('theme-dark', mode==='dark');
+          root.classList.toggle('theme-light', mode!=='dark');
+        }
+        window.addEventListener('DOMContentLoaded', function(){ if(document.body){ document.body.setAttribute('data-theme', mode); } });
+      }catch(e){ document.documentElement.setAttribute('data-theme','light'); }
+    })();
+  </script>
+
+  <!-- GTM -->
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-N2BBPNCC');</script>
+
+  <!-- AdSense -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3006330103681332" crossorigin="anonymous"></script>
+
+  <style>
+    :root{ --bg:#ffffff; --text:#0b1220; --muted:#475569; --border:#e5e7eb; --card:#ffffff; --accent:#2563eb; --btn-text:#ffffff; --shadow:0 6px 18px rgba(0,0,0,.06); --focus: color-mix(in srgb, var(--accent) 35%, transparent); --hero-tint:#eff3ff; --hero-grid:#e8ecf6; --hero-ring:#cfe1ff; --input:#0b1220; --input-bg:var(--card); }
+    :root[data-theme="dark"], html[data-theme="dark"], body[data-theme="dark"], html.theme-dark{
+      --bg:#0b1220; --text:#f1f5f9; --muted:#cbd5e1; --border:#334155; --card:#111827; --accent:#60a5fa; --btn-text:#0b1220; --shadow:0 8px 22px rgba(0,0,0,.55); --focus: color-mix(in srgb, var(--accent) 45%, transparent); --hero-tint:#0f172a; --hero-grid:#162036; --hero-ring:#1f3b76; --input:#e5e7eb; --input-bg:#0f172a; }
+
+    html,body{background:var(--bg)!important}
+    body{color:var(--text)!important;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,Noto Sans KR,sans-serif}
+    a{color:var(--accent);text-decoration:none}
+    .container{max-width:1120px;margin:0 auto;padding:0 16px}
+
+    /* Header */
+    header.site{position:sticky;top:0;z-index:100;background:var(--bg)!important;border-bottom:1px solid var(--border)}
+    .brand{color:var(--text)!important;font-weight:800;text-decoration:none}
+    header.site nav{display:flex;align-items:center;gap:12px}
+    .lang-switch,.theme-toggle,.btn{padding:.5rem .72rem;border:1px solid var(--border);border-radius:.7rem;background:linear-gradient(180deg,color-mix(in srgb,var(--card)96%,transparent),var(--card));cursor:pointer;color:var(--text)!important;box-shadow:var(--shadow);transition:transform .06s,box-shadow .18s,border-color .18s,background .18s}
+    .lang-switch:hover,.theme-toggle:hover,.theme-toggle:focus-visible,.btn:hover{color:var(--accent)!important;border-color:var(--accent)!important;box-shadow:0 0 0 3px var(--focus), var(--shadow)}
+    .theme-toggle:active,.btn:active{transform:translateY(1px)}
+    .theme-toggle[aria-pressed="true"]{background:linear-gradient(180deg,color-mix(in srgb,var(--accent)22%,var(--card)),var(--accent));border-color:var(--accent)!important;color:var(--btn-text)!important}
+
+    /* Hero */
+    .hero{position:relative;overflow:hidden;padding:28px 0 18px;text-align:start;isolation:isolate}
+    .hero::before{content:"";position:absolute;inset:0;background:radial-gradient(900px 360px at 50% -15%, var(--hero-ring), transparent 65%),linear-gradient(180deg, color-mix(in srgb, var(--hero-tint) 88%, transparent), transparent 60%);z-index:-2}
+    .hero::after{content:"";position:absolute;inset:0;background:linear-gradient(to right, color-mix(in srgb,var(--hero-grid) 35%, transparent) 1px, transparent 1px) 0 0/28px 28px,linear-gradient(to bottom, color-mix(in srgb,var(--hero-grid) 35%, transparent) 1px, transparent 1px) 0 0/28px 28px;opacity:.5;z-index:-1}
+    .hero h1{margin:0;font-size:clamp(1.6rem,3.4vw,2.2rem)}
+    .hero p{margin:.4rem 0 0;color:var(--muted);max-width:900px}
+    .crumb{margin:10px 0 0;font-size:.95rem}
+    .crumb a{color:var(--muted)}
+    .hl{background:color-mix(in srgb, var(--accent) 14%, transparent);padding:0 4px;border-radius:6px}
+
+    /* Main */
+    main .section{margin:12px 0}
+    .ad-space{margin:8px 0}
+    .panel{border:1px solid var(--border);border-radius:12px;background:linear-gradient(180deg, color-mix(in srgb, var(--card) 95%, transparent), var(--card));box-shadow:var(--shadow);padding:12px}
+    .panel h2{margin:.1rem 0 .6rem;font-size:1.06rem}
+    .row{display:grid;grid-template-columns:1fr;gap:12px}
+    @media(min-width:980px){.row{grid-template-columns:1fr 1fr}}
+    .controls{display:flex;flex-wrap:wrap;gap:8px}
+    .controls .btn-primary{background:linear-gradient(180deg,color-mix(in srgb,var(--accent)18%,var(--card)),var(--accent));color:var(--btn-text)!important;border-color:var(--accent)}
+    .controls .btn-secondary{background:linear-gradient(180deg, color-mix(in srgb, var(--card) 95%, transparent), var(--card))}
+    textarea.input, textarea.output{ width:100%;min-height:260px;padding:12px;border-radius:10px;border:1px solid var(--border); background:var(--input-bg);color:var(--input);font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:.98rem;line-height:1.45;resize:vertical }
+    input[type="number"]{width:120px}
+    .small{font-size:.92rem;color:var(--muted)}
+    .counter{display:flex;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:.92rem;margin-top:6px}
+    .options{display:flex;flex-wrap:wrap;gap:14px}
+    .opt{display:flex;align-items:center;gap:6px}
+    .opt .hint{font-size:.9em;color:var(--muted)}
+    .notice{border-left:3px solid var(--accent);padding:8px 10px;background:color-mix(in srgb, var(--card) 92%, transparent);border-radius:8px}
+
+    /* Footer */
+    footer.site{margin-top:16px;padding:14px 0;border-top:1px solid var(--border);font-size:.95rem;color:var(--muted)!important}
+    .footer-row{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+    .footer-links{display:flex;gap:14px;flex-wrap:wrap}
+    .footer-links a{color:var(--muted);text-decoration:none}
+    .footer-links a:hover{color:var(--accent)}
+  </style>
+</head>
+<body>
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-N2BBPNCC" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+
+  <!-- Header -->
+  <header class="site">
+    <div class="container" style="display:flex;justify-content:space-between;align-items:center">
+      <a href="/en/" class="brand">Thenaom Tools</a>
+      <nav aria-label="secondary navigation">
+        <a class="lang-switch" href="/tools/blankline.html" hreflang="ko">한국어</a>
+        <button id="themeToggle" class="theme-toggle" aria-pressed="false" title="Toggle theme"><span class="icon">🌞</span><span class="label">Light</span></button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <div class="crumb"><a href="/en/">Home</a> &nbsp;>&nbsp; <a href="/en/text/">Text Tools</a> &nbsp;>&nbsp; Blank Line Remover</div>
+      <h1>Remove Blank Lines · Collapse Multiple Blank Lines · Clean Whitespace & Newlines</h1>
+      <p>Delete <span class="hl">all blank lines</span> or <span class="hl">collapse many into 1</span>. Also trim leading/trailing spaces, <b>convert tabs → spaces (you choose the count)</b>, and unify newline style (LF/CRLF) — all in one go.</p>
+    </div>
+  </section>
+
+  <main class="container" id="main">
+    <!-- Top Ad -->
+    <div class="ad-space"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3006330103681332" data-ad-slot="6703005412" data-ad-format="auto" data-full-width-responsive="true"></ins></div>
+    <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
+
+    <!-- How-to -->
+    <section class="section panel"><h2>How to use</h2><p class="small">1) Paste your text → 2) Choose options → 3) <strong>Run</strong> (shortcut: <kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Enter</kbd>)</p></section>
+
+    <section class="section">
+      <div class="row">
+        <div class="panel" aria-label="input">
+          <h2>Input</h2>
+          <textarea id="input" class="input" placeholder="Paste your text here"></textarea>
+          <div class="counter" id="inStats" aria-live="polite"></div>
+        </div>
+
+        <div class="panel" aria-label="options and output">
+          <h2>Options & Run</h2>
+
+          <div class="options" style="margin-bottom:8px">
+            <fieldset class="opt" style="border:none;padding:0;margin:0;display:flex;gap:10px;flex-wrap:wrap">
+              <legend class="hidden-visually">Blank line handling</legend>
+              <label class="opt"><input type="radio" name="emptyMode" value="remove" checked> <strong>Remove blank lines</strong> <span class="hint">delete all</span></label>
+              <label class="opt"><input type="radio" name="emptyMode" value="collapse"> <strong>Collapse multiple → keep 1</strong> <span class="hint">preserve paragraphs</span></label>
+            </fieldset>
+
+            <label class="opt"><input type="checkbox" id="trimLines"> <strong>Trim</strong> leading & trailing spaces (per line)</label>
+            <label class="opt"><input type="checkbox" id="rstrip"> Remove <strong>trailing spaces</strong> (per line)</label>
+
+            <label class="opt">Convert tabs to spaces
+              <input id="tabSize" type="number" min="0" max="16" value="0" inputmode="numeric" style="width:90px"> spaces
+              <span class="hint">0 = do not convert (try 2/4/8)</span>
+            </label>
+
+            <label class="opt">Unify newline style (if mixed)
+              <select id="newline">
+                <option value="as-is">Keep as-is (no change)</option>
+                <option value="lf">LF (macOS/Linux)</option>
+                <option value="crlf">CRLF (Windows)</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="controls" style="margin:10px 0">
+            <button class="btn btn-primary" id="runBtn">Run</button>
+            <button class="btn btn-secondary" id="resetBtn">Reset</button>
+            <button class="btn btn-secondary" id="copyBtn">Copy</button>
+            <button class="btn btn-secondary" id="downloadBtn">Download</button>
+          </div>
+
+          <textarea id="output" class="output" placeholder="Your result will appear here" aria-live="polite" readonly></textarea>
+          <div class="counter" id="outStats" aria-live="polite"></div>
+
+          <p class="small notice" style="margin-top:10px">
+            👉 <strong>Tip</strong> — Lines that contain only spaces or tabs are treated as blank lines. Great for text pre‑processing, code/CSV cleanups, and pasting into editors.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bottom Ad -->
+    <div class="ad-space"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3006330103681332" data-ad-slot="9867638073" data-ad-format="auto" data-full-width-responsive="true"></ins></div>
+    <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
+
+    <!-- FAQ -->
+    <section class="section panel faq">
+      <h2>FAQ</h2>
+      <div class="qa"><h3>What’s the difference between “Remove blank lines” and “Collapse to one”?</h3><p><b>Remove</b> deletes every blank line. <b>Collapse</b> compresses any run of blank lines to a single blank line so paragraphs stay separated.</p></div>
+      <div class="qa"><h3>How do you detect a blank line?</h3><p>Not only truly empty lines — lines that have <b>only spaces or tabs</b> count as blank too. Turn on <em>Remove trailing spaces</em> if needed first.</p></div>
+      <div class="qa"><h3>How many spaces should tabs become?</h3><p>Enter a number (0 means don’t convert). Common choices: 2, 4, or 8.</p></div>
+      <div class="qa"><h3>Why unify LF vs. CRLF?</h3><p>Different OSes use different newline codes. Mixed files can break diffs, builds, or pipelines. Choose one style to be safe.</p></div>
+      <div class="qa"><h3>What’s the processing order?</h3><p>Tabs → spaces → split to lines (temporarily LF) → <em>strip trailing spaces</em> → <em>trim</em> → blank‑line removal/collapse → apply final newline style.</p></div>
+      <div class="qa"><h3>Is my text uploaded?</h3><p>No. Everything runs in your browser; nothing is sent to a server.</p></div>
+    </section>
+
+    <!-- Contact -->
+    <section class="section contact panel" aria-label="Contact">
+      <h2>Contact</h2>
+      <p class="small">Questions or suggestions? Email us anytime.</p>
+      <p><strong>Email:</strong> <a href="mailto:thenaom@naver.com">thenaom@naver.com</a></p>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site">
+    <div class="container footer-row">
+      <div>© <span id="y"></span> Thenaom Tools. All rights reserved.</div>
+      <nav class="footer-links" aria-label="footer links">
+        <a href="/en/privacy.html">Privacy Policy</a>
+        <a href="/en/terms.html">Terms</a>
+        <a href="#" id="cookiePrefs">Cookie Settings</a>
+        <a href="/sitemap.xml">Sitemap</a>
+        <a href="/ads.txt">ads.txt</a>
+        <a href="mailto:thenaom@naver.com">Contact</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script>
+    // year
+    (function(){ var y=document.getElementById('y'); if(y){ y.textContent = new Date().getFullYear(); } })();
+
+    // theme toggle (bulletproof)
+    (function(){
+      var btn=document.getElementById('themeToggle');
+      var root=document.documentElement;
+      function apply(m){
+        root.setAttribute('data-theme', m);
+        if(root.classList){ root.classList.toggle('theme-dark', m==='dark'); root.classList.toggle('theme-light', m!=='dark'); }
+        if(document.body){ document.body.setAttribute('data-theme', m); }
+        try{ localStorage.setItem('theme', m);}catch(e){}
+        if(btn){
+          btn.setAttribute('aria-pressed', m==='dark');
+          var ic=btn.querySelector('.icon'); var lb=btn.querySelector('.label');
+          if(ic) ic.textContent = (m==='dark'?'🌙':'🌞');
+          if(lb) lb.textContent = (m==='dark'?'Dark':'Light');
+        }
+      }
+      function current(){ return (root.getAttribute('data-theme')==='dark'?'dark':'light'); }
+      apply(current());
+      if(btn){ btn.addEventListener('click', function(){ apply(current()==='dark'?'light':'dark'); }); }
+      try{
+        if(!localStorage.getItem('theme') && window.matchMedia){
+          var mq = window.matchMedia('(prefers-color-scheme: dark)');
+          if(mq.addEventListener){ mq.addEventListener('change', function(e){ apply(e.matches?'dark':'light'); }); }
+          else if(mq.addListener){ mq.addListener(function(e){ apply(e.matches?'dark':'light'); }); }
+        }
+      }catch(e){}
+    })();
+
+    // helpers
+    function byteLen(str){ return new TextEncoder().encode(str).length; }
+    function countLines(str){ if(!str) return 0; return str.split(/\r\n|\r|\n/).length; }
+    function charCount(str){ if (Array.from) return Array.from(str).length; return str.length; }
+    function statHtml(str){ return '<span>Lines: '+countLines(str).toLocaleString()+'</span>'+
+                               '<span>Bytes: '+byteLen(str).toLocaleString()+'</span>'+
+                               '<span>Chars: '+charCount(str).toLocaleString()+'</span>'; }
+    function normalizeNewlinesToLF(text){ return text.replace(/\r\n|\r|\n/g,'\n'); }
+    function applyNewlineMode(text, mode){ if(mode==='as-is') return text; var lf = normalizeNewlinesToLF(text); if(mode==='lf') return lf; if(mode==='crlf') return lf.replace(/\n/g,'\r\n'); return text; }
+
+    function transform(text){
+      var emptyEl = document.querySelector('input[name="emptyMode"]:checked');
+      var emptyMode = emptyEl ? emptyEl.value : 'remove';
+      var trimLines = document.getElementById('trimLines').checked;
+      var rstrip = document.getElementById('rstrip').checked;
+      var tabSize = parseInt(document.getElementById('tabSize').value||'0',10); if(isNaN(tabSize)||tabSize<0) tabSize=0; if(tabSize>16) tabSize=16;
+      var newline = document.getElementById('newline').value;
+
+      // 1) tabs → spaces first
+      var s = text;
+      if(tabSize>0){ s = s.replace(/\t/g, new Array(tabSize+1).join(' ')); }
+
+      // 2) split by LF temporarily
+      s = normalizeNewlinesToLF(s);
+      var lines = s.split('\n');
+
+      // 3) whitespace cleanup (rstrip → trim)
+      for (var i=0;i<lines.length;i++){
+        var t = lines[i];
+        if (rstrip) t = t.replace(/[\t ]+$/,'');
+        if (trimLines) t = t.replace(/^\s+|\s+$/g,'');
+        lines[i] = t;
+      }
+
+      // 4) blank line handling
+      if (emptyMode==='remove'){
+        var tmp=[]; for (var j=0;j<lines.length;j++){ if(lines[j]!=='' ) tmp.push(lines[j]); } lines=tmp;
+      } else if (emptyMode==='collapse'){
+        var out=[], prevEmpty=false; for (var k=0;k<lines.length;k++){ var l=lines[k]; var isEmpty=(l===''); if(isEmpty){ if(!prevEmpty) out.push(''); } else { out.push(l); } prevEmpty=isEmpty; } lines=out;
+      }
+
+      // 5) apply final newline style
+      var outStr = lines.join('\n');
+      outStr = applyNewlineMode(outStr, newline);
+      return outStr;
+    }
+
+    // DOM refs
+    var $in = document.getElementById('input');
+    var $out = document.getElementById('output');
+    var $inStats = document.getElementById('inStats');
+    var $outStats = document.getElementById('outStats');
+
+    function updateIn(){ $inStats.innerHTML = statHtml($in.value); }
+    function run(){ if(!$in.value){ return; } $out.value = transform($in.value); $outStats.innerHTML = statHtml($out.value); window.dataLayer=window.dataLayer||[]; window.dataLayer.push({event:'run_click', tool:'blankline_en'}); }
+
+    if($in) $in.addEventListener('input', updateIn);
+    document.addEventListener('keydown', function(e){ if((e.ctrlKey||e.metaKey) && e.key==='Enter'){ e.preventDefault(); run(); }});
+    var rb=document.getElementById('runBtn'); if(rb) rb.addEventListener('click', run);
+    var rs=document.getElementById('resetBtn'); if(rs) rs.addEventListener('click', function(){ $in.value=''; $out.value=''; updateIn(); $outStats.innerHTML = statHtml(''); $in.focus(); });
+    var cb=document.getElementById('copyBtn'); if(cb) cb.addEventListener('click', function(){ if(!$out.value) return; try{ navigator.clipboard.writeText($out.value).then(function(){ alert('Copied'); }); }catch(e){}; window.dataLayer=window.dataLayer||[]; window.dataLayer.push({event:'copy_click', tool:'blankline_en'}); });
+    var db=document.getElementById('downloadBtn'); if(db) db.addEventListener('click', function(){ var blob=new Blob([$out.value||''],{type:'text/plain;charset=utf-8'}); var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='blankline-result.txt'; document.body.appendChild(a); a.click(); a.remove(); window.dataLayer=window.dataLayer||[]; window.dataLayer.push({event:'download_click', tool:'blankline_en'}); });
+
+    var cp = document.getElementById('cookiePrefs');
+    if (cp) { cp.addEventListener('click', function(e){ e.preventDefault(); alert('Connect your CMP for cookie preferences.'); }); }
+
+    // init
+    updateIn();
+    if($outStats) $outStats.innerHTML = statHtml('');
+
+    // track page view
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({event:'tool_use', tool:'blankline_en'});
+  </script>
+
+  <!-- JSON-LD: FAQ (SEO) -->
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+    {"@type":"Question","name":"What’s the difference between removing blank lines and collapsing them?","acceptedAnswer":{"@type":"Answer","text":"Remove deletes every blank line. Collapse compresses runs of blank lines to a single blank line so paragraphs remain separated."}},
+    {"@type":"Question","name":"How many spaces should a tab become?","acceptedAnswer":{"@type":"Answer","text":"Enter a number. 0 means don’t convert. Common choices: 2, 4, or 8."}},
+    {"@type":"Question","name":"Why unify LF vs. CRLF?","acceptedAnswer":{"@type":"Answer","text":"Different operating systems use different newline codes. Mixed files can break diffs, builds, or pipelines. Choose one style for consistency."}},
+    {"@type":"Question","name":"Is my text uploaded anywhere?","acceptedAnswer":{"@type":"Answer","text":"No. This tool runs entirely in your browser and does not send your text to a server."}}
+  ]}
+  </script>
+</body>
+</html>

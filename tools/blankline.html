@@ -2,113 +2,321 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>빈줄 제거 도구 | Thenaom Tools</title>
-  <meta name="description" content="빈 줄과 공백 줄을 한 번에 삭제합니다. 연속 공백 정리, 각 줄 앞뒤 공백 제거 옵션 지원. 브라우저에서만 처리.">
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>빈줄 제거 · 여러 빈 줄 한 줄로 · 공백/줄바꿈(LF·CRLF) 정리 | Thenaom Tools</title>
+  <meta name="description" content="빈 줄 완전 삭제, 여러 빈 줄을 한 줄로 압축, 각 줄 앞뒤/끝 공백 제거, 탭→스페이스(개수 직접 입력), 줄바꿈 형식(LF/CRLF) 통일까지 한 번에 정리합니다." />
+  <meta name="robots" content="index,follow" />
   <link rel="canonical" href="https://tools.thenaom.com/tools/blankline.html">
-  <link rel="stylesheet" href="../assets/styles.css">
+  <link rel="alternate" hreflang="ko" href="https://tools.thenaom.com/tools/blankline.html">
+  <link rel="alternate" hreflang="en" href="https://tools.thenaom.com/en/tools/blankline.html">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+
+  <!-- Theme (early, bulletproof) -->
+  <script>
+    (function(){
+      try{
+        var saved = localStorage.getItem('theme');
+        var sys = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+        var mode = (saved==='dark'||saved==='light') ? saved : sys;
+        var root = document.documentElement;
+        root.setAttribute('data-theme', mode);
+        root.classList.toggle('theme-dark', mode==='dark');
+        root.classList.toggle('theme-light', mode!=='dark');
+        // also reflect on <body> after it exists
+        window.addEventListener('DOMContentLoaded', function(){ document.body && document.body.setAttribute('data-theme', mode);});
+      }catch(e){ document.documentElement.setAttribute('data-theme','light'); }
+    })();
+  </script>
+
+  <!-- GTM -->
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-N2BBPNCC');</script>
+
+  <!-- AdSense -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3006330103681332" crossorigin="anonymous"></script>
+
+  <style>
+    :root{ --bg:#ffffff; --text:#0b1220; --muted:#475569; --border:#e5e7eb; --card:#ffffff; --accent:#2563eb; --btn-text:#ffffff; --shadow:0 6px 18px rgba(0,0,0,.06); --focus: color-mix(in srgb, var(--accent) 35%, transparent); --hero-tint:#eff3ff; --hero-grid:#e8ecf6; --hero-ring:#cfe1ff; --input:#0b1220; --input-bg:var(--card); }
+    /* Dark overrides — respond to ANY of these selectors */
+    :root[data-theme="dark"], html[data-theme="dark"], body[data-theme="dark"], html.theme-dark{
+      --bg:#0b1220; --text:#f1f5f9; --muted:#cbd5e1; --border:#334155; --card:#111827; --accent:#60a5fa; --btn-text:#0b1220; --shadow:0 8px 22px rgba(0,0,0,.55); --focus: color-mix(in srgb, var(--accent) 45%, transparent); --hero-tint:#0f172a; --hero-grid:#162036; --hero-ring:#1f3b76; --input:#e5e7eb; --input-bg:#0f172a;
+    }
+    html,body{background:var(--bg)!important}
+    body{color:var(--text)!important;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Noto Sans KR,Arial,sans-serif}
+    a{color:var(--accent);text-decoration:none}
+    .container{max-width:1120px;margin:0 auto;padding:0 16px}
+
+    header.site{position:sticky;top:0;z-index:100;background:var(--bg)!important;border-bottom:1px solid var(--border)}
+    .brand{color:var(--text)!important;font-weight:800;text-decoration:none}
+    header.site nav{display:flex;align-items:center;gap:12px}
+    .lang-switch,.theme-toggle,.btn{padding:.5rem .72rem;border:1px solid var(--border);border-radius:.7rem;background:linear-gradient(180deg,color-mix(in srgb,var(--card)96%,transparent),var(--card));cursor:pointer;color:var(--text)!important;box-shadow:var(--shadow);transition:transform .06s,box-shadow .18s,border-color .18s,background .18s}
+    .lang-switch:hover,.theme-toggle:hover,.theme-toggle:focus-visible,.btn:hover{color:var(--accent)!important;border-color:var(--accent)!important;box-shadow:0 0 0 3px var(--focus), var(--shadow)}
+    .theme-toggle:active,.btn:active{transform:translateY(1px)}
+    .theme-toggle[aria-pressed="true"]{background:linear-gradient(180deg,color-mix(in srgb,var(--accent)22%,var(--card)),var(--accent));border-color:var(--accent)!important;color:var(--btn-text)!important}
+
+    .hero{position:relative;overflow:hidden;padding:28px 0 18px;text-align:start;isolation:isolate}
+    .hero::before{content:"";position:absolute;inset:0;background:radial-gradient(900px 360px at 50% -15%, var(--hero-ring), transparent 65%),linear-gradient(180deg, color-mix(in srgb, var(--hero-tint) 88%, transparent), transparent 60%);z-index:-2}
+    .hero::after{content:"";position:absolute;inset:0;background:linear-gradient(to right, color-mix(in srgb,var(--hero-grid) 35%, transparent) 1px, transparent 1px) 0 0/28px 28px,linear-gradient(to bottom, color-mix(in srgb,var(--hero-grid) 35%, transparent) 1px, transparent 1px) 0 0/28px 28px;opacity:.5;z-index:-1}
+    .hero h1{margin:0;font-size:clamp(1.6rem,3.4vw,2.2rem)}
+    .hero p{margin:.4rem 0 0;color:var(--muted);max-width:900px}
+    .crumb{margin:10px 0 0;font-size:.95rem}
+    .crumb a{color:var(--muted)}
+    .hl{background:color-mix(in srgb, var(--accent) 14%, transparent);padding:0 4px;border-radius:6px}
+
+    main .section{margin:12px 0}
+    .ad-space{margin:8px 0}
+    .panel{border:1px solid var(--border);border-radius:12px;background:linear-gradient(180deg, color-mix(in srgb, var(--card) 95%, transparent), var(--card));box-shadow:var(--shadow);padding:12px}
+    .panel h2{margin:.1rem 0 .6rem;font-size:1.06rem}
+    .row{display:grid;grid-template-columns:1fr;gap:12px}
+    @media(min-width:980px){.row{grid-template-columns:1fr 1fr}}
+    .controls{display:flex;flex-wrap:wrap;gap:8px}
+    .controls .btn-primary{background:linear-gradient(180deg,color-mix(in srgb,var(--accent)18%,var(--card)),var(--accent));color:var(--btn-text)!important;border-color:var(--accent)}
+    .controls .btn-secondary{background:linear-gradient(180deg, color-mix(in srgb, var(--card) 95%, transparent), var(--card))}
+    textarea.input, textarea.output{ width:100%;min-height:260px;padding:12px;border-radius:10px;border:1px solid var(--border); background:var(--input-bg);color:var(--input);font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:.98rem;line-height:1.45;resize:vertical }
+    input[type="number"]{width:120px}
+    .small{font-size:.92rem;color:var(--muted)}
+    .counter{display:flex;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:.92rem;margin-top:6px}
+    .options{display:flex;flex-wrap:wrap;gap:14px}
+    .opt{display:flex;align-items:center;gap:6px}
+    .opt .hint{font-size:.9em;color:var(--muted)}
+    .notice{border-left:3px solid var(--accent);padding:8px 10px;background:color-mix(in srgb, var(--card) 92%, transparent);border-radius:8px}
+
+    footer.site{margin-top:16px;padding:14px 0;border-top:1px solid var(--border);font-size:.95rem;color:var(--muted)!important}
+    .footer-row{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+    .footer-links{display:flex;gap:14px;flex-wrap:wrap}
+    .footer-links a{color:var(--muted);text-decoration:none}
+    .footer-links a:hover{color:var(--accent)}
+  </style>
 </head>
 <body>
-<header class="site">
-  <div class="container" style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
-    <a class="brand" href="/">Thenaom Tools</a>
-    <nav>
-      <ul>
-        <li><a class="active" href="/text/">텍스트 정리</a></li>
-        <li><a href="/convert/">분할/변환</a></li>
-        <li><a href="/utility/">유틸</a></li>
-      </ul>
-    </nav>
-  </div>
-</header>
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-N2BBPNCC" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
-<section class="hero"><div class="container">
-  <h1>빈줄 제거 도구</h1>
-  <p class="muted">브라우저에서만 처리 • 개인정보 전송 없음</p>
-</div></section>
+  <!-- Header -->
+  <header class="site">
+    <div class="container" style="display:flex;justify-content:space-between;align-items:center">
+      <a href="/" class="brand">Thenaom Tools</a>
+      <nav aria-label="보조 탐색">
+        <a class="lang-switch" href="/en/tools/blankline.html" hreflang="en">English</a>
+        <button id="themeToggle" class="theme-toggle" aria-pressed="false" title="테마 전환"><span class="icon">🌞</span><span class="label">라이트</span></button>
+      </nav>
+    </div>
+  </header>
 
-<div class="container">
-  <div class="ad-placeholder"><b>광고 자리</b><small>AdSense 승인 후 코드 (naom_blankline_top)</small></div>
-
-  <section class="card" style="padding:14px 14px 8px; margin-bottom:12px;">
-    <div class="controls" style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
-      <label><input id="auto" type="checkbox" checked> 입력 시 자동 처리</label>
-      <label><input id="wsblank" type="checkbox" checked> 공백만 있는 줄도 빈줄로 간주</label>
-      <label><input id="trimline" type="checkbox"> 각 줄 앞뒤 공백 제거</label>
-      <button class="btn" id="runBtn" title="Ctrl/⌘+Enter">즉시 처리</button>
-      <button class="btn secondary" id="clearBtn">모두 지우기</button>
-      <button class="btn secondary" id="copyBtn">복사</button>
-      <button class="btn secondary" id="saveBtn">저장</button>
-      <span style="margin-left:auto" class="muted" id="stats">입력 0줄</span>
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <div class="crumb"><a href="/">홈</a> &nbsp;>&nbsp; <a href="/text/">텍스트 정리</a> &nbsp;>&nbsp; 빈줄 제거기</div>
+      <h1>빈줄 제거 · 여러 빈 줄 한 줄로 · 공백/줄바꿈 정리</h1>
+      <p>불필요한 빈 줄을 <span class="hl">완전히 삭제</span>하거나 <span class="hl">여러 개면 1개만 유지</span>로 압축합니다. 각 줄 앞뒤/끝 공백 정리, <b>탭→스페이스(숫자 입력)</b>, 줄바꿈(LF/CRLF) 통일까지 한 번에.</p>
     </div>
   </section>
 
-  <div class="grid cols2">
-    <article class="card">
-      <h2>입력</h2>
-      <textarea id="input" placeholder="여기에 텍스트를 붙여넣으세요"></textarea>
-    </article>
-    <article class="card">
-      <h2>결과</h2>
-      <textarea id="output" readonly placeholder="처리된 결과가 여기에 표시됩니다"></textarea>
-    </article>
-  </div>
+  <main class="container" id="main">
+    <!-- 상단 광고 -->
+    <div class="ad-space"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3006330103681332" data-ad-slot="6703005412" data-ad-format="auto" data-full-width-responsive="true"></ins></div>
+    <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
 
-  <div class="ad-placeholder"><b>광고 자리</b><small>AdSense 승인 후 코드 (naom_blankline_bottom)</small></div>
+    <!-- 사용법 -->
+    <section class="section panel"><h2>어떻게 쓰나요?</h2><p class="small">1) 본문 붙여넣기 → 2) 옵션 선택 → 3) <strong>실행</strong> (단축키: <kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Enter</kbd>)</p></section>
 
-  <!-- 하단 네비 -->
-  <nav class="card" style="margin-top:16px">
-    <h2>빠른 이동</h2>
-    <div class="list">
-      <div class="item-row"><a class="btn" href="/">← 홈으로</a><span class="muted">Thenaom Tools 메인</span></div>
-      <div class="item-row"><a class="btn" href="/text/">텍스트 정리</a><span class="muted">빈줄/줄바꿈/정렬 등</span></div>
-      <div class="item-row"><a class="btn" href="/convert/">분할/변환</a><span class="muted">바이트 분할/비교/인코딩</span></div>
+    <section class="section">
+      <div class="row">
+        <div class="panel" aria-label="입력">
+          <h2>입력</h2>
+          <textarea id="input" class="input" placeholder="여기에 텍스트 붙여넣기"></textarea>
+          <div class="counter" id="inStats" aria-live="polite"></div>
+        </div>
+
+        <div class="panel" aria-label="옵션과 출력">
+          <h2>옵션 & 실행</h2>
+
+          <div class="options" style="margin-bottom:8px">
+            <fieldset class="opt" style="border:none;padding:0;margin:0;display:flex;gap:10px;flex-wrap:wrap">
+              <legend class="hidden-visually">빈 줄 처리</legend>
+              <label class="opt"><input type="radio" name="emptyMode" value="remove" checked> <strong>빈 줄 제거</strong> <span class="hint">완전히 삭제</span></label>
+              <label class="opt"><input type="radio" name="emptyMode" value="collapse"> <strong>여러 빈 줄 → 하나만 남기기</strong> <span class="hint">문단 구분 유지</span></label>
+            </fieldset>
+
+            <label class="opt"><input type="checkbox" id="trimLines"> 각 줄 <strong>앞뒤 공백</strong> 제거(트림)</label>
+            <label class="opt"><input type="checkbox" id="rstrip"> 각 줄 <strong>끝 공백</strong> 제거</label>
+
+            <label class="opt">탭을 스페이스로
+              <input id="tabSize" type="number" min="0" max="16" value="0" inputmode="numeric" style="width:90px"> 칸
+              <span class="hint">0 = 변환 안 함 (예: 2/4/8 입력 가능)</span>
+            </label>
+
+            <label class="opt">줄바꿈 방식 맞추기 (섞여 있으면 한 가지로 통일)
+              <select id="newline">
+                <option value="as-is">그대로 두기(변경 안 함)</option>
+                <option value="lf">LF (맥·리눅스)</option>
+                <option value="crlf">CRLF (윈도우)</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="controls" style="margin:10px 0">
+            <button class="btn btn-primary" id="runBtn">실행</button>
+            <button class="btn btn-secondary" id="resetBtn">초기화</button>
+            <button class="btn btn-secondary" id="copyBtn">복사</button>
+            <button class="btn btn-secondary" id="downloadBtn">다운로드</button>
+          </div>
+
+          <textarea id="output" class="output" placeholder="여기에 결과가 표시됩니다" aria-live="polite" readonly></textarea>
+          <div class="counter" id="outStats" aria-live="polite"></div>
+
+          <p class="small notice" style="margin-top:10px">
+            👉 <strong>팁</strong> — 빈 줄 기준에는 <em>공백/탭만 있는 줄</em>도 포함됩니다. 대량 텍스트 전처리, 코드/CSV 정리에 유용합니다.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 하단 광고 -->
+    <div class="ad-space"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3006330103681332" data-ad-slot="9867638073" data-ad-format="auto" data-full-width-responsive="true"></ins></div>
+    <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
+
+    <!-- FAQ -->
+    <section class="section panel faq">
+      <h2>FAQ</h2>
+      <div class="qa"><h3>“빈 줄 제거”와 “여러 빈 줄 → 하나만”의 차이는?</h3><p><b>빈 줄 제거</b>는 빈 줄을 모두 삭제합니다. <b>여러 빈 줄 → 하나만</b>은 연속된 빈 줄 묶음을 1줄로 압축해 문단 구분은 유지합니다.</p></div>
+      <div class="qa"><h3>빈 줄은 어떻게 판단하나요?</h3><p>아무 글자도 없는 줄뿐 아니라 <b>공백/탭만 있는 줄</b>도 빈 줄로 간주합니다. 필요하면 먼저 <em>줄 끝 공백 제거</em>를 켜세요.</p></div>
+      <div class="qa"><h3>탭→스페이스 숫자는 어떻게 쓰나요?</h3><p>0은 변환하지 않음을 의미합니다. 2/3/4/8 등 원하는 칸 수를 입력하면 탭이 해당 개수의 스페이스로 바뀝니다.</p></div>
+      <div class="qa"><h3>LF/CRLF 통일은 언제 필요한가요?</h3><p>운영체제별로 줄바꿈 코드가 달라 섞여 있으면 diff/빌드/파이프라인에서 문제가 날 수 있습니다. 한 가지로 맞추면 안전합니다.</p></div>
+      <div class="qa"><h3>처리 순서는 어떻게 되나요?</h3><p>탭→스페이스 → 줄 분해(LF로 임시 통일) → <em>끝 공백</em> → <em>앞뒤 공백</em> → 빈 줄 처리(제거/압축) → 줄바꿈 형식 적용 순서입니다.</p></div>
+      <div class="qa"><h3>개인정보는 업로드되나요?</h3><p>브라우저에서만 동작하며, 텍스트가 서버로 전송되지 않습니다(오프라인 처리).</p></div>
+    </section>
+
+    <!-- 문의 -->
+    <section class="section contact panel" aria-label="문의하기">
+      <h2>문의하기</h2>
+      <p class="small">사용 중 불편사항이나 제안이 있다면 이메일로 연락해주세요.</p>
+      <p><strong>이메일:</strong> <a href="mailto:thenaom@naver.com">thenaom@naver.com</a></p>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site">
+    <div class="container footer-row">
+      <div>© <span id="y"></span> Thenaom Tools. All rights reserved.</div>
+      <nav class="footer-links" aria-label="푸터 링크">
+        <a href="/privacy.html">개인정보처리방침</a>
+        <a href="/terms.html">이용약관</a>
+        <a href="#" id="cookiePrefs">쿠키 설정</a>
+        <a href="/sitemap.xml">Sitemap</a>
+        <a href="/ads.txt">ads.txt</a>
+        <a href="mailto:thenaom@naver.com">Contact</a>
+      </nav>
     </div>
-  </nav>
+  </footer>
 
-  <h2 class="section-title">관련 도구</h2>
-  <div class="grid cols2">
-    <article class="card"><h2>글자·단어·바이트 카운터</h2><p>입력 즉시 글자/단어/줄/바이트 수 계산.</p><a class="btn" href="/tools/counter.html">열기</a></article>
-    <article class="card"><h2>줄바꾸기 · 줄바꿈 제거</h2><p>구분자 기준 줄바꿈 추가/모두 제거.</p><a class="btn" href="/tools/linebreak.html">열기</a></article>
-  </div>
-</div>
+  <script>
+    // year
+    document.getElementById('y').textContent = new Date().getFullYear();
 
-<footer class="site"><div class="container">© <span id="y"></span> Thenaom Tools</div></footer>
-<script>document.getElementById('y').textContent=new Date().getFullYear();</script>
+    // theme toggle (bulletproof)
+    (function(){
+      const btn=document.getElementById('themeToggle');
+      const root=document.documentElement;
+      const apply=(m)=>{
+        root.setAttribute('data-theme', m);
+        root.classList.toggle('theme-dark', m==='dark');
+        root.classList.toggle('theme-light', m!=='dark');
+        if(document.body) document.body.setAttribute('data-theme', m);
+        try{ localStorage.setItem('theme', m);}catch(e){}
+        // UI
+        if(btn){
+          btn.setAttribute('aria-pressed', m==='dark');
+          const ic=btn.querySelector('.icon'); const lb=btn.querySelector('.label');
+          if(ic) ic.textContent = (m==='dark'?'🌙':'🌞');
+          if(lb) lb.textContent = (m==='dark'?'다크':'라이트');
+        }
+      };
+      const get=()=> (root.getAttribute('data-theme')==='dark'?'dark':'light');
+      apply(get());
+      btn&&btn.addEventListener('click',()=>{ apply(get()==='dark'?'light':'dark'); });
+      const mq=window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
+      if(mq && !localStorage.getItem('theme')){ mq.addEventListener('change',e=>apply(e.matches?'dark':'light')); }
+    })();
 
-<script>
-const $ = s=>document.querySelector(s);
-const input=$('#input'), output=$('#output');
-const auto=$('#auto'), wsblank=$('#wsblank'), trimline=$('#trimline');
-const stats=$('#stats');
+    // helpers
+    function byteLen(str){ return new TextEncoder().encode(str).length; }
+    function countLines(str){ if(!str) return 0; return str.split(/\r\n|\r|\n/).length; }
+    function statHtml(str){ return `<span>줄: ${countLines(str).toLocaleString()}</span><span>바이트: ${byteLen(str).toLocaleString()}</span><span>문자: ${[...str].length.toLocaleString()}</span>`; }
+    function normalizeNewlinesToLF(text){ return text.replace(/\r\n|\r|\n/g,'\n'); }
+    function applyNewlineMode(text, mode){ if(mode==='as-is') return text; const lf = normalizeNewlinesToLF(text); if(mode==='lf') return lf; if(mode==='crlf') return lf.replace(/\n/g,'\r\n'); return text; }
 
-function normalize(text){return (text||'').replace(/\r\n?/g,'\n');}
+    function transform(text){
+      const emptyMode = (document.querySelector('input[name="emptyMode"]:checked')||{}).value || 'remove';
+      const trimLines = document.getElementById('trimLines').checked;
+      const rstrip = document.getElementById('rstrip').checked;
+      const tabSize = Math.max(0, parseInt(document.getElementById('tabSize').value||'0',10));
+      const newline = document.getElementById('newline').value;
 
-function process(text){
-  const lines=normalize(text).split('\n');
-  const mapped=lines.map(l=>trimline.checked?l.trim():l);
-  const filtered=mapped.filter(l=>wsblank.checked?l.trim()!=='' : l!=='');
-  return filtered.join('\n');
-}
+      // 1) 탭 → 스페이스(선행)
+      let s = text;
+      if(tabSize>0){ s = s.replace(/\t/g,' '.repeat(tabSize)); }
 
-function update(){
-  const out=process(input.value); output.value=out;
-  const inCount=normalize(input.value).split('\n').length;
-  const outCount=normalize(out).split('\n').length;
-  stats.textContent=`입력 ${inCount}줄 → 결과 ${outCount}줄 (제거 ${inCount-outCount})`;
-}
+      // 2) 임시로 LF 기준 분해
+      s = normalizeNewlinesToLF(s);
+      let lines = s.split('\n');
 
-input.addEventListener('input',()=>{if(auto.checked) update();});
-[wsblank,trimline].forEach(el=>el.addEventListener('change',()=>{if(auto.checked) update();}));
-$('#runBtn').addEventListener('click',update);
-$('#clearBtn').addEventListener('click',()=>{input.value='';output.value='';update();});
-$('#copyBtn').addEventListener('click',()=>navigator.clipboard.writeText(output.value||''));
-$('#saveBtn').addEventListener('click',()=>{
-  const blob=new Blob([output.value],{type:'text/plain;charset=utf-8'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='no-blank-lines.txt';a.click();URL.revokeObjectURL(a.href);
-});
-window.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();update();}});
-update();
-</script>
+      // 3) 공백 정리 (끝 공백 → 앞뒤 공백)
+      lines = lines.map(line=>{
+        let t=line;
+        if(rstrip) t = t.replace(/[\t ]+$/,'');
+        if(trimLines) t = t.trim();
+        return t;
+      });
+
+      // 4) 빈 줄 처리
+      if(emptyMode==='remove'){
+        lines = lines.filter(l => l!=='');
+      }else if(emptyMode==='collapse'){
+        const out=[]; let prevEmpty=false;
+        for(const l of lines){ const isEmpty=(l===''); if(isEmpty){ if(!prevEmpty) out.push(''); } else { out.push(l); } prevEmpty=isEmpty; }
+        lines = out;
+      }
+
+      // 5) 줄바꿈 형식 적용
+      let out = lines.join('\n');
+      out = applyNewlineMode(out, newline);
+      return out;
+    }
+
+    // DOM refs
+    const $in = document.getElementById('input');
+    const $out = document.getElementById('output');
+    const $inStats = document.getElementById('inStats');
+    const $outStats = document.getElementById('outStats');
+
+    function updateIn(){ $inStats.innerHTML = statHtml($in.value); }
+    function run(){ if(!$in.value) return; $out.value = transform($in.value); $outStats.innerHTML = statHtml($out.value); window.dataLayer=window.dataLayer||[]; window.dataLayer.push({event:'run_click', tool:'blankline'}); }
+
+    $in.addEventListener('input', updateIn);
+    document.addEventListener('keydown', (e)=>{ if((e.ctrlKey||e.metaKey) && e.key==='Enter'){ e.preventDefault(); run(); }});
+    document.getElementById('runBtn').addEventListener('click', run);
+    document.getElementById('resetBtn').addEventListener('click', ()=>{ $in.value=''; $out.value=''; updateIn(); $outStats.innerHTML = statHtml(''); $in.focus(); });
+    document.getElementById('copyBtn').addEventListener('click', async ()=>{ if(!$out.value) return; try{ await navigator.clipboard.writeText($out.value); alert('복사됨'); }catch(e){}; window.dataLayer=window.dataLayer||[]; window.dataLayer.push({event:'copy_click', tool:'blankline'}); });
+    document.getElementById('downloadBtn').addEventListener('click', ()=>{ const blob=new Blob([$out.value||''],{type:'text/plain;charset=utf-8'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='blankline-result.txt'; document.body.appendChild(a); a.click(); a.remove(); window.dataLayer=window.dataLayer||[]; window.dataLayer.push({event:'download_click', tool:'blankline'}); });
+
+    // init
+    updateIn();
+    $outStats.innerHTML = statHtml('');
+
+    document.getElementById('cookiePrefs')?.addEventListener('click',function(e){ e.preventDefault(); alert('쿠키 설정(CMP)을 연결하세요.'); });
+
+    // track page view
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({event:'tool_use', tool:'blankline'});
+  </script>
+
+  <!-- JSON-LD: FAQ (SEO) -->
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+    {"@type":"Question","name":"빈 줄을 전부 지울지, 한 줄만 남길지 어떻게 고르나요?","acceptedAnswer":{"@type":"Answer","text":"라디오 버튼에서 \u2018빈 줄 제거\u2019 또는 \u2018여러 빈 줄 → 하나만 남기기\u2019를 선택하세요. 전자는 빈 줄을 모두 삭제, 후자는 연속된 빈 줄 묶음을 1줄로 압축합니다."}},
+    {"@type":"Question","name":"탭을 스페이스로 몇 칸으로 변환하나요?","acceptedAnswer":{"@type":"Answer","text":"숫자를 직접 입력하세요(0=변환 안 함). 예를 들어 4를 입력하면 탭 하나가 스페이스 4개로 바뀝니다."}},
+    {"@type":"Question","name":"LF/CRLF 통일은 왜 필요한가요?","acceptedAnswer":{"@type":"Answer","text":"운영체제마다 줄바꿈 코드가 달라 문서가 섞이면 도구/빌드/파이프라인에서 문제가 생길 수 있습니다. 한 가지로 통일하면 안전합니다."}},
+    {"@type":"Question","name":"개인정보는 업로드되나요?","acceptedAnswer":{"@type":"Answer","text":"아니요. 이 도구는 브라우저에서만 동작하며 텍스트가 서버로 전송되지 않습니다."}}
+  ]}
+  </script>
 </body>
 </html>

@@ -1,21 +1,21 @@
 <!doctype html>
-<html lang="ko">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>문서 분할·변환 도구 — 바이트/태깅/인코딩 | Thenaom Tools</title>
-  <meta name="description" content="긴 텍스트를 원하는 단위로 분할하거나 필요한 형식으로 변환하세요. 바이트 분할, 태깅 분할, Base64·URL·HTML 인코딩 변환을 브라우저에서 안전하게 처리합니다." />
+  <title>Split & Convert — Byte Split, Tagging, Encoding | Thenaom Tools</title>
+  <meta name="description" content="Split long text into targeted sizes or convert to the format you need. Byte-based splitting, tag-based splitting, and Base64/URL/HTML conversions — all in your browser." />
   <meta name="robots" content="index,follow" />
-  <link rel="canonical" href="https://tools.thenaom.com/convert/">
-  <link rel="alternate" hreflang="ko" href="https://tools.thenaom.com/convert/">
+  <link rel="canonical" href="https://tools.thenaom.com/en/convert/">
   <link rel="alternate" hreflang="en" href="https://tools.thenaom.com/en/convert/">
+  <link rel="alternate" hreflang="ko" href="https://tools.thenaom.com/convert/">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
-  <meta property="og:title" content="문서 분할·변환 도구 — 바이트/태깅/인코딩" />
-  <meta property="og:description" content="바이트 기준 분할, 자동 태깅, 인코딩 변환을 간단하게 처리합니다. 모든 처리는 브라우저에서 실행됩니다." />
-  <meta property="og:image" content="https://tools.thenaom.com/assets/og-convert-ko.png" />
-  <meta property="og:url" content="https://tools.thenaom.com/convert/" />
+  <meta property="og:title" content="Split & Convert — Byte Split, Tagging, Encoding" />
+  <meta property="og:description" content="Handle byte-based splits, automated tagging, and common encodings without uploading your data." />
+  <meta property="og:image" content="https://tools.thenaom.com/assets/og-convert-en.png" />
+  <meta property="og:url" content="https://tools.thenaom.com/en/convert/" />
   <meta property="og:type" content="website" />
-  <meta property="og:locale" content="ko_KR" />
+  <meta property="og:locale" content="en_US" />
 
   <!-- GTM -->
   <script>
@@ -45,11 +45,10 @@
   </script>
 
   <style>
-    /* same tokens & components as /text/ to keep unity */
     :root{--bg:#ffffff;--text:#0b1220;--muted:#475569;--border:#e5e7eb;--card:#ffffff;--accent:#2563eb;--btn-text:#ffffff;--shadow:0 6px 18px rgba(0,0,0,.06);--focus: color-mix(in srgb, var(--accent) 35%, transparent);--hero-tint:#eff3ff;--hero-grid:#e8ecf6;--hero-ring:#cfe1ff}
     [data-theme="dark"]{--bg:#0b1220;--text:#f1f5f9;--muted:#cbd5e1;--border:#334155;--card:#111827;--accent:#60a5fa;--btn-text:#0b1220;--shadow:0 8px 22px rgba(0,0,0,.55);--focus: color-mix(in srgb, var(--accent) 45%, transparent);--hero-tint:#0f172a;--hero-grid:#162036;--hero-ring:#1f3b76}
     html,body{background:var(--bg)!important}
-    body{color:var(--text)!important;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Noto Sans KR,Arial,sans-serif}
+    body{color:var(--text)!important;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Noto Sans,Arial,sans-serif}
     a{color:var(--accent);text-decoration:none}
     .container{max-width:1120px;margin:0 auto;padding:0 16px}
     header.site{position:sticky;top:0;z-index:100;background:var(--bg)!important;border-bottom:1px solid var(--border)}
@@ -94,19 +93,19 @@
 
   <header class="site">
     <div class="container" style="display:flex;justify-content:space-between;align-items:center">
-      <a href="/" class="brand">Thenaom Tools</a>
-      <nav aria-label="보조 탐색">
-        <a class="lang-switch" href="/en/convert/" hreflang="en">English</a>
-        <button id="themeToggle" class="theme-toggle" aria-pressed="false" title="테마 전환"><span class="icon">🌞</span><span class="label">라이트</span></button>
+      <a href="/en/" class="brand">Thenaom Tools</a>
+      <nav aria-label="secondary navigation">
+        <a class="lang-switch" href="/convert/" hreflang="ko">한국어</a>
+        <button id="themeToggle" class="theme-toggle" aria-pressed="false" title="Toggle theme"><span class="icon">🌞</span><span class="label">Light</span></button>
       </nav>
     </div>
   </header>
 
   <section class="hero">
     <div class="container">
-      <div class="crumb"><a href="/">홈</a> &nbsp;>&nbsp; 문서 분할/변환</div>
-      <h1>문서 분할/변환 도구 모음</h1>
-      <p>긴 텍스트를 원하는 단위로 나누거나 필요한 형식으로 변환하세요. 바이트 분할, 태깅 분할, 인코딩 변환을 간단하게 처리합니다.</p>
+      <div class="crumb"><a href="/en/">Home</a> &nbsp;>&nbsp; Split / Convert</div>
+      <h1>Split & Convert Tools</h1>
+      <p>Break long text into exact sizes or transform it to the format you need. Byte-based split, auto-tag split, and common encoding conversions are all handled locally in your browser.</p>
     </div>
   </section>
 
@@ -120,22 +119,21 @@
     </div>
     <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
 
-    <h2 class="section-title">추천 도구</h2>
+    <h2 class="section-title">Recommended Tools</h2>
     <div class="grid cols2" id="tools">
-      <a class="tool-btn" data-tool="byte-split" href="/tools/byte-split.html"><h2>바이트 단위 분할</h2><p>UTF-8 기준 원하는 바이트로 분할.</p></a>
-      <a class="tool-btn" data-tool="tag30" href="/tools/tag30.html"><h2>자동 태깅 [a]/[b]</h2><p>블록 분할 및 태그 자동 부여.</p></a>
-      <a class="tool-btn" data-tool="base64" href="/tools/base64.html"><h2>Base64 인코딩/디코딩</h2><p>텍스트/파일 Base64 변환.</p></a>
-      <a class="tool-btn" data-tool="url-encode" href="/tools/url-encode.html"><h2>URL 인코딩/디코딩</h2><p>퍼센트 인코딩 처리.</p></a>
-      <a class="tool-btn" data-tool="html-entities" href="/tools/html-entities.html"><h2>HTML 엔티티 변환</h2><p>특수문자 ↔ HTML 엔티티.</p></a>
-      <!-- 중복 기대 도구도 재노출하여 UX 기대치 맞춤 -->
-      <a class="tool-btn" data-tool="linebreak" href="/tools/linebreak.html"><h2>줄바꾸기 · 줄바꿈 제거</h2><p>구분자 기준 줄바꿈 추가/제거.</p></a>
+      <a class="tool-btn" data-tool="byte-split" href="/en/tools/byte-split.html"><h2>Byte Split</h2><p>Split text by specified byte length (UTF-8).</p></a>
+      <a class="tool-btn" data-tool="tag30" href="/en/tools/tag30.html"><h2>Auto Tag [a]/[b]</h2><p>Automatically tag and split blocks.</p></a>
+      <a class="tool-btn" data-tool="base64" href="/en/tools/base64.html"><h2>Base64 Encode/Decode</h2><p>Convert text or files to/from Base64.</p></a>
+      <a class="tool-btn" data-tool="url-encode" href="/en/tools/url-encode.html"><h2>URL Encode/Decode</h2><p>Handle percent-encoding safely.</p></a>
+      <a class="tool-btn" data-tool="html-entities" href="/en/tools/html-entities.html"><h2>HTML Entities</h2><p>Convert special characters ↔ HTML entities.</p></a>
+      <a class="tool-btn" data-tool="linebreak" href="/en/tools/linebreak.html"><h2>Line Break / Join</h2><p>Add or remove line breaks by delimiter.</p></a>
     </div>
 
     <section class="faq" style="margin-top:18px">
       <h2 class="section-title">FAQ</h2>
-      <div class="qa"><h3>바이트 기준은 어떻게 계산되나요?</h3><p>UTF-8 인코딩 기준으로 정확히 계산합니다.</p></div>
-      <div class="qa"><h3>특수문자 포함 시도 정확한가요?</h3><p>네. 멀티바이트 문자를 고려해 분할합니다.</p></div>
-      <div class="qa"><h3>파일 업로드도 되나요?</h3><p>현재는 텍스트 중심이며, 파일 지원은 추후 안내합니다.</p></div>
+      <div class="qa"><h3>How are bytes calculated?</h3><p>We use UTF-8 byte length for accuracy.</p></div>
+      <div class="qa"><h3>Will multi-byte characters break splitting?</h3><p>No. The splitter accounts for multi-byte characters.</p></div>
+      <div class="qa"><h3>Can I upload files?</h3><p>Currently text-focused. File support may be added later.</p></div>
     </section>
 
     <div class="ad-space">
@@ -147,20 +145,20 @@
     </div>
     <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
 
-    <section class="contact" aria-label="문의하기">
-      <h2>문의하기</h2>
-      <p>사용 중 불편사항이나 제안이 있다면 이메일로 연락해주세요.</p>
-      <p><strong>이메일:</strong> <a href="mailto:thenaom@naver.com">thenaom@naver.com</a></p>
+    <section class="contact" aria-label="Contact">
+      <h2>Contact</h2>
+      <p>Have feedback or suggestions? Email us.</p>
+      <p><strong>Email:</strong> <a href="mailto:thenaom@naver.com">thenaom@naver.com</a></p>
     </section>
   </main>
 
   <footer class="site">
     <div class="container footer-row">
       <div>© <span id="y"></span> Thenaom Tools. All rights reserved.</div>
-      <nav class="footer-links" aria-label="푸터 링크">
-        <a href="/privacy.html">개인정보처리방침</a>
-        <a href="/terms.html">이용약관</a>
-        <a href="#" id="cookiePrefs">쿠키 설정</a>
+      <nav class="footer-links" aria-label="Footer links">
+        <a href="/en/privacy.html">Privacy Policy</a>
+        <a href="/en/terms.html">Terms of Use</a>
+        <a href="#" id="cookiePrefs">Cookie Settings</a>
         <a href="/sitemap.xml">Sitemap</a>
         <a href="/ads.txt">ads.txt</a>
         <a href="mailto:thenaom@naver.com">Contact</a>
@@ -172,7 +170,7 @@
     document.getElementById('y').textContent=new Date().getFullYear();
     (function(){
       const btn=document.getElementById('themeToggle'); const root=document.documentElement;
-      const setUI=m=>{btn.setAttribute('aria-pressed',m==='dark');btn.querySelector('.icon').textContent=m==='dark'?'🌙':'🌞';btn.querySelector('.label').textContent=m==='dark'?'다크':'라이트'};
+      const setUI=m=>{btn.setAttribute('aria-pressed',m==='dark');btn.querySelector('.icon').textContent=m==='dark'?'🌙':'🌞';btn.querySelector('.label').textContent=m==='dark'?'Dark':'Light'};
       const theme=()=>root.getAttribute('data-theme')==='dark'?'dark':'light'; setUI(theme());
       btn.addEventListener('click',()=>{const n=theme()==='dark'?'light':'dark';root.setAttribute('data-theme',n);root.setAttribute('data-user-theme','1');try{localStorage.setItem('theme',n);}catch(e){};setUI(n);});
       const mq=window.matchMedia('(prefers-color-scheme: dark)');
@@ -182,25 +180,25 @@
       const a=e.target.closest('a.tool-btn'); if(!a) return;
       const tool=a.getAttribute('data-tool')||a.href; window.dataLayer=window.dataLayer||[]; window.dataLayer.push({event:'tool_use', tool});
     });
-    document.getElementById('cookiePrefs')?.addEventListener('click',function(e){e.preventDefault();alert('쿠키 설정 창을 연결하세요 (CMP 연동 필요)');});
+    document.getElementById('cookiePrefs')?.addEventListener('click',function(e){e.preventDefault();alert('Connect your CMP to open cookie preferences.');});
   </script>
 
   <!-- JSON-LD -->
   <script type="application/ld+json">
   {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
-    {"@type":"Question","name":"바이트 기준은 어떻게 계산되나요?","acceptedAnswer":{"@type":"Answer","text":"UTF-8 인코딩 기준으로 정확히 계산합니다."}},
-    {"@type":"Question","name":"특수문자 포함 시도 정확한가요?","acceptedAnswer":{"@type":"Answer","text":"네. 멀티바이트 문자를 고려해 분할합니다."}},
-    {"@type":"Question","name":"파일 업로드도 되나요?","acceptedAnswer":{"@type":"Answer","text":"현재는 텍스트 중심이며, 파일 지원은 추후 안내합니다."}}
+    {"@type":"Question","name":"How are bytes calculated?","acceptedAnswer":{"@type":"Answer","text":"We use UTF-8 byte length for accuracy."}},
+    {"@type":"Question","name":"Will multi-byte characters break splitting?","acceptedAnswer":{"@type":"Answer","text":"No. The splitter accounts for multi-byte characters."}},
+    {"@type":"Question","name":"Can I upload files?","acceptedAnswer":{"@type":"Answer","text":"Currently text-focused. File support may be added later."}}
   ]}
   </script>
   <script type="application/ld+json">
-  {"@context":"https://schema.org","@type":"ItemList","name":"문서 분할/변환 도구","itemListElement":[
-    {"@type":"ListItem","position":1,"name":"바이트 단위 분할","url":"https://tools.thenaom.com/tools/byte-split.html"},
-    {"@type":"ListItem","position":2,"name":"자동 태깅 [a]/[b]","url":"https://tools.thenaom.com/tools/tag30.html"},
-    {"@type":"ListItem","position":3,"name":"Base64 인코딩/디코딩","url":"https://tools.thenaom.com/tools/base64.html"},
-    {"@type":"ListItem","position":4,"name":"URL 인코딩/디코딩","url":"https://tools.thenaom.com/tools/url-encode.html"},
-    {"@type":"ListItem","position":5,"name":"HTML 엔티티 변환","url":"https://tools.thenaom.com/tools/html-entities.html"},
-    {"@type":"ListItem","position":6,"name":"줄바꾸기 · 줄바꿈 제거","url":"https://tools.thenaom.com/tools/linebreak.html"}
+  {"@context":"https://schema.org","@type":"ItemList","name":"Split & Convert Tools","itemListElement":[
+    {"@type":"ListItem","position":1,"name":"Byte Split","url":"https://tools.thenaom.com/en/tools/byte-split.html"},
+    {"@type":"ListItem","position":2,"name":"Auto Tag [a]/[b]","url":"https://tools.thenaom.com/en/tools/tag30.html"},
+    {"@type":"ListItem","position":3,"name":"Base64 Encode/Decode","url":"https://tools.thenaom.com/en/tools/base64.html"},
+    {"@type":"ListItem","position":4,"name":"URL Encode/Decode","url":"https://tools.thenaom.com/en/tools/url-encode.html"},
+    {"@type":"ListItem","position":5,"name":"HTML Entities","url":"https://tools.thenaom.com/en/tools/html-entities.html"},
+    {"@type":"ListItem","position":6,"name":"Line Break / Join","url":"https://tools.thenaom.com/en/tools/linebreak.html"}
   ]}
   </script>
 </body>

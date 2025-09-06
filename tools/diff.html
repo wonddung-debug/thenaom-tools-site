@@ -1,140 +1,484 @@
 <!doctype html>
 <html lang="ko">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>텍스트 비교 도구 | 차이점 찾기 (줄/단어/문자) - Thenaom Tools</title>
-<meta name="description" content="두 텍스트를 비교해 차이점을 빠르게 찾는 무료 온라인 도구. 줄/단어/문자 단위 비교, 공백·대소문자 무시 옵션 지원.">
-<link rel="canonical" href="https://tools.thenaom.com/tools/diff.html">
-<link rel="stylesheet" href="../assets/styles.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>텍스트 비교(Diff) — 줄·단어·글자 차이 | Thenaom Tools</title>
+  <meta name="description" content="두 텍스트를 좌우 큰 창으로 나란히 비교합니다. 줄·단어·글자 단위 차이를 색상으로 표시하고, 공백/줄바꿈 무시, 변경점 점프, 폰트/줄 간격 조절, 집중 모드, 전체 화면, 결과 복사·다운로드를 지원합니다. 모든 작업은 브라우저 안에서만 실행됩니다." />
+  <meta name="robots" content="index,follow" />
+  <link rel="canonical" href="https://tools.thenaom.com/tools/diff.html">
+  <link rel="alternate" hreflang="ko" href="https://tools.thenaom.com/tools/diff.html">
+  <link rel="alternate" hreflang="en" href="https://tools.thenaom.com/en/tools/diff.html">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="텍스트 비교(Diff) — 줄·단어·글자 차이" />
+  <meta property="og:description" content="좌우 큰 창으로 나란히 비교. 줄/단어/글자 단위 하이라이트, 공백·줄바꿈 무시, 점프 네비, 폰트/줄간격 조절, 집중·전체 화면." />
+  <meta property="og:image" content="https://tools.thenaom.com/assets/og-tool-diff-ko.png" />
+  <meta property="og:url" content="https://tools.thenaom.com/tools/diff.html" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="ko_KR" />
+
+  <!-- Theme early (avoid FOUC) -->
+  <script>
+    (function(){
+      try{
+        const saved=localStorage.getItem('theme');
+        if(saved==='light'||saved==='dark'){
+          document.documentElement.setAttribute('data-theme',saved);
+          document.documentElement.setAttribute('data-user-theme','1');
+        }else{
+          const prefersDark=window.matchMedia('(prefers-color-scheme: dark)').matches;
+          document.documentElement.setAttribute('data-theme',prefersDark?'dark':'light');
+        }
+      }catch(e){}
+    })();
+  </script>
+
+  <!-- GTM -->
+  <script>
+    (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});
+      var f=d.getElementsByTagName(s)[0], j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:''; j.async=true;
+      j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl; f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-N2BBPNCC');
+  </script>
+
+  <!-- AdSense -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3006330103681332" crossorigin="anonymous"></script>
+
+  <style>
+    :root{
+      --bg:#ffffff; --text:#0b1220; --muted:#475569; --border:#e5e7eb; --card:#ffffff;
+      --accent:#2563eb; --btn-text:#ffffff; --shadow:0 6px 18px rgba(0,0,0,.06);
+      --focus: color-mix(in srgb, var(--accent) 35%, transparent);
+      --hero-tint:#eff3ff; --hero-grid:#e8ecf6; --hero-ring:#cfe1ff;
+      --input:#0b1220; --input-bg:var(--card);
+      --added:#22c55e33; --removed:#ef444433; --changed:#f59e0b33;
+      --added-b:#22c55e; --removed-b:#ef4444; --changed-b:#f59e0b;
+    }
+    [data-theme="dark"]{
+      --bg:#0b1220; --text:#f1f5f9; --muted:#cbd5e1; --border:#334155; --card:#111827;
+      --accent:#60a5fa; --btn-text:#0b1220; --shadow:0 8px 22px rgba(0,0,0,.55);
+      --focus: color-mix(in srgb, var(--accent) 45%, transparent);
+      --hero-tint:#0f172a; --hero-grid:#162036; --hero-ring:#1f3b76;
+      --input:#e5e7eb; --input-bg:#0f172a;
+      --added:#16a34a33; --removed:#dc262633; --changed:#d9770633;
+      --added-b:#16a34a; --removed-b:#dc2626; --changed-b:#d97706;
+    }
+    html,body{background:var(--bg)!important}
+    body{color:var(--text)!important;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Noto Sans KR,Arial,sans-serif}
+    a{color:var(--accent);text-decoration:none}
+    .container{max-width:1120px;margin:0 auto;padding:0 16px}
+
+    /* Header */
+    header.site{position:sticky;top:0;z-index:100;background:var(--bg)!important;border-bottom:1px solid var(--border)}
+    .brand{color:var(--text)!important;font-weight:800;text-decoration:none}
+    header.site nav{display:flex;align-items:center;gap:12px}
+    .lang-switch,.theme-toggle,.btn{padding:.5rem .72rem;border:1px solid var(--border);border-radius:.7rem;background:linear-gradient(180deg,color-mix(in srgb,var(--card)96%,transparent),var(--card));cursor:pointer;color:var(--text)!important;box-shadow:var(--shadow);transition:transform .06s,box-shadow .18s,border-color .18s,background .18s}
+    .lang-switch:hover,.theme-toggle:hover,.theme-toggle:focus-visible,.btn:hover{color:var(--accent)!important;border-color:var(--accent)!important;box-shadow:0 0 0 3px var(--focus), var(--shadow)}
+    .theme-toggle:active,.btn:active{transform:translateY(1px)}
+    .theme-toggle[aria-pressed="true"]{background:linear-gradient(180deg,color-mix(in srgb,var(--accent)22%,var(--card)),var(--accent));border-color:var(--accent)!important;color:var(--btn-text)!important}
+
+    /* Hero */
+    .hero{position:relative;overflow:hidden;padding:28px 0 18px;text-align:start;isolation:isolate}
+    .hero::before{content:"";position:absolute;inset:0;background:radial-gradient(900px 360px at 50% -15%, var(--hero-ring), transparent 65%),linear-gradient(180deg, color-mix(in srgb, var(--hero-tint) 88%, transparent), transparent 60%);z-index:-2}
+    .hero::after{content:"";position:absolute;inset:0;background:linear-gradient(to right, color-mix(in srgb,var(--hero-grid) 35%, transparent) 1px, transparent 1px) 0 0/28px 28px,linear-gradient(to bottom, color-mix(in srgb,var(--hero-grid) 35%, transparent) 1px, transparent 1px) 0 0/28px 28px;opacity:.5;z-index:-1}
+    .hero h1{margin:0;font-size:clamp(1.6rem,3.4vw,2.2rem)}
+    .hero p{margin:.4rem 0 0;color:var(--muted);max-width:900px}
+    .crumb{margin:10px 0 0;font-size:.95rem}
+    .crumb a{color:var(--muted)}
+    .hl{background:color-mix(in srgb, var(--accent) 14%, transparent);padding:0 4px;border-radius:6px}
+
+    /* Main layout */
+    main .section{margin:12px 0}
+    .ad-space{margin:8px 0}
+    .panel{border:1px solid var(--border);border-radius:12px;background:linear-gradient(180deg, color-mix(in srgb, var(--card) 95%, transparent), var(--card));box-shadow:var(--shadow);padding:12px}
+    .panel h2{margin:.1rem 0 .6rem;font-size:1.06rem}
+    .row{display:grid;grid-template-columns:1fr;gap:12px}
+    .controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+    .controls .btn-primary{background:linear-gradient(180deg,color-mix(in srgb,var(--accent)18%,var(--card)),var(--accent));color:var(--btn-text)!important;border-color:var(--accent)}
+    .controls .btn-secondary{background:linear-gradient(180deg, color-mix(in srgb,var(--card)95%, transparent), var(--card))}
+    .small{font-size:.92rem;color:var(--muted)}
+
+    /* Split editors */
+    .split{position:relative;display:grid;grid-template-columns:1fr 6px 1fr;min-height:320px;gap:10px}
+    .pane{background:var(--card);display:flex;flex-direction:column;min-width:0;border:1px solid var(--border);border-radius:10px}
+    .pane label{font-size:.86rem;margin:8px 10px;color:var(--muted)}
+    .editor{flex:1;display:grid;grid-template-columns:auto 1fr}
+    .gutter{user-select:none;background:linear-gradient(180deg, color-mix(in srgb, var(--card) 96%, transparent), var(--card));border-right:1px solid var(--border);padding:8px 6px;overflow:auto}
+    .gutter pre{margin:0;line-height:var(--lh,1.5);font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:var(--fs,14px);color:var(--muted)}
+    textarea.input{width:100%;height:100%;border:0;outline:none;resize:none;padding:10px;background:transparent;color:var(--input);font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:var(--fs,14px);line-height:var(--lh,1.5)}
+    .resizer{background:#cbd5e180;cursor:col-resize;border-radius:8px}
+    .resizer::after{content:"";display:block;width:2px;height:100%;margin:0 auto;background:#94a3b8;border-radius:2px}
+
+    /* Output */
+    textarea.output, .diff-output{
+      width:100%;min-height:220px;padding:12px;border-radius:10px;border:1px solid var(--border);
+      background:var(--card);color:var(--text);font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:var(--fs,14px);line-height:var(--lh,1.5);white-space:pre-wrap;resize:vertical
+    }
+    .hunk{padding:6px 8px;border-left:3px solid transparent;margin:4px 0;border-radius:8px}
+    .hunk.add{background:var(--added);border-color:var(--added-b)}
+    .hunk.del{background:var(--removed);border-color:var(--removed-b)}
+    .hunk.chg{background:var(--changed);border-color:var(--changed-b)}
+    mark.add{background:var(--added);border-bottom:2px solid var(--added-b)}
+    mark.del{background:var(--removed);border-bottom:2px solid var(--removed-b)}
+    mark.chg{background:var(--changed);border-bottom:2px solid var(--changed-b)}
+
+    footer.site{margin-top:16px;padding:14px 0;border-top:1px solid var(--border);font-size:.95rem;color:var(--muted)!important}
+    .footer-row{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+    .footer-links{display:flex;gap:14px;flex-wrap:wrap}
+    .footer-links a{color:var(--muted);text-decoration:none}
+    .footer-links a:hover{color:var(--accent)}
+
+    /* Utilities */
+    .opt{display:flex;align-items:center;gap:6px}
+    .range{display:inline-flex;align-items:center;gap:6px}
+    .focus-mode header.site,.focus-mode footer.site{display:none}
+  </style>
 </head>
 <body>
-<header class="site">
-  <div class="container" style="display:flex;gap:16px;align-items:center;justify-content:space-between">
-    <a class="brand" href="/">Thenaom Tools</a>
-    <nav><ul><li><a class="active" href="/text/">텍스트 정리</a></li><li><a href="/convert/">분할/변환</a></li><li><a href="/utility/">유틸</a></li></ul></nav>
-  </div>
-</header>
+  <!-- GTM (noscript) -->
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-N2BBPNCC" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
-<section class="hero"><div class="container">
-  <h1>텍스트 비교 도구 (Diff)</h1>
-  <p class="muted">줄/단어/문자 단위 비교 · 추가/삭제/변경 하이라이트 · 브라우저에서만 처리</p>
-</div></section>
+  <!-- Header -->
+  <header class="site">
+    <div class="container" style="display:flex;justify-content:space-between;align-items:center">
+      <a href="/" class="brand">Thenaom Tools</a>
+      <nav aria-label="보조 탐색">
+        <a class="lang-switch" href="/en/tools/diff.html" hreflang="en">English</a>
+        <button id="themeToggle" class="theme-toggle" aria-pressed="false" title="테마 전환"><span class="icon">🌞</span><span class="label">라이트</span></button>
+      </nav>
+    </div>
+  </header>
 
-<div class="container">
-  <div class="ad-placeholder"><b>광고 자리</b><small>AdSense 승인 후 코드 (naom_diff_top)</small></div>
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <div class="crumb"><a href="/">홈</a> &nbsp;>&nbsp; <a href="/utility/">업무 유틸</a> &nbsp;>&nbsp; 텍스트 비교</div>
+      <h1>텍스트 비교 (Diff)</h1>
+      <p>두 텍스트를 <span class="hl">좌우 큰 창</span>으로 나란히 비교합니다. <b>줄/단어/글자</b> 단위 차이, <b>공백/줄바꿈 무시</b>, <b>변경점 점프</b>, <b>폰트·줄 간격</b> 조절, <b>집중/전체 화면</b>, <b>복사·다운로드</b> 지원.</p>
+    </div>
+  </section>
 
-  <div class="toolbar card" style="margin-bottom:14px;display:flex;flex-wrap:wrap;gap:8px;align-items:center">
-    <label>비교 단위
-      <select id="mode">
-        <option value="line">줄 단위</option>
-        <option value="word">단어 단위</option>
-        <option value="char">문자 단위</option>
-      </select>
-    </label>
-    <label><input type="checkbox" id="ignoreSpace" checked> 공백 무시</label>
-    <label><input type="checkbox" id="ignoreCase"> 대소문자 무시</label>
-    <span style="flex:1"></span>
-    <button class="btn secondary" id="swapBtn">↔︎ 바꾸기</button>
-    <button class="btn secondary" id="clearBtn">지우기</button>
-    <button class="btn" id="compareBtn">비교</button>
-  </div>
+  <main class="container" id="main">
+    <!-- 상단 광고 -->
+    <div class="ad-space">
+      <ins class="adsbygoogle" style="display:block"
+           data-ad-client="ca-pub-3006330103681332"
+           data-ad-slot="6703005412"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+    </div>
+    <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
 
-  <div class="grid cols2">
-    <article class="card"><h2>텍스트 A (기준)</h2><textarea id="a"></textarea></article>
-    <article class="card"><h2>텍스트 B (비교)</h2><textarea id="b"></textarea></article>
-  </div>
+    <!-- How-to -->
+    <section class="section panel">
+      <h2>어떻게 쓰나요?</h2>
+      <p class="small">1) 왼쪽/오른쪽에 텍스트 붙여넣기 → 2) 모드/옵션 선택 → 3) <strong>실행</strong> (단축키: <kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Enter</kbd>)</p>
+      <details class="small"><summary>예시 보기</summary>
+        <pre>
+입력(왼쪽/오른쪽):
+사과 바나나 포도
+사과  바나나   포도!
 
-  <div class="legend" style="margin:10px 0;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-    <span class="chip"><span class="mono" style="background:#16a34a20">&nbsp;&nbsp;</span> 추가됨</span>
-    <span class="chip"><span class="mono" style="background:#dc262620">&nbsp;&nbsp;</span> 삭제됨</span>
-    <span class="chip"><span class="mono" style="background:#f59e0b20">&nbsp;&nbsp;</span> 변경됨</span>
-    <span class="stat" id="stat"></span>
-    <span style="flex:1"></span>
-    <button class="btn secondary" id="copyHtmlBtn">HTML 복사</button>
-    <button class="btn secondary" id="downloadBtn">HTML 저장</button>
-  </div>
+단어 모드 + 공백 무시:
+동일/거의 동일로 판단, 느낌표만 차이로 표시
+        </pre>
+      </details>
+    </section>
 
-  <div class="card"><div id="result" class="mono" style="white-space:pre-wrap"></div></div>
+    <!-- 본문 -->
+    <section class="section">
+      <!-- 옵션 -->
+      <div class="panel" style="margin-bottom:10px">
+        <div class="controls" role="group" aria-label="모드 및 옵션">
+          <label class="opt"><input type="radio" name="mode" value="line" checked> <strong>줄</strong></label>
+          <label class="opt"><input type="radio" name="mode" value="word"> <strong>단어</strong></label>
+          <label class="opt"><input type="radio" name="mode" value="char"> <strong>글자</strong></label>
+          <label class="opt"><input type="checkbox" id="ignoreSpace"> 공백 무시</label>
+          <label class="opt"><input type="checkbox" id="ignoreEOL"> 줄바꿈 무시</label>
+          <label class="opt"><input type="checkbox" id="showLineNumbers" checked> 줄 번호</label>
+          <span class="range"><label for="fontSize">폰트</label><input id="fontSize" type="range" min="12" max="20" value="14"></span>
+          <span class="range"><label for="lineHeight">줄간격</label><input id="lineHeight" type="range" min="1.2" max="2.0" step="0.05" value="1.5"></span>
+          <button id="focusBtn" class="btn">🎯 집중</button>
+          <button id="fsBtn" class="btn">⤢ 전체 화면</button>
+        </div>
+      </div>
 
-  <div class="ad-placeholder"><b>광고 자리</b><small>AdSense 승인 후 코드 (naom_diff_bottom)</small></div>
+      <!-- 에디터 -->
+      <div class="split" id="split">
+        <div class="pane" id="paneL">
+          <label for="left">왼쪽(원본)</label>
+          <div class="editor">
+            <div class="gutter"><pre id="gutL"></pre></div>
+            <textarea id="left" class="input" spellcheck="false" aria-label="왼쪽 원본"></textarea>
+          </div>
+        </div>
+        <div class="resizer" id="resizer" role="separator" aria-orientation="vertical" aria-label="창 크기 조절"></div>
+        <div class="pane" id="paneR">
+          <label for="right">오른쪽(수정본)</label>
+          <div class="editor">
+            <div class="gutter"><pre id="gutR"></pre></div>
+            <textarea id="right" class="input" spellcheck="false" aria-label="오른쪽 수정본"></textarea>
+          </div>
+        </div>
+      </div>
 
-  <h2 class="section-title">관련 도구</h2>
-  <div class="grid cols2">
-    <article class="card"><h2>중복 줄 제거</h2><p>중복된 행 제거, 대소문자/공백 무시.</p><a class="btn" href="/tools/dedupe-lines.html">열기</a></article>
-    <article class="card"><h2>줄 정렬/랜덤</h2><p>텍스트 줄 정렬 및 랜덤 셔플.</p><a class="btn" href="/tools/sort-lines.html">열기</a></article>
-  </div>
-</div>
+      <!-- 실행/내보내기 -->
+      <div class="panel" style="margin-top:10px">
+        <div class="controls">
+          <button id="runBtn" class="btn btn-primary">실행 (Ctrl/⌘+Enter)</button>
+          <button id="prevBtn" class="btn">〈 이전 변경</button>
+          <button id="nextBtn" class="btn">다음 변경 〉</button>
+          <button id="resetBtn" class="btn btn-secondary">입력 비우기</button>
+          <button id="copyBtn" class="btn btn-secondary">결과 복사</button>
+          <button id="downloadBtn" class="btn btn-secondary">결과 다운로드</button>
+          <label class="opt">출력 형식
+            <select id="exportFmt">
+              <option value="text">텍스트</option>
+              <option value="html">HTML</option>
+            </select>
+          </label>
+          <span id="stat" class="small" aria-live="polite"></span>
+        </div>
+      </div>
 
-<footer class="site"><div class="container">© <span id="y"></span> Thenaom Tools</div></footer>
-<script>document.getElementById('y').textContent=new Date().getFullYear();</script>
+      <!-- 출력 -->
+      <textarea id="output" class="output" aria-live="polite" readonly placeholder="여기에 비교 결과가 표시됩니다"></textarea>
+    </section>
 
-<script>
-(function(){
-  const qs=s=>document.querySelector(s);
-  const escapeHtml=s=>s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-  function normalize(str,opt){
-    let s=str.replace(/\r\n/g,'\n');
-    if(opt.ignoreSpace){s=s.replace(/[ \t]+/g,' ');if(opt.mode==='line')s=s.replace(/[ \t]+$/gm,'');}
-    if(opt.ignoreCase) s=s.toLowerCase();
-    return s;
-  }
-  function tokenize(str,mode){
-    if(mode==='line') return str.split('\n');
-    if(mode==='word') return str.split(/(\s+|[^\w가-힣_]+)/).filter(x=>x!==''&&!/^\s+$/.test(x));
-    return [...str];
-  }
-  function diffArrays(a,b){
-    const n=a.length,m=b.length,dp=Array(n+1).fill(0).map(()=>Array(m+1).fill(0));
-    for(let i=n-1;i>=0;i--)for(let j=m-1;j>=0;j--)dp[i][j]=a[i]===b[j]?dp[i+1][j+1]+1:Math.max(dp[i+1][j],dp[i][j+1]);
-    const ops=[];let i=0,j=0;
-    while(i<n&&j<m){
-      if(a[i]===b[j]){ops.push({type:'eq',text:a[i]});i++;j++;}
-      else if(dp[i+1][j]>=dp[i][j+1]){ops.push({type:'del',text:a[i++]});}
-      else{ops.push({type:'add',text:b[j++]});}
+    <!-- 하단 광고 -->
+    <div class="ad-space">
+      <ins class="adsbygoogle" style="display:block"
+           data-ad-client="ca-pub-3006330103681332"
+           data-ad-slot="9867638073"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+    </div>
+    <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
+
+    <!-- FAQ -->
+    <section class="section panel faq">
+      <h2>FAQ</h2>
+      <div class="qa"><h3>줄/단어/글자 모드는 어떻게 다른가요?</h3><p>줄 모드는 라인 전체를, 단어 모드는 공백 기준 토큰을, 글자 모드는 개별 문자 단위로 비교합니다. 세밀한 비교가 필요할수록 단어→글자 순으로 보세요.</p></div>
+      <div class="qa"><h3>공백/줄바꿈 무시는 언제 쓰나요?</h3><p>형식만 다른 문서를 비교할 때 유용합니다. 예를 들어 공백 수나 줄바꿈만 다른 경우 실제 내용 변경 없이 “동일”에 가깝게 볼 수 있습니다.</p></div>
+      <div class="qa"><h3>대용량도 되나요?</h3><p>브라우저에서 실행되며 수십~수백 KB까지는 원활합니다. 매우 큰 파일은 브라우저 메모리 한계로 느릴 수 있어요.</p></div>
+    </section>
+
+    <!-- 문의 -->
+    <section class="section panel contact">
+      <h2>문의</h2>
+      <p class="small">도구 개선 제안이나 오류 제보: <a href="mailto:thenaom@naver.com">thenaom@naver.com</a></p>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site">
+    <div class="footer-row">
+      <div>© <span id="y"></span> Thenaom Tools</div>
+      <nav class="footer-links">
+        <a href="/privacy.html">개인정보처리방침</a>
+        <a href="/terms.html">이용약관</a>
+        <a href="/sitemap.xml">Sitemap</a>
+        <a href="/ads.txt">ads.txt</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('y').textContent=new Date().getFullYear();
+
+    // Utils
+    const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+    const $=(s,r=document)=>r.querySelector(s);
+    const toLF=t=>t.replace(/\r\n|\r|\n/g,'\n');
+    const lines=t=>toLF(t).split('\n');
+    const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+    // State
+    const KEY='tt.diff.v1';
+    const state={load(){try{return JSON.parse(localStorage.getItem(KEY)||'null')}catch(e){return null}},save(o){try{localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}}};
+
+    // Gutters
+    function updateGutter(ta, pre){
+      const n=lines(ta.value).length; let s=''; for(let i=1;i<=n;i++) s+=i+"\n";
+      pre.textContent=s; pre.scrollTop=ta.scrollTop;
     }
-    while(i<n)ops.push({type:'del',text:a[i++]});
-    while(j<m)ops.push({type:'add',text:b[j++]});
-    return ops;
-  }
-  function renderOps(ops,mode){
-    const joiner=mode==='line'?'\n':' ';
-    return ops.map(op=>{
-      const t=escapeHtml(op.text);
-      if(op.type==='eq')return t;
-      if(op.type==='add')return `<mark style="background:#16a34a20">${t}</mark>`;
-      if(op.type==='del')return `<mark style="background:#dc262620">${t}</mark>`;
-      if(op.type==='chg')return `<mark style="background:#f59e0b20">${t}</mark>`;
-    }).join(mode==='char'?'':joiner);
-  }
-  function compare(){
-    const mode=qs('#mode').value;
-    const opt={ignoreSpace:qs('#ignoreSpace').checked,ignoreCase:qs('#ignoreCase').checked,mode};
-    const aT=tokenize(normalize(qs('#a').value,opt),mode);
-    const bT=tokenize(normalize(qs('#b').value,opt),mode);
-    const ops=diffArrays(aT,bT);
-    for(let i=0;i<ops.length;i++){
-      if(ops[i]?.type==='del'&&ops[i+1]?.type==='add'){ops[i].type='chg';ops[i+1].type='chg';}
-      if(ops[i]?.type==='add'&&ops[i+1]?.type==='del'){ops[i].type='chg';ops[i+1].type='chg';}
+    function hookGutter(ta,pre){
+      const sync=()=>updateGutter(ta,pre);
+      ta.addEventListener('input',sync);
+      ta.addEventListener('scroll',()=>pre.scrollTop=ta.scrollTop);
+      sync();
     }
-    qs('#result').innerHTML=renderOps(ops,mode)||'<span class="muted">결과 없음</span>';
-    const add=ops.filter(o=>o.type==='add').length,del=ops.filter(o=>o.type==='del').length;
-    qs('#stat').textContent=`+${add} / -${del}`;
+
+    // Resizer
+    (function(){
+      const split=$('#split'), resizer=$('#resizer');
+      let dragging=false, startX=0, leftPct=50;
+      resizer.addEventListener('mousedown',e=>{dragging=true;startX=e.clientX;document.body.style.cursor='col-resize'});
+      window.addEventListener('mousemove',e=>{
+        if(!dragging) return;
+        const w=split.clientWidth, dx=e.clientX-startX;
+        let l=Math.min(90,Math.max(10,leftPct+dx/w*100));
+        split.style.gridTemplateColumns=`${l}% 6px ${100-l}%`;
+      });
+      window.addEventListener('mouseup',()=>{dragging=false;document.body.style.cursor=''});
+      split.style.gridTemplateColumns=`50% 6px 50%`;
+    })();
+
+    // Fullscreen/Focus
+    $('#fsBtn').addEventListener('click',()=>{ if(!document.fullscreenElement){document.documentElement.requestFullscreen()} else {document.exitFullscreen()} });
+    $('#focusBtn').addEventListener('click',()=>document.body.classList.toggle('focus-mode'));
+
+    // Typo controls
+    const applyTypo=()=>{ document.documentElement.style.setProperty('--fs',$('#fontSize').value+'px'); document.documentElement.style.setProperty('--lh',$('#lineHeight').value); };
+    $('#fontSize').addEventListener('input',applyTypo);
+    $('#lineHeight').addEventListener('input',applyTypo);
+    applyTypo();
+
+    // Keyboard
+    document.addEventListener('keydown',e=>{ if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){ e.preventDefault(); run(); }});
+
+    // Load state
+    (function(){
+      const s=state.load();
+      if(s){
+        $('#left').value=s.left||''; $('#right').value=s.right||'';
+        (document.querySelector(`input[name=mode][value="${s.mode||'line'}"]`)||{}).checked=true;
+        $('#ignoreSpace').checked=!!s.ignoreSpace; $('#ignoreEOL').checked=!!s.ignoreEOL;
+        $('#showLineNumbers').checked=s.showLineNumbers!==false;
+        if(s.fs) $('#fontSize').value=s.fs; if(s.lh) $('#lineHeight').value=s.lh; applyTypo();
+      }
+    })();
+
+    // Hook gutters
+    hookGutter($('#left'), $('#gutL'));
+    hookGutter($('#right'), $('#gutR'));
+    $('#showLineNumbers').addEventListener('change',e=>{
+      $$('.gutter').forEach(g=> g.style.display=e.target.checked?'':'none');
+    });
+
+    // LCS diff
+    function lcs(a,b){
+      const n=a.length,m=b.length; const dp=Array(n+1);
+      for(let i=0;i<=n;i++) dp[i]=new Uint32Array(m+1);
+      for(let i=1;i<=n;i++) for(let j=1;j<=m;j++) dp[i][j]= a[i-1]===b[j-1]? dp[i-1][j-1]+1 : Math.max(dp[i-1][j], dp[i][j-1]);
+      const seq=[]; let i=n,j=m; while(i>0&&j>0){ if(a[i-1]===b[j-1]){ seq.unshift(a[i-1]); i--; j--; } else if(dp[i-1][j]>=dp[i][j-1]) i--; else j--; } return seq;
+    }
+    function diffSeq(a,b){
+      const c=lcs(a,b); let i=0,j=0,k=0; const out=[];
+      const push=(t,arr)=>{ if(!arr.length) return; if(out.length&&out[out.length-1].type===t) out[out.length-1].items.push(...arr); else out.push({type:t,items:[...arr]}); };
+      while(i<a.length || j<b.length){
+        if(k<c.length && a[i]===c[k] && b[j]===c[k]){ push('eq',[a[i]]); i++; j++; k++; }
+        else if(j<b.length && (k>=c.length || b[j]!==c[k])){ push('add',[b[j++]]); }
+        else if(i<a.length && (k>=c.length || a[i]!==c[k])){ push('del',[a[i++]]); }
+      }
+      return out;
+    }
+
+    function tokenize(text, mode, ignoreSpace, ignoreEOL){
+      let t=text;
+      if(ignoreEOL) t = toLF(t).replace(/\n+/g,' ');
+      if(mode==='line') return toLF(t).split('\n');
+      if(mode==='word'){
+        const norm = ignoreSpace? t.replace(/\s+/g,' ').trim() : t;
+        return norm.match(/\S+|\s+/g) || [];
+      }
+      if(mode==='char') return Array.from(t);
+    }
+
+    function renderToTextarea(ops){
+      const out=$('#output');
+      const text = ops.map(op=>{
+        const s = op.items.join('');
+        if(op.type==='add') return `[+ ${s}]`;
+        if(op.type==='del') return `[- ${s}]`;
+        return s;
+      }).join('');
+      out.value = text;
+    }
+
+    // Navigation based on markers
+    function jump(dir){
+      const v=$('#output').value; const re=/\[\+ |\[\- /g; let m, idx=[];
+      while((m=re.exec(v))) idx.push(m.index);
+      if(!idx.length) return;
+      const cur=$('#output').selectionStart||0;
+      let i = idx.findIndex(p=>p>cur);
+      if(dir<0) i = (i<=0? idx.length : i)-1;
+      const pos=idx[i]; $('#output').focus(); $('#output').setSelectionRange(pos,pos);
+    }
+
+    function exportResult(fmt){
+      const v=$('#output').value;
+      if(fmt==='html'){
+        const html = v.replace(/\[\+ /g,'<mark class="add">').replace(/\[\- /g,'<mark class="del">').replace(/\]/g,'</mark>');
+        const boiler='<!doctype html><meta charset="utf-8"><style>body{font:14px/1.5 ui-monospace,Consolas,Menlo,monospace}.add{background:'+getComputedStyle(document.documentElement).getPropertyValue('--added')+';border-bottom:2px solid '+getComputedStyle(document.documentElement).getPropertyValue('--added-b')+'}.del{background:'+getComputedStyle(document.documentElement).getPropertyValue('--removed')+';border-bottom:2px solid '+getComputedStyle(document.documentElement).getPropertyValue('--removed-b')+'}</style>';
+        const blob=new Blob([boiler+html],{type:'text/html;charset=utf-8'});
+        downloadFile('diff-result.html', blob);
+      }else{
+        const blob=new Blob([v],{type:'text/plain;charset=utf-8'});
+        downloadFile('diff-result.txt', blob);
+      }
+    }
+
+    function copyResult(){
+      const v=$('#output').value;
+      navigator.clipboard?.writeText(v);
+      window.dataLayer && window.dataLayer.push({event:'copy_click', tool:'diff'});
+    }
+
+    function run(){
+      const mode=document.querySelector('input[name=mode]:checked').value;
+      const ignoreSpace=$('#ignoreSpace').checked, ignoreEOL=$('#ignoreEOL').checked;
+      const left=$('#left').value, right=$('#right').value;
+
+      state.save({left,right, mode, ignoreSpace, ignoreEOL, showLineNumbers:$('#showLineNumbers').checked, fs:$('#fontSize').value, lh:$('#lineHeight').value});
+
+      let ops;
+      if(mode==='line'){
+        const A = lines(left).map(s=> ignoreSpace? s.replace(/\s+/g,''): s);
+        const B = lines(right).map(s=> ignoreSpace? s.replace(/\s+/g,''): s);
+        ops = diffSeq(A,B);
+      }else{
+        const A = tokenize(left, mode, ignoreSpace, ignoreEOL);
+        const B = tokenize(right, mode, ignoreSpace, ignoreEOL);
+        ops = diffSeq(A,B);
+      }
+
+      renderToTextarea(ops);
+
+      const addCt = ops.filter(o=>o.type==='add').reduce((n,o)=>n+o.items.length,0);
+      const delCt = ops.filter(o=>o.type==='del').reduce((n,o)=>n+o.items.length,0);
+      $('#stat').textContent = `추가 ${addCt} · 삭제 ${delCt}`;
+
+      window.dataLayer && window.dataLayer.push({event:'run_click', tool:'diff', mode});
+    }
+
+    // Buttons
+    $('#runBtn').addEventListener('click', run);
+    $('#prevBtn').addEventListener('click', ()=>jump(-1));
+    $('#nextBtn').addEventListener('click', ()=>jump(+1));
+    $('#resetBtn').addEventListener('click', ()=>{ $('#left').value=''; $('#right').value=''; updateGutter($('#left'),$('#gutL')); updateGutter($('#right'),$('#gutR')); $('#output').value=''; $('#stat').textContent=''; state.save({}); });
+    $('#copyBtn').addEventListener('click', copyResult);
+    $('#downloadBtn').addEventListener('click', ()=> exportResult($('#exportFmt').value));
+
+    // Init gutters
+    hookGutter($('#left'), $('#gutL'));
+    hookGutter($('#right'), $('#gutR'));
+  </script>
+
+  <!-- FAQ JSON-LD -->
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"FAQPage",
+    "mainEntity":[
+      {"@type":"Question","name":"줄/단어/글자 모드는 어떻게 다른가요?","acceptedAnswer":{"@type":"Answer","text":"줄 모드는 라인 전체를, 단어 모드는 공백 기준 토큰을, 글자 모드는 개별 문자 단위로 비교합니다."}},
+      {"@type":"Question","name":"공백/줄바꿈 무시는 언제 쓰나요?","acceptedAnswer":{"@type":"Answer","text":"형식만 다른 문서를 비교할 때 유용합니다. 공백 수나 줄바꿈만 다른 경우 실제 내용보다 동일에 가깝게 볼 수 있습니다."}},
+      {"@type":"Question","name":"대용량도 되나요?","acceptedAnswer":{"@type":"Answer","text":"브라우저에서 실행되며 수십~수백 KB까지 원활합니다. 매우 큰 파일은 브라우저 메모리 한계로 느릴 수 있습니다."}}
+    ]
   }
-  qs('#compareBtn').addEventListener('click',compare);
-  qs('#swapBtn').addEventListener('click',()=>{const a=qs('#a').value,b=qs('#b').value;qs('#a').value=b;qs('#b').value=a;compare();});
-  qs('#clearBtn').addEventListener('click',()=>{qs('#a').value='';qs('#b').value='';qs('#result').innerHTML='';qs('#stat').textContent='';});
-  ['mode','ignoreSpace','ignoreCase'].forEach(id=>qs('#'+id).addEventListener('change',compare));
-  qs('#copyHtmlBtn').addEventListener('click',()=>navigator.clipboard.writeText(qs('#result').innerHTML));
-  qs('#downloadBtn').addEventListener('click',()=>{
-    const blob=new Blob([`<!doctype html><meta charset="utf-8"><style>
-    mark{padding:0 2px}
-    mark.add{background:#16a34a20}mark.del{background:#dc262620}mark.chg{background:#f59e0b20}
-    body{font:15px/1.6 ui-monospace,Consolas,Menlo,monospace;white-space:pre-wrap}
-    </style><body>${qs('#result').innerHTML}`],{type:'text/html;charset=utf-8'});
-    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='diff-result.html';a.click();
-  });
-})();
-</script>
+  </script>
 </body>
 </html>

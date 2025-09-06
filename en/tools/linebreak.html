@@ -1,23 +1,23 @@
 <!doctype html>
-<html lang="ko">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>줄바꾸기 · 줄 합치기 — 쉽게 쓰는 텍스트 정리 | Thenaom Tools</title>
-  <meta name="description" content="쉼표, 세미콜론, 탭, 파이프 같은 표시(구분자)로 줄을 나누거나, 줄바꿈을 지워 한 줄로 합칠 수 있습니다. 앞뒤 빈칸 지우기(트림)와 줄바꿈 방식(LF/CRLF) 맞추기도 버튼 한 번으로 처리합니다. 모든 작업은 브라우저 안에서만 실행됩니다." />
+  <title>Line Break · Join Lines — Simple Text Formatter | Thenaom Tools</title>
+  <meta name="description" content="Split by a separator (comma, semicolon, tab, pipe) or join multiple lines into one. Trim spaces and unify line endings (LF/CRLF). All actions run in your browser." />
   <meta name="robots" content="index,follow" />
-  <link rel="canonical" href="https://tools.thenaom.com/tools/linebreak.html">
-  <link rel="alternate" hreflang="ko" href="https://tools.thenaom.com/tools/linebreak.html">
+  <link rel="canonical" href="https://tools.thenaom.com/en/tools/linebreak.html">
   <link rel="alternate" hreflang="en" href="https://tools.thenaom.com/en/tools/linebreak.html">
+  <link rel="alternate" hreflang="ko" href="https://tools.thenaom.com/tools/linebreak.html">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
 
   <!-- Open Graph -->
-  <meta property="og:title" content="줄바꾸기 · 줄 합치기 — 쉽게 쓰는 텍스트 정리" />
-  <meta property="og:description" content="표시(구분자)로 줄을 나누거나, 줄바꿈을 지워 한 줄로 합치기. 빈칸 지우기와 LF/CRLF 통일까지 간단하게." />
-  <meta property="og:image" content="https://tools.thenaom.com/assets/og-tool-linebreak-ko.png" />
-  <meta property="og:url" content="https://tools.thenaom.com/tools/linebreak.html" />
+  <meta property="og:title" content="Line Break · Join Lines — Simple Text Formatter" />
+  <meta property="og:description" content="Split text by separator or join lines into one. Trim spaces and unify LF/CRLF." />
+  <meta property="og:image" content="https://tools.thenaom.com/assets/og-tool-linebreak-en.png" />
+  <meta property="og:url" content="https://tools.thenaom.com/en/tools/linebreak.html" />
   <meta property="og:type" content="website" />
-  <meta property="og:locale" content="ko_KR" />
+  <meta property="og:locale" content="en_US" />
 
   <!-- Google Tag Manager -->
   <script>
@@ -62,11 +62,10 @@
       --input:#e5e7eb; --input-bg:#0f172a;
     }
     html,body{background:var(--bg)!important}
-    body{color:var(--text)!important;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Noto Sans KR,Arial,sans-serif}
+    body{color:var(--text)!important;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Noto Sans,Arial,sans-serif}
     a{color:var(--accent);text-decoration:none}
     .container{max-width:1120px;margin:0 auto;padding:0 16px}
 
-    /* Header */
     header.site{position:sticky;top:0;z-index:100;background:var(--bg)!important;border-bottom:1px solid var(--border)}
     .brand{color:var(--text)!important;font-weight:800;text-decoration:none}
     header.site nav{display:flex;align-items:center;gap:12px}
@@ -75,7 +74,6 @@
     .theme-toggle:active,.btn:active{transform:translateY(1px)}
     .theme-toggle[aria-pressed="true"]{background:linear-gradient(180deg,color-mix(in srgb,var(--accent)22%,var(--card)),var(--accent));border-color:var(--accent)!important;color:var(--btn-text)!important}
 
-    /* Hero */
     .hero{position:relative;overflow:hidden;padding:28px 0 18px;text-align:start;isolation:isolate}
     .hero::before{content:"";position:absolute;inset:0;background:radial-gradient(900px 360px at 50% -15%, var(--hero-ring), transparent 65%),linear-gradient(180deg, color-mix(in srgb, var(--hero-tint) 88%, transparent), transparent 60%);z-index:-2}
     .hero::after{content:"";position:absolute;inset:0;background:linear-gradient(to right, color-mix(in srgb,var(--hero-grid) 35%, transparent) 1px, transparent 1px) 0 0/28px 28px,linear-gradient(to bottom, color-mix(in srgb,var(--hero-grid) 35%, transparent) 1px, transparent 1px) 0 0/28px 28px;opacity:.5;z-index:-1}
@@ -85,7 +83,6 @@
     .crumb a{color:var(--muted)}
     .hl{background:color-mix(in srgb, var(--accent) 14%, transparent);padding:0 4px;border-radius:6px}
 
-    /* Main layout */
     main .section{margin:12px 0}
     .ad-space{margin:8px 0}
     .panel{border:1px solid var(--border);border-radius:12px;background:linear-gradient(180deg, color-mix(in srgb, var(--card) 95%, transparent), var(--card));box-shadow:var(--shadow);padding:12px}
@@ -120,10 +117,10 @@
   <!-- Header -->
   <header class="site">
     <div class="container" style="display:flex;justify-content:space-between;align-items:center">
-      <a href="/" class="brand">Thenaom Tools</a>
-      <nav aria-label="보조 탐색">
-        <a class="lang-switch" href="/en/tools/linebreak.html" hreflang="en">English</a>
-        <button id="themeToggle" class="theme-toggle" aria-pressed="false" title="테마 전환"><span class="icon">🌞</span><span class="label">라이트</span></button>
+      <a href="/en/" class="brand">Thenaom Tools</a>
+      <nav aria-label="secondary navigation">
+        <a class="lang-switch" href="/tools/linebreak.html" hreflang="ko">한국어</a>
+        <button id="themeToggle" class="theme-toggle" aria-pressed="false" title="Toggle theme"><span class="icon">🌞</span><span class="label">Light</span></button>
       </nav>
     </div>
   </header>
@@ -131,14 +128,14 @@
   <!-- Hero -->
   <section class="hero">
     <div class="container">
-      <div class="crumb"><a href="/">홈</a> &nbsp;>&nbsp; <a href="/text/">텍스트 정리</a> &nbsp;>&nbsp; 줄바꾸기 · 줄 합치기</div>
-      <h1>줄바꾸기 · 줄 합치기</h1>
-      <p>붙여넣고 <span class="hl">실행</span>만 누르세요. <strong>표시(구분자)</strong>로 줄을 나누거나, 줄바꿈을 지워 <strong>한 줄로 합치기</strong>가 됩니다.</p>
+      <div class="crumb"><a href="/en/">Home</a> &nbsp;>&nbsp; <a href="/en/text/">Text Tools</a> &nbsp;>&nbsp; Line Break · Join Lines</div>
+      <h1>Line Break · Join Lines</h1>
+      <p>Paste your text and hit <span class="hl">Run</span>. Use a <strong>separator</strong> to split into lines, or remove line breaks to <strong>join into one line</strong>.</p>
     </div>
   </section>
 
   <main class="container" id="main">
-    <!-- 상단 광고 -->
+    <!-- Top Ad -->
     <div class="ad-space">
       <ins class="adsbygoogle" style="display:block"
            data-ad-client="ca-pub-3006330103681332"
@@ -148,89 +145,89 @@
     </div>
     <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
 
-    <!-- 간단 사용법 -->
+    <!-- How-to -->
     <section class="section panel">
-      <h2>어떻게 쓰나요?</h2>
-      <p class="small">1) 텍스트 붙여넣기 → 2) 아래 옵션 고르기 → 3) <strong>실행</strong> (단축키: <kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Enter</kbd>)</p>
-      <details class="small"><summary>예시 보기</summary>
+      <h2>How to use</h2>
+      <p class="small">1) Paste text → 2) Pick options → 3) <strong>Run</strong> (Shortcut: <kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Enter</kbd>)</p>
+      <details class="small"><summary>See example</summary>
         <pre>
-입력:
-사과,배,포도
+Input:
+apple,pear,grape
 
-줄 나누기 (표시 → 줄바꿈):
-사과
-배
-포도
+Split (separator → line break):
+apple
+pear
+grape
 
-줄 합치기 (엔터 → 표시):
-사과, 배, 포도
+Join (line break → separator):
+apple, pear, grape
         </pre>
       </details>
     </section>
 
-    <!-- 도구 본문 -->
+    <!-- Tool body -->
     <section class="section">
       <div class="row">
-        <!-- 입력 -->
-        <div class="panel" aria-label="입력">
-          <h2>입력</h2>
-          <textarea id="input" class="input" placeholder="여기에 텍스트 붙여넣기"></textarea>
+        <!-- Input -->
+        <div class="panel" aria-label="input">
+          <h2>Input</h2>
+          <textarea id="input" class="input" placeholder="Paste your text here"></textarea>
           <div class="counter" id="inStats" aria-live="polite"></div>
         </div>
 
-        <!-- 옵션/실행 + 출력 -->
-        <div class="panel" aria-label="옵션과 출력">
-          <h2>옵션 & 실행</h2>
+        <!-- Options / Output -->
+        <div class="panel" aria-label="options and output">
+          <h2>Options & Run</h2>
 
           <div class="options" style="margin-bottom:8px">
             <fieldset class="opt" style="border:none;padding:0;margin:0;display:flex;gap:10px;flex-wrap:wrap">
-              <legend class="hidden-visually">모드 선택</legend>
-              <label class="opt"><input type="radio" name="mode" value="split" checked> <strong>줄 나누기</strong> (표시 → 줄바꿈)</label>
-              <label class="opt"><input type="radio" name="mode" value="join"> <strong>줄 합치기</strong> (엔터 → 표시)</label>
+              <legend class="hidden-visually">Mode</legend>
+              <label class="opt"><input type="radio" name="mode" value="split" checked> <strong>Split lines</strong> (separator → line break)</label>
+              <label class="opt"><input type="radio" name="mode" value="join"> <strong>Join lines</strong> (line break → separator)</label>
             </fieldset>
 
-            <label class="opt">표시(구분자)
+            <label class="opt">Separator
               <input id="sep" type="text" value="," style="padding:.45rem .6rem;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--input);min-width:160px">
-              <span class="hint">예) 쉼표 <code>,</code> · 세미콜론 <code>;</code> · 탭 <code>\t</code> · 파이프 <code>|</code></span>
+              <span class="hint">e.g., comma <code>,</code> · semicolon <code>;</code> · tab <code>\t</code> · pipe <code>|</code></span>
             </label>
 
             <label class="opt"><input type="checkbox" id="trimEach" checked>
-              앞뒤 빈칸 지우기(트림)
+              Trim spaces at both ends
             </label>
 
             <label class="opt"><input type="checkbox" id="skipEmpty" checked>
-              빈 항목 건너뛰기 <span class="hint">(예: <code>사과,,배</code>에서 빈 값 제거)</span>
+              Skip empty items <span class="hint">(e.g., <code>apple,,pear</code> → remove the empty one)</span>
             </label>
 
             <label class="opt">
-              줄바꿈 방식 맞추기
-              <span class="hint">(문서 깨짐 방지)</span>:
+              Unify line endings
+              <span class="hint">(avoid broken lines)</span>:
               <select id="newline">
-                <option value="as-is">그대로 두기</option>
-                <option value="lf">줄바꿈(맥·리눅스, LF)</option>
-                <option value="crlf">줄바꿈(윈도우, CRLF)</option>
+                <option value="as-is">Leave as-is</option>
+                <option value="lf">LF — macOS/Linux (\n)</option>
+                <option value="crlf">CRLF — Windows (\r\n)</option>
               </select>
             </label>
           </div>
 
           <div class="controls" style="margin-bottom:10px">
-            <button class="btn btn-primary" id="runBtn">실행</button>
-            <button class="btn btn-secondary" id="resetBtn">초기화</button>
-            <button class="btn btn-secondary" id="copyBtn">복사</button>
-            <button class="btn btn-secondary" id="downloadBtn">다운로드</button>
+            <button class="btn btn-primary" id="runBtn">Run</button>
+            <button class="btn btn-secondary" id="resetBtn">Reset</button>
+            <button class="btn btn-secondary" id="copyBtn">Copy</button>
+            <button class="btn btn-secondary" id="downloadBtn">Download</button>
           </div>
 
-          <textarea id="output" class="output" placeholder="여기에 결과가 표시됩니다" aria-live="polite" readonly></textarea>
+          <textarea id="output" class="output" placeholder="Result will appear here" aria-live="polite" readonly></textarea>
           <div class="counter" id="outStats" aria-live="polite"></div>
 
           <p class="small notice" style="margin-top:10px">
-            👉 <strong>팁</strong>: 보기 좋게 합치려면 구분자 칸에 <code>, </code>(쉼표+공백)처럼 입력하세요. 탭은 <code>\t</code>, 줄바꿈은 <code>\n</code>로 쓸 수 있습니다.
+            👉 <strong>Tip</strong>: For nicer spacing when joining, set separator to <code>, </code> (comma + space). Use <code>\t</code> for tab and <code>\n</code> for line break.
           </p>
         </div>
       </div>
     </section>
 
-    <!-- 하단 광고 -->
+    <!-- Bottom Ad -->
     <div class="ad-space">
       <ins class="adsbygoogle" style="display:block"
            data-ad-client="ca-pub-3006330103681332"
@@ -240,30 +237,30 @@
     </div>
     <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
 
-    <!-- 관련 도구 -->
+    <!-- Related tools -->
     <section class="section panel">
-      <h2>관련 도구</h2>
+      <h2>Related tools</h2>
       <div class="controls">
-        <a class="btn" href="/tools/blankline.html">빈줄 제거기</a>
-        <a class="btn" href="/tools/sort-lines.html">줄 정렬</a>
-        <a class="btn" href="/tools/dedupe-lines.html">중복 줄 제거</a>
-        <a class="btn" href="/tools/counter.html">문자/단어 수 세기</a>
+        <a class="btn" href="/en/tools/blankline.html">Remove empty lines</a>
+        <a class="btn" href="/en/tools/sort-lines.html">Sort lines</a>
+        <a class="btn" href="/en/tools/dedupe-lines.html">Remove duplicate lines</a>
+        <a class="btn" href="/en/tools/counter.html">Character/word counter</a>
       </div>
     </section>
 
     <!-- FAQ -->
     <section class="section panel faq">
       <h2>FAQ</h2>
-      <div class="qa"><h3>표시(구분자)가 뭐예요?</h3><p>쉼표(,), 세미콜론(;), 탭(↹), 파이프(|)처럼 <strong>어디서 끊을지 알려주는 표시</strong>예요.</p></div>
-      <div class="qa"><h3>트림이 뭐예요?</h3><p>글자 앞뒤에 붙은 빈칸을 지우는 거예요. 예: <code>␣␣안녕␣␣</code> → <code>안녕</code></p></div>
-      <div class="qa"><h3>LF / CRLF는 왜 맞추나요?</h3><p>운영체제마다 줄바꿈 신호가 달라 문서가 깨질 수 있어요. 맥·리눅스는 <strong>LF</strong>, 윈도우는 <strong>CRLF</strong>를 씁니다. 한 가지로 통일하면 안전합니다.</p></div>
+      <div class="qa"><h3>What is a separator?</h3><p>A sign that tells where to split items — e.g., comma (,), semicolon (;), tab (↹), or pipe (|).</p></div>
+      <div class="qa"><h3>What does "Trim" mean?</h3><p>It removes spaces at both ends. Example: <code>␣␣hello␣␣</code> → <code>hello</code>.</p></div>
+      <div class="qa"><h3>Why unify LF / CRLF?</h3><p>Different systems use different line-break signals. macOS/Linux use <strong>LF</strong>, Windows uses <strong>CRLF</strong>. Unifying prevents broken lines.</p></div>
     </section>
 
-    <!-- 문의 -->
-    <section class="section contact panel" aria-label="문의하기">
-      <h2>문의하기</h2>
-      <p class="small">사용 중 불편사항이나 제안이 있다면 이메일로 연락해주세요.</p>
-      <p><strong>이메일:</strong> <a href="mailto:thenaom@naver.com">thenaom@naver.com</a></p>
+    <!-- Contact -->
+    <section class="section contact panel" aria-label="contact">
+      <h2>Contact</h2>
+      <p class="small">Questions or suggestions? Email us.</p>
+      <p><strong>Email:</strong> <a href="mailto:thenaom@naver.com">thenaom@naver.com</a></p>
     </section>
   </main>
 
@@ -271,10 +268,10 @@
   <footer class="site">
     <div class="container footer-row">
       <div>© <span id="y"></span> Thenaom Tools. All rights reserved.</div>
-      <nav class="footer-links" aria-label="푸터 링크">
-        <a href="/privacy.html">개인정보처리방침</a>
-        <a href="/terms.html">이용약관</a>
-        <a href="#" id="cookiePrefs">쿠키 설정</a>
+      <nav class="footer-links" aria-label="footer links">
+        <a href="/en/privacy.html">Privacy</a>
+        <a href="/en/terms.html">Terms</a>
+        <a href="#" id="cookiePrefs">Cookie settings</a>
         <a href="/sitemap.xml">Sitemap</a>
         <a href="/ads.txt">ads.txt</a>
         <a href="mailto:thenaom@naver.com">Contact</a>
@@ -290,35 +287,57 @@
     (function(){
       const btn=document.getElementById('themeToggle');
       const root=document.documentElement;
-      const setUI=(mode)=>{ btn.setAttribute('aria-pressed',mode==='dark'); btn.querySelector('.icon').textContent=mode==='dark'?'🌙':'🌞'; btn.querySelector('.label').textContent=mode==='dark'?'다크':'라이트'; };
+      const setUI=(mode)=>{
+        btn.setAttribute('aria-pressed',mode==='dark');
+        btn.querySelector('.icon').textContent=mode==='dark'?'🌙':'🌞';
+        btn.querySelector('.label').textContent=mode==='dark'?'Dark':'Light';
+      };
       const theme=()=>root.getAttribute('data-theme')==='dark'?'dark':'light';
       setUI(theme());
-      btn?.addEventListener('click',()=>{ const next=theme()==='dark'?'light':'dark'; root.setAttribute('data-theme',next); root.setAttribute('data-user-theme','1'); try{localStorage.setItem('theme',next);}catch(e){} setUI(next); });
+      btn?.addEventListener('click',()=>{
+        const next=theme()==='dark'?'light':'dark';
+        root.setAttribute('data-theme',next);
+        root.setAttribute('data-user-theme','1');
+        try{localStorage.setItem('theme',next);}catch(e){}
+        setUI(next);
+      });
       const mq=window.matchMedia('(prefers-color-scheme: dark)');
-      if(mq && !localStorage.getItem('theme')){ mq.addEventListener('change',e=>{ const mode=e.matches?'dark':'light'; root.setAttribute('data-theme',mode); setUI(mode); }); }
+      if(mq && !localStorage.getItem('theme')){
+        mq.addEventListener('change',e=>{
+          const mode=e.matches?'dark':'light';
+          root.setAttribute('data-theme',mode); setUI(mode);
+        });
+      }
     })();
 
     // helpers
     function byteLen(str){ return new TextEncoder().encode(str).length; }
     function countLines(str){ if(!str) return 0; return str.split(/\r\n|\r|\n/).length; }
-    function statHtml(str){ return `<span>줄: ${countLines(str).toLocaleString()}</span><span>바이트: ${byteLen(str).toLocaleString()}</span><span>문자: ${[...str].length.toLocaleString()}</span>`; }
-    function normalizeNewlines(text){ return text.replace(/\r\n?|\n/g, '\n'); } // to LF
+    function statHtml(str){
+      return `<span>lines: ${countLines(str).toLocaleString()}</span><span>bytes: ${byteLen(str).toLocaleString()}</span><span>chars: ${[...str].length.toLocaleString()}</span>`;
+    }
+    function normalizeNewlines(text){ return text.replace(/\r\n?|\n/g, '\n'); }
     function toNewline(text, mode){
       if(mode==='as-is') return text;
       if(mode==='lf') return text.replace(/\r\n|\r|\n/g, '\n');
       if(mode==='crlf') return text.replace(/\r\n|\r|\n/g, '\r\n');
       return text;
     }
-    function escapeSep(s){ return s.replace(/\\t/g,'\t').replace(/\\n/g,'\n').replace(/\\r/g,'\r'); }
 
+    function escapeSep(s){
+      return s.replace(/\\t/g,'\t').replace(/\\n/g,'\n').replace(/\\r/g,'\r');
+    }
     function splitBySeparator(input, sep, {trimEach, skipEmpty}){
       const _sep = escapeSep(sep);
       const parts = input.split(_sep);
       const out=[];
-      for(let p of parts){ if(trimEach) p=p.trim(); if(skipEmpty && !p) continue; out.push(p); }
+      for(let p of parts){
+        if(trimEach) p = p.trim();
+        if(skipEmpty && !p) continue;
+        out.push(p);
+      }
       return out.join('\n');
     }
-
     function joinWithSeparator(input, sep, {trimEach, skipEmpty}){
       const lf = normalizeNewlines(input);
       let lines = lf.split('\n');
@@ -346,7 +365,12 @@
 
     function updateInStats(){ $inStats.innerHTML = statHtml($in.value); toggleRun(); }
     function updateOutStats(){ $outStats.innerHTML = statHtml($out.value); }
-    function toggleRun(){ const enabled = !!$in.value; $run.disabled = !enabled; $run.style.opacity = enabled ? '1' : '.6'; $run.style.cursor = enabled ? 'pointer' : 'not-allowed'; }
+    function toggleRun(){
+      const enabled = !!$in.value;
+      $run.disabled = !enabled;
+      $run.style.opacity = enabled ? '1' : '.6';
+      $run.style.cursor = enabled ? 'pointer' : 'not-allowed';
+    }
 
     function run(){
       if(!$in.value) return;
@@ -363,19 +387,17 @@
       $out.value = result;
       updateOutStats();
 
-      // track
       window.dataLayer = window.dataLayer || [];
       window.dataLayer.push({event:'run_click', tool:'linebreak', options:{mode:$mode(), sep:sep, trimEach:opts.trimEach, skipEmpty:opts.skipEmpty, nl:$newline.value}});
     }
 
-    // events
     $in.addEventListener('input', updateInStats);
     document.addEventListener('keydown', (e)=>{ if((e.ctrlKey||e.metaKey) && e.key==='Enter'){ e.preventDefault(); run(); }});
     $run.addEventListener('click', run);
 
     $reset.addEventListener('click', ()=>{ $in.value=''; $out.value=''; updateInStats(); updateOutStats(); $in.focus(); });
 
-    $copy.addEventListener('click', async ()=>{ if(!$out.value) return; try{ await navigator.clipboard.writeText($out.value); alert('복사됨'); }catch(e){}; window.dataLayer=window.dataLayer||[]; window.dataLayer.push({event:'copy_click', tool:'linebreak'}); });
+    $copy.addEventListener('click', async ()=>{ if(!$out.value) return; try{ await navigator.clipboard.writeText($out.value); alert('Copied'); }catch(e){}; window.dataLayer=window.dataLayer||[]; window.dataLayer.push({event:'copy_click', tool:'linebreak'}); });
 
     $download.addEventListener('click', ()=>{
       const blob = new Blob([$out.value||''], {type:'text/plain;charset=utf-8'});
@@ -386,13 +408,10 @@
       window.dataLayer=window.dataLayer||[]; window.dataLayer.push({event:'download_click', tool:'linebreak'});
     });
 
-    // initial
     updateInStats(); updateOutStats();
 
-    // cookie settings placeholder
-    document.getElementById('cookiePrefs')?.addEventListener('click',function(e){ e.preventDefault(); alert('쿠키 설정 창을 연결하세요 (CMP 연동 필요)'); });
+    document.getElementById('cookiePrefs')?.addEventListener('click',function(e){ e.preventDefault(); alert('Connect a CMP for cookie preferences.'); });
 
-    // page view
     window.dataLayer = window.dataLayer || [];
     window.dataLayer.push({event:'tool_use', tool:'linebreak'});
   </script>
@@ -400,9 +419,9 @@
   <!-- JSON-LD: FAQ -->
   <script type="application/ld+json">
   {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
-    {"@type":"Question","name":"표시(구분자)가 뭐예요?","acceptedAnswer":{"@type":"Answer","text":"쉼표(,), 세미콜론(;), 탭(\t), 파이프(|)처럼 어디서 끊을지 알려주는 표시예요."}},
-    {"@type":"Question","name":"트림이 뭐예요?","acceptedAnswer":{"@type":"Answer","text":"글자 앞뒤에 붙은 빈칸을 지우는 거예요. 예: '  안녕  ' → '안녕'"}},
-    {"@type":"Question","name":"LF / CRLF는 왜 맞추나요?","acceptedAnswer":{"@type":"Answer","text":"운영체제마다 줄바꿈 신호가 달라 문서가 깨질 수 있어요. 맥·리눅스는 LF, 윈도우는 CRLF를 씁니다. 한 가지로 통일하면 안전합니다."}}
+    {"@type":"Question","name":"What is a separator?","acceptedAnswer":{"@type":"Answer","text":"A sign that tells where to split items — e.g., comma (,), semicolon (;), tab (\t), or pipe (|)."}},
+    {"@type":"Question","name":"What does Trim mean?","acceptedAnswer":{"@type":"Answer","text":"It removes spaces at both ends. Example: '  hello  ' → 'hello'."}},
+    {"@type":"Question","name":"Why unify LF / CRLF?","acceptedAnswer":{"@type":"Answer","text":"Different systems use different line-break signals. macOS/Linux use LF; Windows uses CRLF. Unifying prevents broken lines."}}
   ]}
   </script>
 </body>

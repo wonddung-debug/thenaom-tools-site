@@ -1,59 +1,200 @@
 <!doctype html>
 <html lang="ko">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>업무 유틸 도구 | QR 코드 · 비밀번호 · UUID</title>
-<meta name="description" content="사무업무 보조 유틸 모음: QR 코드 생성기, 비밀번호 생성기, UUID 생성 등 간단 무료 온라인 도구.">
-<link rel="canonical" href="https://tools.thenaom.com/utility/">
-<link rel="stylesheet" href="/assets/styles.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>업무 유틸 도구 — 카운터·생성·검증 | Thenaom Tools</title>
+  <meta name="description" content="반복적인 사무 작업을 단축하는 간단 유틸 모음. 문자/단어 카운터 등 브라우저에서 빠르고 가볍게 실행됩니다. 향후 UUID/비밀번호/QR 생성기도 추가 예정." />
+  <meta name="robots" content="index,follow" />
+  <link rel="canonical" href="https://tools.thenaom.com/utility/">
+  <link rel="alternate" hreflang="ko" href="https://tools.thenaom.com/utility/">
+  <link rel="alternate" hreflang="en" href="https://tools.thenaom.com/en/utility/">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <meta property="og:title" content="업무 유틸 도구 — 카운터·생성·검증" />
+  <meta property="og:description" content="반복 업무를 줄여주는 간단 유틸리티 도구 모음. 브라우저에서 빠르고 가볍게 동작합니다." />
+  <meta property="og:image" content="https://tools.thenaom.com/assets/og-utility-ko.png" />
+  <meta property="og:url" content="https://tools.thenaom.com/utility/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="ko_KR" />
+
+  <!-- GTM -->
+  <script>
+    (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});
+      var f=d.getElementsByTagName(s)[0], j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:''; j.async=true;
+      j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl; f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-N2BBPNCC');
+  </script>
+
+  <!-- AdSense -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3006330103681332" crossorigin="anonymous"></script>
+
+  <!-- Theme -->
+  <script>
+    (function(){
+      try{
+        const saved=localStorage.getItem('theme');
+        if(saved==='light'||saved==='dark'){
+          document.documentElement.setAttribute('data-theme',saved);
+          document.documentElement.setAttribute('data-user-theme','1');
+        }else{
+          const prefersDark=window.matchMedia('(prefers-color-scheme: dark)').matches;
+          document.documentElement.setAttribute('data-theme',prefersDark?'dark':'light');
+        }
+      }catch(e){}
+    })();
+  </script>
+
+  <style>
+    :root{--bg:#ffffff;--text:#0b1220;--muted:#475569;--border:#e5e7eb;--card:#ffffff;--accent:#2563eb;--btn-text:#ffffff;--shadow:0 6px 18px rgba(0,0,0,.06);--focus: color-mix(in srgb, var(--accent) 35%, transparent);--hero-tint:#eff3ff;--hero-grid:#e8ecf6;--hero-ring:#cfe1ff}
+    [data-theme="dark"]{--bg:#0b1220;--text:#f1f5f9;--muted:#cbd5e1;--border:#334155;--card:#111827;--accent:#60a5fa;--btn-text:#0b1220;--shadow:0 8px 22px rgba(0,0,0,.55);--focus: color-mix(in srgb, var(--accent) 45%, transparent);--hero-tint:#0f172a;--hero-grid:#162036;--hero-ring:#1f3b76}
+    html,body{background:var(--bg)!important}
+    body{color:var(--text)!important;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Noto Sans KR,Arial,sans-serif}
+    a{color:var(--accent);text-decoration:none}
+    .container{max-width:1120px;margin:0 auto;padding:0 16px}
+    header.site{position:sticky;top:0;z-index:100;background:var(--bg)!important;border-bottom:1px solid var(--border)}
+    .brand{color:var(--text)!important;font-weight:800;text-decoration:none}
+    header.site nav{display:flex;align-items:center;gap:12px}
+    .lang-switch,.theme-toggle{padding:.5rem .72rem;border:1px solid var(--border);border-radius:.7rem;background:linear-gradient(180deg,color-mix(in srgb,var(--card)96%,transparent),var(--card));cursor:pointer;color:var(--text)!important;box-shadow:var(--shadow);transition:transform .06s,box-shadow .18s,border-color .18s,background .18s}
+    .lang-switch:hover,.theme-toggle:hover,.theme-toggle:focus-visible{color:var(--accent)!important;border-color:var(--accent)!important;box-shadow:0 0 0 3px var(--focus), var(--shadow)}
+    .theme-toggle:active{transform:translateY(1px)}
+    .theme-toggle[aria-pressed="true"]{background:linear-gradient(180deg,color-mix(in srgb,var(--accent)22%,var(--card)),var(--accent));border-color:var(--accent)!important;color:var(--btn-text)!important}
+    .hero{position:relative;overflow:hidden;padding:28px 0 18px;text-align:start;isolation:isolate}
+    .hero::before{content:"";position:absolute;inset:0;background:radial-gradient(900px 360px at 50% -15%, var(--hero-ring), transparent 65%),linear-gradient(180deg, color-mix(in srgb, var(--hero-tint) 88%, transparent), transparent 60%);z-index:-2}
+    .hero::after{content:"";position:absolute;inset:0;background:linear-gradient(to right, color-mix(in srgb,var(--hero-grid) 35%, transparent) 1px, transparent 1px) 0 0/28px 28px,linear-gradient(to bottom, color-mix(in srgb,var(--hero-grid) 35%, transparent) 1px, transparent 1px) 0 0/28px 28px;opacity:.5;z-index:-1}
+    .hero h1{margin:0;font-size:clamp(1.6rem,3.4vw,2.2rem)}
+    .hero p{margin:.4rem 0 0;color:var(--muted);max-width:900px}
+    .crumb{margin:10px 0 0;font-size:.95rem}
+    .crumb a{color:var(--muted)}
+    .section-title{margin:16px 0 10px}
+    .ad-space{margin:8px 0}
+    .grid{display:grid;gap:14px}
+    .cols2{grid-template-columns:repeat(2,minmax(0,1fr))}
+    @media(max-width:768px){.cols2{grid-template-columns:1fr}}
+    .tool-btn{display:block;color:var(--text)!important;text-decoration:none!important;border:2px solid color-mix(in srgb, var(--border) 85%, transparent);border-radius:14px;padding:16px;background:linear-gradient(180deg, color-mix(in srgb, var(--card) 95%, transparent), var(--card));box-shadow:var(--shadow);position:relative;transition:transform .06s, box-shadow .18s, border-color .18s, background .18s}
+    .tool-btn h2{margin:.1rem 2.1rem .25rem 0;font-size:1.06rem}
+    .tool-btn p{margin:0;color:var(--muted)!important;font-size:.95rem}
+    .tool-btn::after{content:"↗";position:absolute;right:14px;top:14px;opacity:.6;font-weight:700}
+    .tool-btn:hover{border-color:var(--accent);background:linear-gradient(180deg, color-mix(in srgb, var(--accent) 12%, var(--card)), var(--card));box-shadow:0 10px 22px rgba(0,0,0,.12), var(--shadow)}
+    .tool-btn:active{transform:translateY(1px)}
+    .tool-btn:focus-visible{outline:none;box-shadow:0 0 0 3px var(--focus), var(--shadow);border-color:var(--accent)}
+    .soon{opacity:.6;pointer-events:none}
+    .soon::after{content:"곧 제공 예정";position:absolute;right:12px;top:12px;font-size:.82rem;opacity:.75}
+    .faq .qa{margin:10px 0}
+    .contact{margin:22px auto 0;max-width:820px;padding:10px 12px;border:1px dashed var(--border);border-radius:10px;background:color-mix(in srgb, var(--card) 92%, transparent)}
+    .contact h2{margin:.1rem 0 .4rem;font-size:1.05rem}
+    .contact p{margin:.2rem 0 .4rem;color:var(--muted);font-size:.95rem}
+    footer.site{margin-top:16px;padding:14px 0;border-top:1px solid var(--border);font-size:.95rem;color:var(--muted)!important}
+    .footer-row{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+    .footer-links{display:flex;gap:14px;flex-wrap:wrap}
+    .footer-links a{color:var(--muted);text-decoration:none}
+    .footer-links a:hover{color:var(--accent)}
+  </style>
 </head>
 <body>
-<header class="site">
-  <div class="container" style="display:flex;gap:16px;align-items:center;justify-content:space-between">
-    <a class="brand" href="/">Thenaom Tools</a>
-    <nav>
-      <ul>
-        <li><a href="/text/">텍스트 정리</a></li>
-        <li><a href="/convert/">분할/변환</a></li>
-        <li><a class="active" href="/utility/">유틸</a></li>
-      </ul>
-    </nav>
-  </div>
-</header>
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-N2BBPNCC" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
-<section class="hero"><div class="container">
-  <h1>업무 유틸 도구 모음</h1>
-  <p class="muted">QR 코드 / 패스워드 / UUID 등 사무 보조 도구</p>
-</div></section>
+  <header class="site">
+    <div class="container" style="display:flex;justify-content:space-between;align-items:center">
+      <a href="/" class="brand">Thenaom Tools</a>
+      <nav aria-label="보조 탐색">
+        <a class="lang-switch" href="/en/utility/" hreflang="en">English</a>
+        <button id="themeToggle" class="theme-toggle" aria-pressed="false" title="테마 전환"><span class="icon">🌞</span><span class="label">라이트</span></button>
+      </nav>
+    </div>
+  </header>
 
-<div class="container">
-  <div class="ad-placeholder"><b>광고 자리</b><small>AdSense 승인 후 코드 (naom_utility_top)</small></div>
+  <section class="hero">
+    <div class="container">
+      <div class="crumb"><a href="/">홈</a> &nbsp;>&nbsp; 업무 유틸</div>
+      <h1>업무 유틸 도구 모음</h1>
+      <p>반복적인 사무 작업을 단축하세요. 카운터, 간단 생성·체크 도구를 빠르고 가볍게 제공합니다.</p>
+    </div>
+  </section>
 
-  <div class="grid cols2">
-    <article class="card">
-      <h2>QR 코드 생성기</h2>
-      <p>텍스트·URL을 QR 코드로 변환.</p>
-      <a class="btn" href="/tools/qr-generator.html">열기</a>
-    </article>
+  <main class="container" id="main">
+    <div class="ad-space">
+      <ins class="adsbygoogle" style="display:block"
+           data-ad-client="ca-pub-3006330103681332"
+           data-ad-slot="6703005412"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+    </div>
+    <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
 
-    <article class="card">
-      <h2>비밀번호 생성기</h2>
-      <p>안전한 무작위 비밀번호 생성.</p>
-      <a class="btn" href="/tools/password-generator.html">열기</a>
-    </article>
+    <h2 class="section-title">추천 도구</h2>
+    <div class="grid cols2" id="tools">
+      <a class="tool-btn" data-tool="counter" href="/tools/counter.html"><h2>문자/단어 수 세기</h2><p>문자/단어/줄 수 실시간 카운트.</p></a>
 
-    <article class="card">
-      <h2>UUID 생성기</h2>
-      <p>고유 식별자(UUID v4) 생성.</p>
-      <a class="btn" href="/tools/uuid-generator.html">열기</a>
-    </article>
-  </div>
+      <!-- 예정 슬롯: 클릭 불가, 시각만 통일 -->
+      <a class="tool-btn soon"><h2>UUID 생성기</h2><p>고유 식별자 생성 (곧 제공 예정)</p></a>
+      <a class="tool-btn soon"><h2>비밀번호 생성기</h2><p>규칙 기반 안전한 비밀번호 (곧 제공 예정)</p></a>
+      <a class="tool-btn soon"><h2>QR 코드 생성기</h2><p>텍스트/URL QR 이미지 (곧 제공 예정)</p></a>
+    </div>
 
-  <div class="ad-placeholder"><b>광고 자리</b><small>AdSense 승인 후 코드 (naom_utility_bottom)</small></div>
-</div>
+    <section class="faq" style="margin-top:18px">
+      <h2 class="section-title">FAQ</h2>
+      <div class="qa"><h3>생성 도구 결과는 안전한가요?</h3><p>모든 처리는 브라우저에서만 동작합니다.</p></div>
+      <div class="qa"><h3>모바일에서도 사용 가능한가요?</h3><p>네. 모바일/데스크톱 브라우저 모두 지원합니다.</p></div>
+    </section>
 
-<footer class="site"><div class="container">© <span id="y"></span> Thenaom Tools</div></footer>
-<script>document.getElementById('y').textContent=new Date().getFullYear();</script>
+    <div class="ad-space">
+      <ins class="adsbygoogle" style="display:block"
+           data-ad-client="ca-pub-3006330103681332"
+           data-ad-slot="9867638073"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+    </div>
+    <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
+
+    <section class="contact" aria-label="문의하기">
+      <h2>문의하기</h2>
+      <p>사용 중 불편사항이나 제안이 있다면 이메일로 연락해주세요.</p>
+      <p><strong>이메일:</strong> <a href="mailto:thenaom@naver.com">thenaom@naver.com</a></p>
+    </section>
+  </main>
+
+  <footer class="site">
+    <div class="container footer-row">
+      <div>© <span id="y"></span> Thenaom Tools. All rights reserved.</div>
+      <nav class="footer-links" aria-label="푸터 링크">
+        <a href="/privacy.html">개인정보처리방침</a>
+        <a href="/terms.html">이용약관</a>
+        <a href="#" id="cookiePrefs">쿠키 설정</a>
+        <a href="/sitemap.xml">Sitemap</a>
+        <a href="/ads.txt">ads.txt</a>
+        <a href="mailto:thenaom@naver.com">Contact</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('y').textContent=new Date().getFullYear();
+    (function(){
+      const btn=document.getElementById('themeToggle'); const root=document.documentElement;
+      const setUI=m=>{btn.setAttribute('aria-pressed',m==='dark');btn.querySelector('.icon').textContent=m==='dark'?'🌙':'🌞';btn.querySelector('.label').textContent=m==='dark'?'다크':'라이트'};
+      const theme=()=>root.getAttribute('data-theme')==='dark'?'dark':'light'; setUI(theme());
+      btn.addEventListener('click',()=>{const n=theme()==='dark'?'light':'dark';root.setAttribute('data-theme',n);root.setAttribute('data-user-theme','1');try{localStorage.setItem('theme',n);}catch(e){};setUI(n);});
+      const mq=window.matchMedia('(prefers-color-scheme: dark)');
+      if(mq && !localStorage.getItem('theme')){mq.addEventListener('change',e=>{const m=e.matches?'dark':'light';root.setAttribute('data-theme',m);setUI(m);});}
+    })();
+    document.getElementById('tools')?.addEventListener('click',function(e){
+      const a=e.target.closest('a.tool-btn'); if(!a) return;
+      const tool=a.getAttribute('data-tool')||a.href; window.dataLayer=window.dataLayer||[]; window.dataLayer.push({event:'tool_use', tool});
+    });
+    document.getElementById('cookiePrefs')?.addEventListener('click',function(e){e.preventDefault();alert('쿠키 설정 창을 연결하세요 (CMP 연동 필요)');});
+  </script>
+
+  <!-- JSON-LD -->
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+    {"@type":"Question","name":"생성 도구 결과는 안전한가요?","acceptedAnswer":{"@type":"Answer","text":"모든 처리는 브라우저에서만 동작합니다."}},
+    {"@type":"Question","name":"모바일에서도 사용 가능한가요?","acceptedAnswer":{"@type":"Answer","text":"네. 모바일/데스크톱 브라우저 모두 지원합니다."}}
+  ]}
+  </script>
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"ItemList","name":"업무 유틸 도구","itemListElement":[
+    {"@type":"ListItem","position":1,"name":"문자/단어 수 세기","url":"https://tools.thenaom.com/tools/counter.html"}
+  ]}
+  </script>
 </body>
 </html>

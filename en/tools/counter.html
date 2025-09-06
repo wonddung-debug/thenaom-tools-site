@@ -1,14 +1,14 @@
 <!doctype html>
-<html lang="ko">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>문자수 세기 · 바이트/단어/줄/문장/문단 카운터 | Thenaom Tools</title>
-  <meta name="description" content="텍스트의 문자 수, 바이트 수(UTF-8), 단어 수, 줄 수, 문장 수, 문단 수를 한 번에 계산합니다. 공백/줄바꿈 제외 옵션, 한글/한자/가나만 세기, 결과 복사·다운로드 지원." />
+  <title>Character Counter · Bytes/Words/Lines/Sentences/Paragraphs | Thenaom Tools</title>
+  <meta name="description" content="Instantly count characters, UTF‑8 bytes, words, lines, sentences, and paragraphs. Options to exclude spaces/newlines and count Hangul (Korean) or CJK (Han/Kana). Runs 100% in your browser." />
   <meta name="robots" content="index,follow" />
-  <link rel="canonical" href="https://tools.thenaom.com/tools/counter.html">
-  <link rel="alternate" hreflang="ko" href="https://tools.thenaom.com/tools/counter.html">
+  <link rel="canonical" href="https://tools.thenaom.com/en/tools/counter.html">
   <link rel="alternate" hreflang="en" href="https://tools.thenaom.com/en/tools/counter.html">
+  <link rel="alternate" hreflang="ko" href="https://tools.thenaom.com/tools/counter.html">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
 
   <!-- Theme (early, compat-first) -->
@@ -38,7 +38,7 @@
       --bg:#0b1220; --text:#f1f5f9; --muted:#cbd5e1; --border:#334155; --card:#111827; --accent:#60a5fa; --btn-text:#0b1220; --shadow:0 8px 22px rgba(0,0,0,.55); --focus: color-mix(in srgb, var(--accent) 45%, transparent); --hero-tint:#0f172a; --hero-grid:#162036; --hero-ring:#1f3b76; --input:#e5e7eb; --input-bg:#0f172a; }
 
     html,body{background:var(--bg)!important}
-    body{color:var(--text)!important;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Noto Sans KR,Arial,sans-serif}
+    body{color:var(--text)!important;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,Noto Sans KR,sans-serif}
     a{color:var(--accent);text-decoration:none}
     .container{max-width:1120px;margin:0 auto;padding:0 16px}
 
@@ -92,10 +92,10 @@
   <!-- Header -->
   <header class="site">
     <div class="container" style="display:flex;justify-content:space-between;align-items:center">
-      <a href="/" class="brand">Thenaom Tools</a>
-      <nav aria-label="보조 탐색">
-        <a class="lang-switch" href="/en/tools/counter.html" hreflang="en">English</a>
-        <button id="themeToggle" class="theme-toggle" aria-pressed="false" title="테마 전환"><span class="icon">🌞</span><span class="label">라이트</span></button>
+      <a href="/en/" class="brand">Thenaom Tools</a>
+      <nav aria-label="secondary navigation">
+        <a class="lang-switch" href="/tools/counter.html" hreflang="ko">한국어</a>
+        <button id="themeToggle" class="theme-toggle" aria-pressed="false" title="Toggle theme"><span class="icon">🌞</span><span class="label">Light</span></button>
       </nav>
     </div>
   </header>
@@ -103,9 +103,9 @@
   <!-- Hero -->
   <section class="hero">
     <div class="container">
-      <div class="crumb"><a href="/">홈</a> &nbsp;>&nbsp; <a href="/text/">텍스트 정리</a> &nbsp;>&nbsp; 문자·바이트 카운터</div>
-      <h1>문자 수 · 바이트 · 단어 · 줄 · 문장 · 문단 카운터</h1>
-      <p>붙여넣기만 하면 각종 카운트 결과를 바로 보여줍니다. <b>공백/줄바꿈 제외</b> 옵션과 <b>한글/한자/가나만 세기</b>도 가능.</p>
+      <div class="crumb"><a href="/en/">Home</a> &nbsp;>&nbsp; <a href="/en/text/">Text Tools</a> &nbsp;>&nbsp; Character Counter</div>
+      <h1>Count Characters · Bytes · Words · Lines · Sentences · Paragraphs</h1>
+      <p>Paste your text to see all counts at once. <b>Exclude spaces/newlines</b> options and <b>Hangul/CJK only</b> counters included.</p>
     </div>
   </section>
 
@@ -115,49 +115,49 @@
     <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
 
     <!-- How-to -->
-    <section class="section panel"><h2>어떻게 쓰나요?</h2><p class="small">1) 본문 붙여넣기 → 2) 옵션 선택 → 3) <strong>실행</strong> 또는 자동 계산(입력 시 즉시 반영)</p></section>
+    <section class="section panel"><h2>How to use</h2><p class="small">1) Paste text → 2) Choose options → 3) <strong>Run</strong> or just type (auto updates). Shortcut: <kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Enter</kbd></p></section>
 
     <section class="section">
       <div class="row">
-        <div class="panel" aria-label="입력">
-          <h2>입력</h2>
-          <textarea id="input" class="input" placeholder="여기에 텍스트 붙여넣기"></textarea>
-          <div class="small" style="margin-top:6px">단축키: <kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Enter</kbd> 실행</div>
+        <div class="panel" aria-label="input">
+          <h2>Input</h2>
+          <textarea id="input" class="input" placeholder="Paste your text here"></textarea>
+          <div class="small" style="margin-top:6px">Shortcut: <kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Enter</kbd> to run</div>
         </div>
 
-        <div class="panel" aria-label="옵션과 결과">
-          <h2>옵션 & 실행</h2>
+        <div class="panel" aria-label="options and results">
+          <h2>Options & Run</h2>
           <div class="options" style="margin-bottom:8px">
-            <label class="opt"><input type="checkbox" id="excludeSpaces"> <strong>공백 제외</strong> (스페이스·탭·전각공백)</label>
-            <label class="opt"><input type="checkbox" id="excludeNewlines"> <strong>줄바꿈 제외</strong> (LF/CR/LF+CR)</label>
-            <label class="opt"><input type="checkbox" id="onlyHangul"> <strong>한글만 세기</strong> (가-힣)</label>
-            <label class="opt"><input type="checkbox" id="onlyCJK"> <strong>한자·가나만 세기</strong> (漢字/かな/カナ)</label>
+            <label class="opt"><input type="checkbox" id="excludeSpaces"> <strong>Exclude spaces</strong> (space/tab/full‑width)</label>
+            <label class="opt"><input type="checkbox" id="excludeNewlines"> <strong>Exclude newlines</strong> (LF/CR/LF+CR)</label>
+            <label class="opt"><input type="checkbox" id="onlyHangul"> <strong>Hangul (Korean) only</strong></label>
+            <label class="opt"><input type="checkbox" id="onlyCJK"> <strong>CJK only</strong> (Han/Kana)</label>
           </div>
 
           <div class="controls" style="margin:10px 0">
-            <button class="btn btn-primary" id="runBtn">실행</button>
-            <button class="btn btn-secondary" id="resetBtn">초기화</button>
-            <button class="btn btn-secondary" id="copyBtn">결과 복사</button>
-            <button class="btn btn-secondary" id="downloadBtn">결과 다운로드</button>
+            <button class="btn btn-primary" id="runBtn">Run</button>
+            <button class="btn btn-secondary" id="resetBtn">Reset</button>
+            <button class="btn btn-secondary" id="copyBtn">Copy Results</button>
+            <button class="btn btn-secondary" id="downloadBtn">Download CSV</button>
           </div>
 
           <div class="results" id="results" aria-live="polite">
             <table id="resultTable">
               <tbody>
-                <tr><th scope="row">문자 수</th><td id="rChars">0</td></tr>
-                <tr><th scope="row">바이트(UTF-8)</th><td id="rBytes">0</td></tr>
-                <tr><th scope="row">단어 수</th><td id="rWords">0</td></tr>
-                <tr><th scope="row">줄 수</th><td id="rLines">0</td></tr>
-                <tr><th scope="row">문장 수</th><td id="rSentences">0</td></tr>
-                <tr><th scope="row">문단 수</th><td id="rParagraphs">0</td></tr>
-                <tr><th scope="row">한글 글자 수(가-힣)</th><td id="rHangul">0</td></tr>
-                <tr><th scope="row">한자·가나 글자 수</th><td id="rCJK">0</td></tr>
+                <tr><th scope="row">Characters</th><td id="rChars">0</td></tr>
+                <tr><th scope="row">Bytes (UTF‑8)</th><td id="rBytes">0</td></tr>
+                <tr><th scope="row">Words</th><td id="rWords">0</td></tr>
+                <tr><th scope="row">Lines</th><td id="rLines">0</td></tr>
+                <tr><th scope="row">Sentences</th><td id="rSentences">0</td></tr>
+                <tr><th scope="row">Paragraphs</th><td id="rParagraphs">0</td></tr>
+                <tr><th scope="row">Hangul chars (가‑힣)</th><td id="rHangul">0</td></tr>
+                <tr><th scope="row">CJK chars (Han/Kana)</th><td id="rCJK">0</td></tr>
               </tbody>
             </table>
           </div>
 
           <p class="small notice" style="margin-top:10px">
-            👉 <strong>팁</strong> — “공백 제외/줄바꿈 제외”를 켜면 문자·바이트·단어 계산에 동일하게 반영됩니다. 결과는 입력과 옵션이 바뀌면 자동 갱신됩니다.
+            👉 <strong>Tip</strong> — “Exclude spaces/newlines” affects character/byte/word counts. Results update automatically when you type or change options.
           </p>
         </div>
       </div>
@@ -170,17 +170,17 @@
     <!-- FAQ -->
     <section class="section panel faq">
       <h2>FAQ</h2>
-      <div class="qa"><h3>문자 수와 바이트 수는 왜 다를까요?</h3><p>문자는 눈에 보이는 글자 수, 바이트는 저장 시 필요한 용량입니다. 예를 들어 한글 1글자는 UTF‑8에서 보통 3바이트를 차지합니다.</p></div>
-      <div class="qa"><h3>단어 수는 어떻게 계산하나요?</h3><p>공백(스페이스/줄바꿈) 기준으로 토큰을 나눠 빈 값을 제외해 셉니다. 한국어는 띄어쓰기가 불규칙할 수 있어 <em>단어 수가 의미와 다를 수</em> 있습니다.</p></div>
-      <div class="qa"><h3>문장/문단 수는 기준이 뭔가요?</h3><p>문장은 마침표/물음표/느낌표(., !, ?, 。, ！, ？)로 대략 계산합니다. 문단은 <b>빈 줄(연속 줄바꿈)</b>로 구분합니다.</p></div>
-      <div class="qa"><h3>개인정보가 서버로 전송되나요?</h3><p>아니요. 모든 계산은 브라우저에서만 수행되며 서버 전송이 없습니다.</p></div>
+      <div class="qa"><h3>Why do characters and bytes differ?</h3><p>Characters are visible glyphs; bytes are storage size. For example, one Hangul character typically takes 3 bytes in UTF‑8.</p></div>
+      <div class="qa"><h3>How are words counted?</h3><p>We split on whitespace (spaces/newlines) and ignore empty tokens. For Korean, word counts may not always reflect meaning due to spacing conventions.</p></div>
+      <div class="qa"><h3>How are sentences/paragraphs estimated?</h3><p>Sentences are approximated by punctuation (. ! ? and their CJK counterparts). Paragraphs are separated by <b>blank lines</b> (two or more newlines).</p></div>
+      <div class="qa"><h3>Is my text uploaded?</h3><p>No. Everything runs locally in your browser — nothing is sent to a server.</p></div>
     </section>
 
     <!-- Contact -->
-    <section class="section contact panel" aria-label="문의하기">
-      <h2>문의하기</h2>
-      <p class="small">질문/제안은 이메일로 보내주세요.</p>
-      <p><strong>이메일:</strong> <a href="mailto:thenaom@naver.com">thenaom@naver.com</a></p>
+    <section class="section contact panel" aria-label="Contact">
+      <h2>Contact</h2>
+      <p class="small">Questions or suggestions? Email us.</p>
+      <p><strong>Email:</strong> <a href="mailto:thenaom@naver.com">thenaom@naver.com</a></p>
     </section>
   </main>
 
@@ -188,10 +188,10 @@
   <footer class="site">
     <div class="container footer-row">
       <div>© <span id="y"></span> Thenaom Tools. All rights reserved.</div>
-      <nav class="footer-links" aria-label="푸터 링크">
-        <a href="/privacy.html">개인정보처리방침</a>
-        <a href="/terms.html">이용약관</a>
-        <a href="#" id="cookiePrefs">쿠키 설정</a>
+      <nav class="footer-links" aria-label="footer links">
+        <a href="/en/privacy.html">Privacy Policy</a>
+        <a href="/en/terms.html">Terms</a>
+        <a href="#" id="cookiePrefs">Cookie Settings</a>
         <a href="/sitemap.xml">Sitemap</a>
         <a href="/ads.txt">ads.txt</a>
         <a href="mailto:thenaom@naver.com">Contact</a>
@@ -216,7 +216,7 @@
           btn.setAttribute('aria-pressed', m==='dark');
           var ic=btn.querySelector('.icon'); var lb=btn.querySelector('.label');
           if(ic) ic.textContent = (m==='dark'?'🌙':'🌞');
-          if(lb) lb.textContent = (m==='dark'?'다크':'라이트');
+          if(lb) lb.textContent = (m==='dark'?'Dark':'Light');
         }
       }
       function current(){ return (root.getAttribute('data-theme')==='dark'?'dark':'light'); }
@@ -268,7 +268,7 @@
       var sents = sentenceCount(filtered);
       var paras = paragraphCount(filtered);
 
-      // language-specific from raw (unfiltered selection helps separate use cases)
+      // language-specific from raw (unfiltered)
       var hko = countHangul(raw);
       var cj = countCJK(raw);
 
@@ -289,16 +289,16 @@
 
     function copyResults(obj){
       var text = [
-        '문자 수: '+obj.characters,
-        '바이트(UTF-8): '+obj.bytes,
-        '단어 수: '+obj.words,
-        '줄 수: '+obj.lines,
-        '문장 수: '+obj.sentences,
-        '문단 수: '+obj.paragraphs,
-        '한글 글자 수: '+obj.hangul,
-        '한자·가나 글자 수: '+obj.cjk
+        'Characters: '+obj.characters,
+        'Bytes (UTF-8): '+obj.bytes,
+        'Words: '+obj.words,
+        'Lines: '+obj.lines,
+        'Sentences: '+obj.sentences,
+        'Paragraphs: '+obj.paragraphs,
+        'Hangul chars: '+obj.hangul,
+        'CJK chars: '+obj.cjk
       ].join('\n');
-      try{ navigator.clipboard.writeText(text).then(function(){ alert('결과를 복사했습니다.'); }); }catch(e){}
+      try{ navigator.clipboard.writeText(text).then(function(){ alert('Copied results.'); }); }catch(e){}
     }
 
     function downloadResults(obj){
@@ -326,36 +326,36 @@
       var $copy = document.getElementById('copyBtn');
       var $dl = document.getElementById('downloadBtn');
 
-      function run(){ var res = measure(); window.dataLayer=window.dataLayer||[]; window.dataLayer.push({event:'run_click', tool:'counter'}); return res; }
+      function run(){ var res = measure(); window.dataLayer=window.dataLayer||[]; window.dataLayer.push({event:'run_click', tool:'counter_en'}); return res; }
 
       $in.addEventListener('input', run);
       document.addEventListener('keydown', function(e){ if((e.ctrlKey||e.metaKey) && e.key==='Enter'){ e.preventDefault(); run(); }});
       $run.addEventListener('click', run);
       $reset.addEventListener('click', function(){ $in.value=''; run(); $in.focus(); });
-      $copy.addEventListener('click', function(){ copyResults(measure()); window.dataLayer=window.dataLayer||[]; window.dataLayer.push({event:'copy_click', tool:'counter'}); });
-      $dl.addEventListener('click', function(){ downloadResults(measure()); window.dataLayer=window.dataLayer||[]; window.dataLayer.push({event:'download_click', tool:'counter'}); });
+      $copy.addEventListener('click', function(){ copyResults(measure()); window.dataLayer=window.dataLayer||[]; window.dataLayer.push({event:'copy_click', tool:'counter_en'}); });
+      $dl.addEventListener('click', function(){ downloadResults(measure()); window.dataLayer=window.dataLayer||[]; window.dataLayer.push({event:'download_click', tool:'counter_en'}); });
 
       // options auto-recalc
       var opts = ['excludeSpaces','excludeNewlines','onlyHangul','onlyCJK'];
       for(var i=0;i<opts.length;i++){ (function(id){ var el=document.getElementById(id); if(el){ el.addEventListener('change', run); } })(opts[i]); }
 
-      // cookie pref (avoid optional chaining)
+      // cookie pref
       var cp = document.getElementById('cookiePrefs');
-      if (cp) { cp.addEventListener('click', function(e){ e.preventDefault(); alert('쿠키 설정(CMP)을 연결하세요.'); }); }
+      if (cp) { cp.addEventListener('click', function(e){ e.preventDefault(); alert('Connect your CMP for cookie preferences.'); }); }
 
       // init
       run();
-      window.dataLayer = window.dataLayer || []; window.dataLayer.push({event:'tool_use', tool:'counter'});
+      window.dataLayer = window.dataLayer || []; window.dataLayer.push({event:'tool_use', tool:'counter_en'});
     })();
   </script>
 
   <!-- JSON-LD: FAQ (SEO) -->
   <script type="application/ld+json">
   {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
-    {"@type":"Question","name":"문자 수와 바이트 수는 왜 다른가요?","acceptedAnswer":{"@type":"Answer","text":"문자는 눈에 보이는 글자 수, 바이트는 저장 시 필요한 용량입니다. 한글 1글자는 보통 UTF-8에서 3바이트를 차지합니다."}},
-    {"@type":"Question","name":"단어 수는 어떻게 계산되나요?","acceptedAnswer":{"@type":"Answer","text":"공백 기준으로 토큰을 나눠 빈 값을 제외하고 셉니다. 한국어 특성상 의미와 차이가 날 수 있습니다."}},
-    {"@type":"Question","name":"문장/문단은 무엇을 기준으로 계산하나요?","acceptedAnswer":{"@type":"Answer","text":"문장은 . ! ? (및 동아시아 문장부호)로 대략 계산하고, 문단은 연속된 줄바꿈(빈 줄)으로 구분합니다."}},
-    {"@type":"Question","name":"개인정보가 업로드되나요?","acceptedAnswer":{"@type":"Answer","text":"아니요. 모든 계산은 브라우저에서만 수행되며 서버 전송이 없습니다."}}
+    {"@type":"Question","name":"Why do character and byte counts differ?","acceptedAnswer":{"@type":"Answer","text":"Characters are visible glyphs, while bytes are storage size. One Hangul character typically uses 3 bytes in UTF-8."}},
+    {"@type":"Question","name":"How do you count words?","acceptedAnswer":{"@type":"Answer","text":"We split by whitespace and ignore empty tokens. For Korean, spacing conventions mean word counts may differ from semantic units."}},
+    {"@type":"Question","name":"How are sentences and paragraphs estimated?","acceptedAnswer":{"@type":"Answer","text":"Sentences are approximated with punctuation (. ! ? and CJK equivalents). Paragraphs are separated by blank lines (two or more newlines)."}},
+    {"@type":"Question","name":"Is my text uploaded?","acceptedAnswer":{"@type":"Answer","text":"No. The tool runs entirely in your browser and does not send text to a server."}}
   ]}
   </script>
 </body>
