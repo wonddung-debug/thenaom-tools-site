@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>텍스트 정리 도구 | 빈줄 제거 · 줄바꾸기 · 정렬</title>
+  <meta name="description" content="사무업무용 텍스트 정리 도구: 빈줄 제거, 줄바꾸기, 중복 줄 제거, 줄 정렬, 대소문자 변환, 글자/바이트 카운트. 브라우저에서만 처리.">
+  <link rel="canonical" href="https://tools.thenaom.com/text/">
+  <link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+<header class="site">
+  <div class="container" style="display:flex;gap:16px;align-items:center;justify-content:space-between">
+    <a class="brand" href="/">Thenaom Tools</a>
+    <nav>
+      <ul>
+        <li><a class="active" href="/text/">텍스트 정리</a></li>
+        <li><a href="/convert/">분할/변환</a></li>
+        <li><a href="/utility/">유틸</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="container">
+    <h1>텍스트 정리 도구</h1>
+    <p class="muted">빈줄/줄바꿈/정렬/중복/대소문자/카운트</p>
+  </div>
+</section>
+
+<div class="container">
+  <!-- 상단 광고 자리 -->
+  <div class="ad-placeholder"><b>광고 자리</b><small>AdSense 승인 후 코드 삽입 (naom_text_top)</small></div>
+
+  <div class="grid cols2" aria-label="텍스트 정리 도구 목록">
+    <article class="card">
+      <h2>빈줄 제거</h2>
+      <p>빈 줄·공백 줄 삭제, 연속 공백 정리, 각 줄 공백 제거.</p>
+      <a class="btn" href="/tools/blankline.html">열기</a>
+    </article>
+
+    <article class="card">
+      <h2>줄바꾸기 · 줄바꿈 제거</h2>
+      <p>구분자(., !, ?) 기준 줄바꿈 추가 또는 모두 제거.</p>
+      <a class="btn" href="/tools/linebreak.html">열기</a>
+    </article>
+
+    <article class="card">
+      <h2>교대 태깅</h2>
+      <p>n줄마다 [a]/[b] 교대 태깅. 빈줄 건너뛰기, 태깅 방식 옵션.</p>
+      <a class="btn" href="/tools/alternating-tags.html">열기</a>
+    </article>
+
+    <article class="card">
+      <h2 class="muted">중복 줄 제거</h2>
+      <p class="muted">곧 제공</p>
+    </article>
+
+    <article class="card">
+      <h2 class="muted">줄 정렬/랜덤</h2>
+      <p class="muted">곧 제공</p>
+    </article>
+
+    <article class="card">
+      <h2 class="muted">대소문자 변환</h2>
+      <p class="muted">곧 제공</p>
+    </article>
+
+    <article class="card">
+      <h2 class="muted">글자/단어/바이트 카운트</h2>
+      <p class="muted">곧 제공</p>
+    </article>
+  </div>
+
+  <!-- 하단 광고 자리 -->
+  <div class="ad-placeholder"><b>광고 자리</b><small>AdSense 승인 후 코드 삽입 (naom_text_bottom)</small></div>
+</div>
+
+<footer class="site">
+  <div class="container">© <span id="y"></span> Thenaom Tools</div>
+</footer>
+<script>document.getElementById('y').textContent=new Date().getFullYear();</script>
+</body>
+</html>

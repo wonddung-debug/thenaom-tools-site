@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>줄 정렬 · 랜덤 셔플 | 텍스트 행 정렬기 (Thenaom Tools)</title>
+<meta name="description" content="텍스트 줄을 오름/내림/숫자 인식/길이 기준으로 정렬하거나 랜덤 셔플합니다. 중복 제거/빈 줄 제거 옵션 제공.">
+<link rel="canonical" href="https://tools.thenaom.com/tools/sort-lines.html">
+<link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+<header class="site">
+  <div class="container" style="display:flex;gap:16px;align-items:center;justify-content:space-between">
+    <a class="brand" href="/">Thenaom Tools</a>
+    <nav><ul><li><a class="active" href="/text/">텍스트 정리</a></li><li><a href="/convert/">분할/변환</a></li><li><a href="/utility/">유틸</a></li></ul></nav>
+  </div>
+</header>
+
+<section class="hero"><div class="container">
+  <h1>줄 정렬 · 랜덤 셔플 — 텍스트 행 정렬기</h1>
+  <p class="muted">브라우저에서만 처리 · 개인정보 전송 없음</p>
+</div></section>
+
+<div class="container">
+  <div class="ad-placeholder"><b>광고 자리</b><small>AdSense 승인 후 코드 (naom_sort_top)</small></div>
+
+  <div class="grid">
+    <article class="card">
+      <h2>옵션</h2>
+      <div class="list">
+        <div class="item-row">
+          <label><input type="radio" name="mode" value="asc" checked> 오름차순</label>
+          <label><input type="radio" name="mode" value="desc"> 내림차순</label>
+          <label><input type="radio" name="mode" value="num"> 숫자 인식 정렬</label>
+          <label><input type="radio" name="mode" value="len"> 길이 기준</label>
+          <label><input type="radio" name="mode" value="rand"> 랜덤 셔플</label>
+        </div>
+        <div class="item-row">
+          <label><input type="checkbox" id="unique"> 중복 제거</label>
+          <label><input type="checkbox" id="removeEmpty" checked> 빈 줄 제거</label>
+          <label><input type="checkbox" id="reverse"> 정렬 후 역순</label>
+        </div>
+        <div class="item-row">
+          <button class="btn" id="run">정렬/셔플 실행</button>
+          <div class="muted" id="stat">입력 0줄</div>
+        </div>
+      </div>
+    </article>
+
+    <article class="card">
+      <h2>입력</h2>
+      <textarea id="input" placeholder="줄 단위 텍스트를 붙여넣으세요."></textarea>
+    </article>
+
+    <article class="card">
+      <h2>결과</h2>
+      <div class="item-row">
+        <div class="muted" id="summary"></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn" id="copy">복사</button>
+          <button class="btn" id="download">다운로드</button>
+          <button class="btn" id="clear">지우기</button>
+        </div>
+      </div>
+      <textarea id="output" placeholder="결과가 여기에 표시됩니다."></textarea>
+    </article>
+  </div>
+
+  <div class="ad-placeholder"><b>광고 자리</b><small>AdSense 승인 후 코드 (naom_sort_bottom)</small></div>
+
+  <h2 class="section-title">관련 도구</h2>
+  <div class="grid cols2">
+    <article class="card"><h2>중복 줄 제거</h2><p>완전 일치/공백/대소문자 무시 옵션.</p><a class="btn" href="/tools/dedupe-lines.html">열기</a></article>
+    <article class="card"><h2>줄바꾸기 · 줄바꿈 제거</h2><p>구분자 기준 줄바꿈 추가/모두 제거.</p><a class="btn" href="/tools/linebreak.html">열기</a></article>
+  </div>
+</div>
+
+<footer class="site"><div class="container">© <span id="y"></span> Thenaom Tools</div></footer>
+<script>document.getElementById('y').textContent=new Date().getFullYear();</script>
+
+<script>
+(function(){
+  const $ = s => document.querySelector(s);
+  const norm = s => (s||'').replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+  const linesOf = s => norm(s).split('\n');
+
+  function cmpAsc(a,b){ return a.localeCompare(b); }
+  function cmpDesc(a,b){ return b.localeCompare(a); }
+  function cmpNum(a,b){ return (+a.replace(/[^0-9.-]+/g,'')) - (+b.replace(/[^0-9.-]+/g,'')); }
+  function cmpLen(a,b){ return a.length - b.length; }
+  function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]];} return arr; }
+
+  function sort(text,opt){
+    let arr = linesOf(text);
+    if(opt.removeEmpty) arr = arr.filter(x=>x.trim()!=='');
+    if(opt.unique) arr = Array.from(new Set(arr));
+    switch(opt.mode){
+      case 'asc': arr.sort(cmpAsc); break;
+      case 'desc': arr.sort(cmpDesc); break;
+      case 'num': arr.sort(cmpNum); break;
+      case 'len': arr.sort(cmpLen); break;
+      case 'rand': shuffle(arr); break;
+    }
+    if(opt.reverse && opt.mode!=='rand'){ arr.reverse(); }
+    return arr;
+  }
+
+  function run(){
+    const text = $('#input').value || '';
+    const opt = {
+      mode: document.querySelector('input[name="mode"]:checked').value,
+      unique: $('#unique').checked,
+      removeEmpty: $('#removeEmpty').checked,
+      reverse: $('#reverse').checked
+    };
+    const src = linesOf(text).length;
+    const out = sort(text, opt);
+    $('#output').value = out.join('\n');
+    $('#summary').textContent = `입력 ${src}줄 → 결과 ${out.length}줄`;
+  }
+
+  $('#run').addEventListener('click', run);
+  $('#input').addEventListener('input', ()=> $('#stat').textContent=`입력 ${linesOf($('#input').value).length}줄`);
+  $('#copy').addEventListener('click', ()=> navigator.clipboard.writeText($('#output').value||''));
+  $('#download').addEventListener('click', ()=>{
+    const blob=new Blob([$('#output').value||''],{type:'text/plain;charset=utf-8'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+    a.download='sort-lines.txt'; a.click(); URL.revokeObjectURL(a.href);
+  });
+  $('#clear').addEventListener('click', ()=> { $('#input').value=''; $('#output').value=''; $('#summary').textContent=''; $('#stat').textContent='입력 0줄';});
+})();
+</script>
+</body>
+</html>

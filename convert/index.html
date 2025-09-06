@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>분할/변환 도구 | 바이트 분할 · 텍스트 비교 · 인코딩</title>
+  <meta name="description" content="바이트 단위 분할, 텍스트 비교(Diff), URL/Base64/HTML 인코딩·디코딩 등 브라우저에서만 처리되는 온라인 변환 도구 모음.">
+  <link rel="canonical" href="https://tools.thenaom.com/convert/">
+  <link rel="stylesheet" href="/assets/styles.css">
+
+  <!-- (선택) 검색 노출 향상용: 카테고리 설명 스키마 -->
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"CollectionPage",
+    "name":"분할/변환 도구",
+    "description":"바이트 분할, 텍스트 비교, URL/Base64/HTML 인코딩·디코딩 도구 모음",
+    "url":"https://tools.thenaom.com/convert/"
+  }
+  </script>
+</head>
+<body>
+  <header class="site">
+    <div class="container" style="display:flex;gap:16px;align-items:center;justify-content:space-between">
+      <a class="brand" href="/">Thenaom Tools</a>
+      <nav>
+        <ul>
+          <li><a href="/text/">텍스트 정리</a></li>
+          <li><a class="active" href="/convert/">분할/변환</a></li>
+          <li><a href="/utility/">유틸</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="container">
+      <h1>분할/변환 도구</h1>
+      <p class="muted">바이트 분할, Diff, 각종 인코딩 — 모든 처리는 브라우저에서만</p>
+    </div>
+  </section>
+
+  <div class="container">
+    <!-- 상단 광고 자리(AdSense 승인 후 교체) -->
+    <div class="ad-placeholder">
+      <b>광고 자리</b>
+      <small>승인 후 상단 반응형 단위 삽입 (naom_convert_top)</small>
+    </div>
+
+    <div class="grid cols2" aria-label="분할/변환 도구 목록">
+      <article class="card">
+        <h2>바이트 단위 분할</h2>
+        <p>UTF-8 기준 원하는 바이트로 분할. 문장 끝/공백 우선 옵션 지원.</p>
+        <a class="btn" href="/tools/byte-split.html" aria-label="바이트 단위 분할 도구 열기">열기</a>
+      </article>
+
+      <article class="card">
+        <h2>텍스트 비교(Diff)</h2>
+        <p>두 텍스트의 차이를 줄·단어·문자로 비교/하이라이트.</p>
+        <a class="btn" href="/tools/diff.html" aria-label="텍스트 비교 도구 열기">열기</a>
+      </article>
+
+      <article class="card">
+        <h2>URL 인코딩/디코딩</h2>
+        <p>퍼센트 인코딩 변환. 공백 +/ %20, 줄 단위 처리 지원.</p>
+        <a class="btn" href="/tools/url-encode.html" aria-label="URL 인코딩 디코딩 도구 열기">열기</a>
+      </article>
+
+      <article class="card">
+        <h2>Base64 인/디코딩</h2>
+        <p>바이너리 안전 문자열 인·디코딩(UTF-8). 줄 단위/전체 처리.</p>
+        <a class="btn" href="/tools/base64.html" aria-label="Base64 인디코딩 도구 열기">열기</a>
+      </article>
+
+      <article class="card">
+        <h2>HTML 엔티티 변환</h2>
+        <p>&amp; &lt; &gt; ' " 등 HTML 엔티티 변환/해제.</p>
+        <a class="btn" href="/tools/html-entities.html" aria-label="HTML 엔티티 변환 도구 열기">열기</a>
+      </article>
+    </div>
+
+    <!-- 하단 광고 자리(AdSense 승인 후 교체) -->
+    <div class="ad-placeholder">
+      <b>광고 자리</b>
+      <small>승인 후 하단 반응형 단위 삽입 (naom_convert_bottom)</small>
+    </div>
+  </div>
+
+  <footer class="site">
+    <div class="container">© <span id="y"></span> Thenaom Tools</div>
+  </footer>
+  <script>
+    document.getElementById('y').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>글자수 세기 · 단어수 · 바이트 수 | 실시간 카운터 (Thenaom Tools)</title>
+<meta name="description" content="입력 즉시 글자수(공백 포함/제외)·단어/어절 수·줄 수·UTF-8 바이트 수를 계산합니다. 모바일 지원, 브라우저에서만 처리.">
+<link rel="canonical" href="https://tools.thenaom.com/tools/counter.html">
+<link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+<header class="site">
+  <div class="container" style="display:flex;gap:16px;align-items:center;justify-content:space-between">
+    <a class="brand" href="/">Thenaom Tools</a>
+    <nav><ul><li><a class="active" href="/text/">텍스트 정리</a></li><li><a href="/convert/">분할/변환</a></li><li><a href="/utility/">유틸</a></li></ul></nav>
+  </div>
+</header>
+
+<section class="hero"><div class="container">
+  <h1>글자수 · 단어수 · 바이트 수 — 실시간 카운터</h1>
+  <p class="muted">브라우저에서만 처리 · 개인정보 전송 없음</p>
+</div></section>
+
+<div class="container">
+  <div class="ad-placeholder"><b>광고 자리</b><small>AdSense 승인 후 코드 (naom_counter_top)</small></div>
+
+  <div class="grid cols2">
+    <article class="card">
+      <h2>입력</h2>
+      <textarea id="input" placeholder="텍스트를 붙여넣으세요. 결과는 실시간으로 갱신됩니다."></textarea>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn" id="copy">복사</button>
+        <button class="btn" id="download">다운로드</button>
+        <button class="btn" id="clear">지우기</button>
+      </div>
+    </article>
+
+    <article class="card">
+      <h2>결과</h2>
+      <div class="list">
+        <div class="item-row"><span>문자 수 (공백 포함)</span><b id="charsWith">0</b></div>
+        <div class="item-row"><span>문자 수 (공백 제외)</span><b id="charsNo">0</b></div>
+        <div class="item-row"><span>단어/어절 수</span><b id="words">0</b></div>
+        <div class="item-row"><span>줄 수</span><b id="lines">0</b></div>
+        <div class="item-row"><span>바이트 수 (UTF-8)</span><b id="bytes">0</b></div>
+      </div>
+      <p class="muted" style="margin-top:8px">* 단어/어절 수는 공백 기준 토큰 개수를 사용합니다.</p>
+    </article>
+  </div>
+
+  <div class="ad-placeholder"><b>광고 자리</b><small>AdSense 승인 후 코드 (naom_counter_bottom)</small></div>
+
+  <h2 class="section-title">관련 도구</h2>
+  <div class="grid cols2">
+    <article class="card"><h2>바이트 단위 분할</h2><p>UTF-8 바이트 기준으로 텍스트를 분할.</p><a class="btn" href="/tools/byte-split.html">열기</a></article>
+    <article class="card"><h2>빈줄 제거</h2><p>빈 줄·공백 줄 제거, 연속 공백 정리.</p><a class="btn" href="/tools/blankline.html">열기</a></article>
+  </div>
+</div>
+
+<footer class="site"><div class="container">© <span id="y"></span> Thenaom Tools</div></footer>
+<script>document.getElementById('y').textContent=new Date().getFullYear();</script>
+
+<script>
+(function(){
+  'use strict';
+  const $=s=>document.querySelector(s);
+  const enc=new TextEncoder();
+  function analyze(text){
+    const norm=text.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+    const charsWith=[...norm].length;
+    const charsNo=[...norm.replace(/\s/g,'')].length;
+    const lines=norm.length?norm.split('\n').length:0;
+    const words=norm.trim().length?norm.trim().split(/\s+/).length:0;
+    const bytes=enc.encode(norm).length;
+    return {charsWith,charsNo,words,lines,bytes};
+  }
+  function update(){
+    const v=$('#input').value||'';
+    const {charsWith,charsNo,words,lines,bytes}=analyze(v);
+    $('#charsWith').textContent=charsWith;
+    $('#charsNo').textContent=charsNo;
+    $('#words').textContent=words;
+    $('#lines').textContent=lines;
+    $('#bytes').textContent=bytes;
+  }
+  $('#input').addEventListener('input',update);
+  $('#copy').addEventListener('click',()=>navigator.clipboard.writeText($('#input').value||''));  
+  $('#download').addEventListener('click',()=>{const blob=new Blob([$('#input').value||''],{type:'text/plain;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='text.txt';a.click();URL.revokeObjectURL(a.href);});
+  $('#clear').addEventListener('click',()=>{$('#input').value='';update();});
+  update();
+})();
+</script>
+</body>
+</html>

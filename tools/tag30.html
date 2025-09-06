@@ -1,112 +1,111 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>30줄마다 [a]/[b] 자동 태깅</title>
-
-<!-- Google Tag Manager -->
-<script>
-(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});
-var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';
-j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
-f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','GTM-N2BBPNCC');
-</script>
-<!-- End Google Tag Manager -->
-
-
-  <style>
-    body { font-family: sans-serif; background: #f9fafb; margin: 0; padding: 20px; }
-    textarea { width: 100%; border-radius: 12px; border: 1px solid #ccc; padding: 10px; }
-    .panel { background: white; border-radius: 16px; padding: 16px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-    .btn { padding: 8px 16px; border-radius: 8px; border: 1px solid #000; cursor: pointer; margin-right: 8px; }
-    .btn-primary { background: black; color: white; }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>자동 태깅 도구 | 줄 간격마다 [a]/[b] 교대 라벨 (Thenaom Tools)</title>
+<meta name="description" content="줄 간격마다 교대로 [a]/[b] 태그를 자동 삽입하는 무료 온라인 도구. 빈 줄 건너뛰기, 블록 전체 태깅 옵션 제공.">
+<link rel="canonical" href="https://tools.thenaom.com/tools/tag30.html">
+<link rel="stylesheet" href="../assets/styles.css">
 </head>
 <body>
-<!-- Google Tag Manager (noscript) -->
-<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-N2BBPNCC"
-height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-<!-- End Google Tag Manager (noscript) -->
+<header class="site">
+  <div class="container" style="display:flex;gap:16px;align-items:center;justify-content:space-between">
+    <a class="brand" href="/">Thenaom Tools</a>
+    <nav><ul><li><a class="active" href="/text/">텍스트 정리</a></li><li><a href="/convert/">분할/변환</a></li><li><a href="/utility/">유틸</a></li></ul></nav>
+  </div>
+</header>
 
-  <h1>30줄마다 [a]/[b] 자동 태깅</h1>
-  <div class="panel">
-    <label>원본 텍스트</label>
-    <textarea id="inputText" rows="15" placeholder="여기에 텍스트를 붙여넣으세요."></textarea>
+<section class="hero"><div class="container">
+  <h1>자동 태깅 도구 — 줄 간격마다 [a]/[b] 라벨 삽입</h1>
+  <p class="muted">브라우저에서만 처리 · 개인정보 전송 없음</p>
+</div></section>
+
+<div class="container">
+  <div class="ad-placeholder"><b>광고 자리</b><small>AdSense 승인 후 코드 (naom_tag_top)</small></div>
+
+  <section class="card">
+    <div class="list">
+      <div class="item-row">
+        <label>줄 간격 <input type="number" id="interval" value="30" min="1"></label>
+        <label>첫 태그 <input type="text" id="tagA" value="[a]"></label>
+        <label>다음 태그 <input type="text" id="tagB" value="[b]"></label>
+      </div>
+      <div class="item-row">
+        <label><input type="checkbox" id="skipEmpty"> 빈 줄 건너뛰기</label>
+        <label><input type="checkbox" id="applyBlock"> 블록 전체에 태그 붙이기</label>
+      </div>
+      <div class="item-row">
+        <button class="btn" id="run">변환하기</button>
+        <button class="btn secondary" id="copy">복사</button>
+        <button class="btn secondary" id="download">.txt 저장</button>
+        <button class="btn secondary" id="clear">지우기</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid cols2">
+    <article class="card"><h2>입력</h2><textarea id="input" placeholder="여기에 텍스트를 붙여넣으세요."></textarea></article>
+    <article class="card"><h2>결과</h2><textarea id="output" readonly></textarea></article>
   </div>
-  <div class="panel">
-    <label>줄 간격 (기본 30)</label>
-    <input type="number" id="interval" value="30" min="1" /><br><br>
-    <label>첫 블록 태그</label>
-    <input type="text" id="tagA" value="[a]" />
-    <label>다음 블록 태그</label>
-    <input type="text" id="tagB" value="[b]" /><br><br>
-    <label><input type="checkbox" id="skipEmpty" /> 빈 줄 건너뛰기</label><br>
-    <label><input type="checkbox" id="applyToWholeBlock" /> 블록 전체에 태그 붙이기</label><br><br>
-    <button class="btn btn-primary" onclick="processText()">변환하기</button>
-    <button class="btn" onclick="copyResult()">결과 복사</button>
-    <button class="btn" onclick="downloadResult()">.txt 저장</button>
+
+  <div class="ad-placeholder"><b>광고 자리</b><small>AdSense 승인 후 코드 (naom_tag_bottom)</small></div>
+
+  <h2 class="section-title">관련 도구</h2>
+  <div class="grid cols2">
+    <article class="card"><h2>빈줄 제거</h2><p>빈 줄/공백 줄 제거.</p><a class="btn" href="/tools/blankline.html">열기</a></article>
+    <article class="card"><h2>줄 정렬/랜덤</h2><p>텍스트 줄 오름/내림/랜덤 정렬.</p><a class="btn" href="/tools/sort-lines.html">열기</a></article>
   </div>
-  <div class="panel">
-    <label>결과 미리보기</label>
-    <textarea id="outputText" rows="15" readonly></textarea>
-  </div>
+</div>
+
+<footer class="site"><div class="container">© <span id="y"></span> Thenaom Tools</div></footer>
+<script>document.getElementById('y').textContent=new Date().getFullYear();</script>
 
 <script>
-function processText() {
-  const input = document.getElementById('inputText').value;
-  const interval = parseInt(document.getElementById('interval').value, 10);
-  const tagA = document.getElementById('tagA').value;
-  const tagB = document.getElementById('tagB').value;
-  const skipEmpty = document.getElementById('skipEmpty').checked;
-  const applyToWholeBlock = document.getElementById('applyToWholeBlock').checked;
+(function(){
+  const $=s=>document.querySelector(s);
+  function process(){
+    const lines=($('#input').value||'').split(/\r?\n/);
+    const interval=+$('#interval').value||30;
+    const tagA=$('#tagA').value||'[a]';
+    const tagB=$('#tagB').value||'[b]';
+    const skipEmpty=$('#skipEmpty').checked;
+    const block=$('#applyBlock').checked;
 
-  const lines = input.split(/\r?\n/);
-  const out = [.lines]; // ※ 원본 코드 유지 (기능 변경 금지 요청)
-
-  if (applyToWholeBlock) {
-    for (let i = 0; i < out.length; i++) {
-      const blockIndex = Math.floor(i / interval);
-      const tag = blockIndex % 2 === 0 ? tagA : tagB;
-      if (skipEmpty && out[i].trim() === '') continue;
-      out[i] = tag + ' ' + out[i];
-    }
-  } else {
-    for (let i = 0; i < out.length; i++) {
-      if (i % interval === 0) {
-        const blockIndex = Math.floor(i / interval);
-        const tag = blockIndex % 2 === 0 ? tagA : tagB;
-        if (skipEmpty && out[i].trim() === '') {
-          for (let j = i; j < Math.min(i + interval, out.length); j++) {
-            if (out[j].trim() !== '') { out[j] = tag + ' ' + out[j]; break; }
+    let out=[...lines];
+    if(block){
+      for(let i=0;i<out.length;i++){
+        const blockIndex=Math.floor(i/interval);
+        const tag=blockIndex%2===0?tagA:tagB;
+        if(skipEmpty && out[i].trim()==='') continue;
+        out[i]=tag+' '+out[i];
+      }
+    }else{
+      for(let i=0;i<out.length;i++){
+        if(i%interval===0){
+          const blockIndex=Math.floor(i/interval);
+          const tag=blockIndex%2===0?tagA:tagB;
+          if(skipEmpty && out[i].trim()===''){
+            for(let j=i;j<Math.min(i+interval,out.length);j++){
+              if(out[j].trim()!==''){ out[j]=tag+' '+out[j]; break; }
+            }
+          }else{
+            out[i]=tag+' '+out[i];
           }
-        } else {
-          out[i] = tag + ' ' + out[i];
         }
       }
     }
+    $('#output').value=out.join('\n');
   }
 
-  document.getElementById('outputText').value = out.join('\n');
-}
-
-function copyResult() {
-  const text = document.getElementById('outputText').value;
-  navigator.clipboard.writeText(text);
-  alert('결과가 클립보드에 복사되었습니다!');
-}
-
-function downloadResult() {
-  const text = document.getElementById('outputText').value;
-  const blob = new Blob([text], {type: 'text/plain'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'tagged_text.txt';
-  a.click();
-  URL.revokeObjectURL(url);
-}
+  $('#run').addEventListener('click',process);
+  $('#copy').addEventListener('click',()=>navigator.clipboard.writeText($('#output').value||''));
+  $('#download').addEventListener('click',()=>{
+    const blob=new Blob([$('#output').value||''],{type:'text/plain;charset=utf-8'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='tagged.txt';a.click();
+  });
+  $('#clear').addEventListener('click',()=>{$('#input').value='';$('#output').value='';});
+})();
 </script>
 </body>
 </html>
