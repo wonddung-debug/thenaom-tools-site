@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Byte Split · Split Text by UTF-8 Bytes | Thenaom Tools</title>
+  <meta name="description" content="Safely split long text by a specific byte length based on UTF-8. Multibyte characters are handled without breaking." />
+  <meta name="robots" content="index,follow" />
+  <link rel="canonical" href="https://tools.thenaom.com/en/tools/byte-split.html" />
+  <link rel="alternate" hreflang="en" href="https://tools.thenaom.com/en/tools/byte-split.html" />
+  <link rel="alternate" hreflang="ko" href="https://tools.thenaom.com/tools/byte-split.html" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+  <meta property="og:title" content="Byte Split · Split Text by UTF-8 Bytes" />
+  <meta property="og:description" content="Split text by chosen byte size (UTF-8)." />
+  <meta property="og:image" content="https://tools.thenaom.com/assets/og-tool-byte-split-en.png" />
+  <meta property="og:url" content="https://tools.thenaom.com/en/tools/byte-split.html" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="en_US" />
+
+  <!-- GTM -->
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-N2BBPNCC');</script>
+
+  <!-- AdSense -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3006330103681332" crossorigin="anonymous"></script>
+
+  <!-- Theme bootstrap -->
+  <script>
+    (function(){
+      try{
+        const saved=localStorage.getItem('theme');
+        if(saved==='light'||saved==='dark'){
+          document.documentElement.setAttribute('data-theme',saved);
+          document.documentElement.setAttribute('data-user-theme','1');
+        }else{
+          const prefersDark=window.matchMedia('(prefers-color-scheme: dark)').matches;
+          document.documentElement.setAttribute('data-theme',prefersDark?'dark':'light');
+        }
+      }catch(e){}
+    })();
+  </script>
+
+  <style>
+    :root{ --bg:#ffffff; --text:#0b1220; --muted:#475569; --border:#e5e7eb; --card:#ffffff; --accent:#2563eb; --btn-text:#ffffff; --shadow:0 6px 18px rgba(0,0,0,.06); --focus: color-mix(in srgb, var(--accent) 35%, transparent); --hero-tint:#eff3ff; --hero-grid:#e8ecf6; --hero-ring:#cfe1ff; --input:#0b1220; --input-bg:var(--card); }
+    [data-theme="dark"]{ --bg:#0b1220; --text:#f1f5f9; --muted:#cbd5e1; --border:#334155; --card:#111827; --accent:#60a5fa; --btn-text:#0b1220; --shadow:0 8px 22px rgba(0,0,0,.55); --focus: color-mix(in srgb, var(--accent) 45%, transparent); --hero-tint:#0f172a; --hero-grid:#162036; --hero-ring:#1f3b76; --input:#e5e7eb; --input-bg:#0f172a; }
+    html,body{background:var(--bg)!important}
+    body{color:var(--text)!important;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,Noto Sans KR,sans-serif}
+    a{color:var(--accent);text-decoration:none}
+    .container{max-width:1120px;margin:0 auto;padding:0 16px}
+
+    header.site{position:sticky;top:0;z-index:100;background:var(--bg)!important;border-bottom:1px solid var(--border)}
+    .brand{color:var(--text)!important;font-weight:800;text-decoration:none}
+    header.site nav{display:flex;align-items:center;gap:12px}
+    .lang-switch,.theme-toggle,.btn{padding:.5rem .72rem;border:1px solid var(--border);border-radius:.7rem;background:linear-gradient(180deg,color-mix(in srgb,var(--card)96%,transparent),var(--card));cursor:pointer;color:var(--text)!important;box-shadow:var(--shadow);transition:transform .06s,box-shadow .18s,border-color .18s,background .18s}
+    .lang-switch:hover,.theme-toggle:hover,.theme-toggle:focus-visible,.btn:hover{color:var(--accent)!important;border-color:var(--accent)!important;box-shadow:0 0 0 3px var(--focus), var(--shadow)}
+    .theme-toggle:active,.btn:active{transform:translateY(1px)}
+    .theme-toggle[aria-pressed="true"]{background:linear-gradient(180deg,color-mix(in srgb,var(--accent)22%,var(--card)),var(--accent));border-color:var(--accent)!important;color:var(--btn-text)!important}
+
+    .hero{position:relative;overflow:hidden;padding:28px 0 18px;text-align:start;isolation:isolate}
+    .hero::before{content:"";position:absolute;inset:0;background:radial-gradient(900px 360px at 50% -15%, var(--hero-ring), transparent 65%),linear-gradient(180deg, color-mix(in srgb, var(--hero-tint) 88%, transparent), transparent 60%);z-index:-2}
+    .hero::after{content:"";position:absolute;inset:0;background:linear-gradient(to right, color-mix(in srgb,var(--hero-grid) 35%, transparent) 1px, transparent 1px) 0 0/28px 28px,linear-gradient(to bottom, color-mix(in srgb,var(--hero-grid) 35%, transparent) 1px, transparent 1px) 0 0/28px 28px;opacity:.5;z-index:-1}
+    .hero h1{margin:0;font-size:clamp(1.6rem,3.4vw,2.2rem)}
+    .hero p{margin:.4rem 0 0;color:var(--muted);max-width:900px}
+    .crumb{margin:10px 0 0;font-size:.95rem}
+    .crumb a{color:var(--muted)}
+    .hl{background:color-mix(in srgb, var(--accent) 14%, transparent);padding:0 4px;border-radius:6px}
+
+    main .section{margin:12px 0}
+    .ad-space{margin:8px 0}
+    .panel{border:1px solid var(--border);border-radius:12px;background:linear-gradient(180deg, color-mix(in srgb, var(--card) 95%, transparent), var(--card));box-shadow:var(--shadow);padding:12px}
+    .panel h2{margin:.1rem 0 .6rem;font-size:1.06rem}
+    .row{display:grid;grid-template-columns:1fr;gap:12px}
+    @media(min-width:980px){.row{grid-template-columns:1fr 1fr}}
+    .controls{display:flex;flex-wrap:wrap;gap:8px}
+    .controls .btn-primary{background:linear-gradient(180deg,color-mix(in srgb,var(--accent)18%,var(--card)),var(--accent));color:var(--btn-text)!important;border-color:var(--accent)}
+    .controls .btn-secondary{background:linear-gradient(180deg, color-mix(in srgb, var(--card) 95%, transparent), var(--card))}
+    textarea.input, textarea.output{width:100%;min-height:260px;padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--input-bg);color:var(--input);font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:.98rem;line-height:1.45;resize:vertical}
+    input[type="number"]{width:120px}
+    .small{font-size:.92rem;color:var(--muted)}
+    .counter{display:flex;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:.92rem;margin-top:6px}
+    footer.site{margin-top:16px;padding:14px 0;border-top:1px solid var(--border);font-size:.95rem;color:var(--muted)!important}
+    .footer-row{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+    .footer-links{display:flex;gap:14px;flex-wrap:wrap}
+    .footer-links a{color:var(--muted);text-decoration:none}
+    .footer-links a:hover{color:var(--accent)}
+  </style>
+</head>
+<body>
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-N2BBPNCC" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+
+  <!-- Header -->
+  <header class="site">
+    <div class="container" style="display:flex;justify-content:space-between;align-items:center">
+      <a href="/en/" class="brand">Thenaom Tools</a>
+      <nav aria-label="secondary navigation">
+        <a class="lang-switch" href="/tools/byte-split.html" hreflang="ko">한국어</a>
+        <button id="themeToggle" class="theme-toggle" aria-pressed="false" title="Toggle theme"><span class="icon">🌞</span><span class="label">Light</span></button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <div class="crumb"><a href="/en/">Home</a> &nbsp;>&nbsp; <a href="/en/convert/">Split / Convert</a> &nbsp;>&nbsp; Byte Split</div>
+      <h1>Byte Split</h1>
+      <p>Split your text at every <span class="hl">specified byte length</span> based on UTF-8. Multibyte characters are never cut in half.</p>
+    </div>
+  </section>
+
+  <main class="container" id="main">
+    <!-- Top ad -->
+    <div class="ad-space"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3006330103681332" data-ad-slot="6703005412" data-ad-format="auto" data-full-width-responsive="true"></ins></div>
+    <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
+
+    <section class="section panel">
+      <h2>How to use</h2>
+      <p class="small">1) Paste text → 2) Enter <strong>byte length</strong> → 3) <strong>Run</strong> (shortcut: <kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Enter</kbd>)</p>
+    </section>
+
+    <section class="section panel">
+      <div class="row">
+        <div>
+          <h2>Input</h2>
+          <textarea id="input" class="input" placeholder="Paste your text here"></textarea>
+          <div id="inStats" class="counter"></div>
+        </div>
+        <div>
+          <h2>Result</h2>
+          <textarea id="output" class="output" readonly></textarea>
+          <div id="outStats" class="counter"></div>
+        </div>
+      </div>
+      <div class="controls" style="margin-top:8px">
+        <label class="opt">Byte length
+          <input id="byteLen" type="number" value="80" min="1" />
+        </label>
+        <button id="runBtn" class="btn btn-primary" disabled>Run</button>
+        <button id="resetBtn" class="btn btn-secondary">Reset</button>
+        <button id="copyBtn" class="btn btn-secondary">Copy</button>
+        <button id="downloadBtn" class="btn btn-secondary">Download</button>
+      </div>
+    </section>
+
+    <!-- Bottom ad -->
+    <div class="ad-space"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3006330103681332" data-ad-slot="9867638073" data-ad-format="auto" data-full-width-responsive="true"></ins></div>
+    <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
+  </main>
+
+  <footer class="site">
+    <div class="container footer-row">
+      <div>© <span id="y"></span> Thenaom Tools. All rights reserved.</div>
+      <nav class="footer-links" aria-label="footer links">
+        <a href="/en/privacy.html">Privacy Policy</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script>
+    // year
+    document.getElementById('y').textContent = new Date().getFullYear();
+
+    // theme toggle
+    (function(){
+      const btn=document.getElementById('themeToggle');
+      const root=document.documentElement;
+      const setUI=(mode)=>{ btn.setAttribute('aria-pressed',mode==='dark'); btn.querySelector('.icon').textContent=mode==='dark'? '🌙':'🌞'; btn.querySelector('.label').textContent=mode==='dark'? 'Dark':'Light'; };
+      const theme=()=>root.getAttribute('data-theme')==='dark'?'dark':'light';
+      setUI(theme());
+      btn?.addEventListener('click',()=>{ const next=theme()==='dark'?'light':'dark'; root.setAttribute('data-theme',next); root.setAttribute('data-user-theme','1'); try{localStorage.setItem('theme',next);}catch(e){} setUI(next); });
+      const mq=window.matchMedia('(prefers-color-scheme: dark)');
+      if(mq && !localStorage.getItem('theme')){ mq.addEventListener('change',e=>{ const mode=e.matches?'dark':'light'; root.setAttribute('data-theme',mode); setUI(mode); }); }
+    })();
+
+    // helpers
+    const hasEncoding = typeof window.TextEncoder !== 'undefined' && typeof window.TextDecoder !== 'undefined';
+    const enc = hasEncoding ? new TextEncoder() : null;
+    const dec = hasEncoding ? new TextDecoder() : null;
+    if(!hasEncoding){ alert('This browser does not support TextEncoder/TextDecoder.'); }
+    function byteLen(str){ return hasEncoding ? enc.encode(str).length : str.length; }
+    function countLines(str){ if(!str) return 0; return str.split(/\r\n|\r|\n/).length; }
+    function statHtml(str){ return `<span>lines: ${countLines(str).toLocaleString()}</span><span>bytes: ${byteLen(str).toLocaleString()}</span><span>chars: ${[...str].length.toLocaleString()}</span>`; }
+
+    function splitByBytes(str, size){
+      if(!hasEncoding) return str;
+      let buf=[]; let bytes=0; const out=[];
+      for(const ch of str){
+        const b = enc.encode(ch);
+        if(bytes + b.length > size){
+          out.push(dec.decode(new Uint8Array(buf)));
+          buf=[]; bytes=0;
+        }
+        buf.push(...b); bytes+=b.length;
+        }
+      if(buf.length) out.push(dec.decode(new Uint8Array(buf)));
+      return out.join('\n');
+    }
+
+    // DOM
+    const $in = document.getElementById('input');
+    const $out = document.getElementById('output');
+    const $inStats = document.getElementById('inStats');
+    const $outStats = document.getElementById('outStats');
+    const $run = document.getElementById('runBtn');
+    const $reset = document.getElementById('resetBtn');
+    const $copy = document.getElementById('copyBtn');
+    const $download = document.getElementById('downloadBtn');
+    const $byteLen = document.getElementById('byteLen');
+
+    function updateInStats(){ $inStats.innerHTML = statHtml($in.value); toggleRun(); }
+    function updateOutStats(){ $outStats.innerHTML = statHtml($out.value); }
+    function toggleRun(){ const enabled = !!$in.value; $run.disabled = !enabled; $run.style.opacity = enabled ? '1' : '.6'; $run.style.cursor = enabled ? 'pointer' : 'not-allowed'; }
+
+    function run(){
+      if(!$in.value) return;
+      const n = Math.max(1, parseInt($byteLen.value||'1',10));
+      const result = splitByBytes($in.value, n);
+      $out.value = result;
+      updateOutStats();
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({event:'run_click', tool:'byte-split', options:{bytes:n}});
+    }
+
+    $in.addEventListener('input', updateInStats);
+    document.addEventListener('keydown', (e)=>{ if((e.ctrlKey||e.metaKey) && e.key==='Enter'){ e.preventDefault(); run(); }});
+    $run.addEventListener('click', run);
+    $reset.addEventListener('click', ()=>{ $in.value=''; $out.value=''; updateInStats(); updateOutStats(); $in.focus(); });
+
+    $copy.addEventListener('click', async ()=>{
+      if(!$out.value) return;
+      let ok=false;
+      try{
+        if(navigator.clipboard && navigator.clipboard.writeText){
+          await navigator.clipboard.writeText($out.value);
+          ok=true;
+        }else{
+          $out.select();
+          ok=document.execCommand('copy');
+        }
+      }catch(e){}
+      alert(ok?'Copied':'Copy failed');
+      window.dataLayer=window.dataLayer||[];
+      window.dataLayer.push({event:'copy_click', tool:'byte-split'});
+    });
+
+    $download.addEventListener('click', ()=>{
+      const blob = new Blob([$out.value||''], {type:'text/plain;charset=utf-8'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'byte-split-result.txt';
+      document.body.appendChild(a); a.click(); a.remove();
+      window.dataLayer=window.dataLayer||[]; window.dataLayer.push({event:'download_click', tool:'byte-split'});
+    });
+
+    updateInStats(); updateOutStats();
+
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({event:'tool_use', tool:'byte-split'});
+  </script>
+
+  <!-- JSON-LD FAQ -->
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+    {"@type":"Question","name":"How are bytes calculated?","acceptedAnswer":{"@type":"Answer","text":"We measure byte length using UTF-8 encoding."}},
+    {"@type":"Question","name":"Will multibyte characters break?","acceptedAnswer":{"@type":"Answer","text":"No. Splitting respects character boundaries so nothing is cut in half."}},
+    {"@type":"Question","name":"Can I save the result?","acceptedAnswer":{"@type":"Answer","text":"Yes. You can copy the result or download it as a text file."}}
+  ]}
+  </script>
+</body>
+</html>
