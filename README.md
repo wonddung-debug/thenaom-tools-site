@@ -1,6 +1,6 @@
 # Thenaom Tools
 
-무료 온라인 **사무업무 보조 텍스트 도구 모음**입니다.  
+무료 온라인 **사무업무 보조 텍스트 도구 모음**입니다.
 모든 처리는 **브라우저에서만 수행**되어 개인정보가 서버로 전송되지 않습니다.
 
 ## 주요 기능
@@ -16,3 +16,7 @@
 ## SEO 설정
 - `robots.txt`, `sitemap.xml` 구성 완료
 - Google Search Console / Analytics / AdSense 대응 준비
+
+## 개발
+```bash
+npm test
