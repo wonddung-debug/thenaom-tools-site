@@ -16,3 +16,9 @@
 ## SEO 설정
 - `robots.txt`, `sitemap.xml` 구성 완료
 - Google Search Console / Analytics / AdSense 대응 준비
+
+## 개발
+```bash
+npm test
+```
+현재 자동화된 테스트는 없으며, 위 명령은 자리 표시자입니다.

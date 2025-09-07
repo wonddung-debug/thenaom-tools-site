@@ -1,0 +1,10 @@
+{
+  "name": "thenaom-tools",
+  "version": "1.0.0",
+  "description": "Text utilities for thenaom.com",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "test": "echo 'No tests'"
+  }
+}
