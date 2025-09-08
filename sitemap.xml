@@ -1,23 +1,23 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <!-- 기본 페이지 -->
-  <url><loc>https://tools.thenaom.com/</loc><lastmod>2025-09-06</lastmod></url>
-  <url><loc>https://tools.thenaom.com/text/</loc><lastmod>2025-09-06</lastmod></url>
-  <url><loc>https://tools.thenaom.com/convert/</loc><lastmod>2025-09-06</lastmod></url>
-  <url><loc>https://tools.thenaom.com/utility/</loc><lastmod>2025-09-06</lastmod></url>
+<?xml version='1.0' encoding='utf-8'?>
+<ns0:urlset xmlns:ns0="http://www.sitemaps.org/schemas/sitemap/0.9">
+  
+  <ns0:url><ns0:loc>https://tools.thenaom.com/</ns0:loc><ns0:lastmod>2025-09-06</ns0:lastmod></ns0:url>
+  <ns0:url><ns0:loc>https://tools.thenaom.com/text/</ns0:loc><ns0:lastmod>2025-09-06</ns0:lastmod></ns0:url>
+  <ns0:url><ns0:loc>https://tools.thenaom.com/convert/</ns0:loc><ns0:lastmod>2025-09-06</ns0:lastmod></ns0:url>
+  <ns0:url><ns0:loc>https://tools.thenaom.com/utility/</ns0:loc><ns0:lastmod>2025-09-06</ns0:lastmod></ns0:url>
 
-  <!-- 텍스트 정리 도구 -->
-  <url><loc>https://tools.thenaom.com/tools/blankline.html</loc><lastmod>2025-09-06</lastmod></url>
-  <url><loc>https://tools.thenaom.com/tools/linebreak.html</loc><lastmod>2025-09-06</lastmod></url>
-  <url><loc>https://tools.thenaom.com/tools/alternating-tags.html</loc><lastmod>2025-09-06</lastmod></url>
-  <url><loc>https://tools.thenaom.com/tools/dedupe-lines.html</loc><lastmod>2025-09-06</lastmod></url>
-  <url><loc>https://tools.thenaom.com/tools/sort-lines.html</loc><lastmod>2025-09-06</lastmod></url>
-  <url><loc>https://tools.thenaom.com/tools/counter.html</loc><lastmod>2025-09-06</lastmod></url>
+  
+  <ns0:url><ns0:loc>https://tools.thenaom.com/tools/blankline.html</ns0:loc><ns0:lastmod>2025-09-06</ns0:lastmod></ns0:url>
+  <ns0:url><ns0:loc>https://tools.thenaom.com/tools/linebreak.html</ns0:loc><ns0:lastmod>2025-09-06</ns0:lastmod></ns0:url>
+  <ns0:url><ns0:loc>https://tools.thenaom.com/tools/tag30.html</ns0:loc><ns0:lastmod>2025-09-08</ns0:lastmod></ns0:url>
+  <ns0:url><ns0:loc>https://tools.thenaom.com/tools/dedupe-lines.html</ns0:loc><ns0:lastmod>2025-09-08</ns0:lastmod></ns0:url>
+  <ns0:url><ns0:loc>https://tools.thenaom.com/tools/sort-lines.html</ns0:loc><ns0:lastmod>2025-09-08</ns0:lastmod></ns0:url>
+  <ns0:url><ns0:loc>https://tools.thenaom.com/tools/counter.html</ns0:loc><ns0:lastmod>2025-09-06</ns0:lastmod></ns0:url>
 
-  <!-- 분할/변환 도구 -->
-  <url><loc>https://tools.thenaom.com/tools/byte-split.html</loc><lastmod>2025-09-06</lastmod></url>
-  <url><loc>https://tools.thenaom.com/tools/diff.html</loc><lastmod>2025-09-06</lastmod></url>
-  <url><loc>https://tools.thenaom.com/tools/url-encode.html</loc><lastmod>2025-09-06</lastmod></url>
-  <url><loc>https://tools.thenaom.com/tools/base64.html</loc><lastmod>2025-09-06</lastmod></url>
-  <url><loc>https://tools.thenaom.com/tools/html-entities.html</loc><lastmod>2025-09-06</lastmod></url>
-</urlset>
+  
+  <ns0:url><ns0:loc>https://tools.thenaom.com/tools/byte-split.html</ns0:loc><ns0:lastmod>2025-09-06</ns0:lastmod></ns0:url>
+  <ns0:url><ns0:loc>https://tools.thenaom.com/tools/diff.html</ns0:loc><ns0:lastmod>2025-09-06</ns0:lastmod></ns0:url>
+  <ns0:url><ns0:loc>https://tools.thenaom.com/tools/url-encode.html</ns0:loc><ns0:lastmod>2025-09-08</ns0:lastmod></ns0:url>
+  <ns0:url><ns0:loc>https://tools.thenaom.com/tools/base64.html</ns0:loc><ns0:lastmod>2025-09-08</ns0:lastmod></ns0:url>
+  <ns0:url><ns0:loc>https://tools.thenaom.com/tools/html-entities.html</ns0:loc><ns0:lastmod>2025-09-08</ns0:lastmod></ns0:url>
+<ns0:url><ns0:loc>https://tools.thenaom.com/tools/tts-dialog.html</ns0:loc><ns0:lastmod>2025-09-08</ns0:lastmod></ns0:url></ns0:urlset>

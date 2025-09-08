@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>줄 정렬 — 오름/내림, 대소문자 무시, 자연/숫자 정렬 | Thenaom Tools</title>
+  <meta name="description" content="여러 줄 텍스트를 원하는 기준으로 정렬합니다. 오름/내림차순, 대소문자 무시, 자연 정렬(숫자 인식) 옵션을 지원합니다." />
+  <meta name="robots" content="index,follow" />
+
+  <link rel="canonical" href="https://tools.thenaom.com/tools/sort-lines.html">
+  <link rel="alternate" hreflang="ko" href="https://tools.thenaom.com/tools/sort-lines.html">
+  <link rel="alternate" hreflang="en" href="https://tools.thenaom.com/en/tools/sort-lines.html">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="줄 정렬 — 오름/내림, 대소문자 무시, 자연/숫자 정렬" />
+  <meta property="og:description" content="여러 줄 텍스트를 원하는 기준으로 정렬합니다. 오름/내림차순, 대소문자 무시, 자연 정렬(숫자 인식) 옵션을 지원합니다." />
+  <meta property="og:image" content="https://tools.thenaom.com/assets/og-tool-sort-lines-ko.png" />
+  <meta property="og:url" content="https://tools.thenaom.com/tools/sort-lines.html" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="ko_KR" />
+
+  <!-- Theme bootstrap (early) -->
+  <script>
+  (function(){
+    try {
+      var saved=localStorage.getItem('theme');
+      var sys = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+      var mode=(saved==='dark'||saved==='light')?saved:sys;
+      var root=document.documentElement;
+      root.setAttribute('data-theme',mode);
+      root.classList.toggle('theme-dark', mode==='dark');
+      root.classList.toggle('theme-light', mode!=='dark');
+      document.addEventListener('DOMContentLoaded', function(){ if(document.body) document.body.setAttribute('data-theme',mode); });
+    } catch(e) {
+      document.documentElement.setAttribute('data-theme','light');
+    }
+  })();
+  </script>
+
+  <!-- GTM -->
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-N2BBPNCC');</script>
+
+  <!-- AdSense -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3006330103681332" crossorigin="anonymous"></script>
+
+  <style>
+    :root {
+      --bg:#ffffff; --text:#0b1220; --muted:#475569; --border:#e5e7eb; --card:#f9fafb; --brand:#0ea5e9;
+      --bg-dark:#0b1220; --text-dark:#e5e7eb; --muted-dark:#94a3b8; --border-dark:#1f2937; --card-dark:#111827; --brand-dark:#38bdf8;
+      --radius:14px; --shadow:0 8px 24px rgba(0,0,0,.08);
+    }
+    html,body{margin:0;padding:0;font-family:system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Apple SD Gothic Neo, Noto Sans KR, "맑은 고딕", sans-serif;line-height:1.5;background:var(--bg);color:var(--text);}
+    [data-theme='dark'] body{background:var(--bg-dark);color:var(--text-dark);}
+    .wrap{max-width:1100px;margin:0 auto;padding:24px;}
+    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+    header a.logo{text-decoration:none;color:inherit;font-weight:700;font-size:20px;}
+    .crumbs{font-size:13px;color:var(--muted);}
+    [data-theme='dark'] .crumbs{color:var(--muted-dark);}
+    h1{font-size:22px;margin:8px 0 12px;}
+    .desc{color:var(--muted);font-size:14px;margin-bottom:16px;}
+    [data-theme='dark'] .desc{color:var(--muted-dark);}
+    .panel{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin-bottom:16px;}
+    [data-theme='dark'] .panel{background:var(--card-dark);border-color:var(--border-dark);}
+    .grid{display:grid;grid-template-columns:1fr;gap:12px;}
+    @media(min-width:980px){.grid{grid-template-columns:1fr 1fr;}}
+    textarea{width:100%;min-height:240px;border:1px solid var(--border);border-radius:12px;padding:10px;font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;resize:vertical;background:#fff;color:#111;}
+    [data-theme='dark'] textarea{background:#0f172a;color:#e5e7eb;border-color:#1f2937;}
+    .controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+    .controls label{font-size:14px;margin-right:4px;}
+    .btn{appearance:none;border:1px solid var(--border);padding:8px 12px;border-radius:12px;background:#fff;cursor:pointer;}
+    .btn:hover{border-color:var(--brand);}
+    [data-theme='dark'] .btn{background:#0f172a;border-color:#1f2937;color:#e5e7eb;}
+    .btn.primary{background:var(--brand);border-color:var(--brand);color:#fff;}
+    [data-theme='dark'] .btn.primary{background:var(--brand-dark);border-color:var(--brand-dark);}
+    .stats{font-size:12px;color:var(--muted);}
+    [data-theme='dark'] .stats{color:var(--muted-dark);}
+    footer{margin-top:28px;font-size:12px;color:var(--muted);}
+    [data-theme='dark'] footer{color:var(--muted-dark);}
+    .adbox{margin:12px 0;display:block;min-height:60px;}
+  </style>
+</head>
+
+<body>
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-N2BBPNCC" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <div class="wrap">
+    <header>
+      <a href="/" class="logo">Thenaom Tools</a>
+      <div class="crumbs">홈 &rsaquo; 텍스트 정리 &rsaquo; 줄 정렬</div>
+    </header>
+
+    <h1>줄 정렬</h1>
+    <p class="desc">여러 줄 텍스트를 정렬합니다. 숫자 포함 문자열은 자연 정렬 옵션을 사용하세요.</p>
+    <div class="panel controls">
+      <label><input type="radio" name="order" value="asc" checked> 오름차순</label>
+      <label><input type="radio" name="order" value="desc"> 내림차순</label>
+      <span style="width:12px;display:inline-block"></span>
+      <label><input type="checkbox" id="ignorecase"> 대소문자 무시</label>
+      <label><input type="checkbox" id="natural"> 자연 정렬(숫자 인식)</label>
+      <label><input type="checkbox" id="trim"> 행 앞뒤 공백 제거</label>
+      <label><input type="checkbox" id="ignoreempty"> 빈 줄 무시</label>
+      <button class="btn" id="apply">정렬 실행</button>
+      <button class="btn" id="clear">초기화</button>
+      <button class="btn primary" id="copy">결과 복사</button>
+      <button class="btn" id="download">TXT 다운로드</button>
+    </div>
+    
+    <ins class="adsbygoogle adbox"
+         style="display:block"
+         data-ad-client="ca-pub-3006330103681332"
+         data-ad-slot="0000000000"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
+
+    <div class="grid">
+      <div class="panel">
+        <label for="input">입력</label>
+        <textarea id="input" placeholder="한 줄에 하나씩 입력"></textarea>
+      </div>
+      <div class="panel">
+        <label for="output">출력</label>
+        <textarea id="output" placeholder="정렬 결과"></textarea>
+      </div>
+    </div>
+    <script>
+      const byLocale = (a,b,opts)=> a.localeCompare(b, undefined, opts);
+      function comparator(ignorecase, natural, desc){
+        const opts = {"numeric": natural, "sensitivity": ignorecase ? "accent" : "variant"};
+        return (a,b)=> desc ? byLocale(b,a,opts) : byLocale(a,b,opts);
+      }
+      const $in = document.getElementById('input');
+      const $out = document.getElementById('output');
+      const $stats = document.getElementById('stats');
+      function apply(){
+        let lines = $in.value.split(/\r?\n/);
+        if(document.getElementById('trim').checked) lines = lines.map(s=>s.trim());
+        if(document.getElementById('ignoreempty').checked) lines = lines.filter(s=>s.length>0);
+        const comp = comparator(
+          document.getElementById('ignorecase').checked,
+          document.getElementById('natural').checked,
+          document.querySelector('input[name=order]:checked').value==='desc'
+        );
+        lines.sort(comp);
+        $out.value = lines.join('\n');
+        $stats.textContent = `입력 행: ${$in.value.split(/\r?\n/).length} · 결과 행: ${lines.length}`;
+      }
+      document.getElementById('apply').onclick = apply;
+      document.getElementById('clear').onclick = ()=>{ $in.value=''; $out.value=''; $stats.textContent=''; };
+      document.getElementById('copy').onclick = async ()=>{ try{ await navigator.clipboard.writeText($out.value); }catch(e){} };
+      document.getElementById('download').onclick = ()=>{
+        const blob = new Blob([$out.value], {type:'text/plain;charset=utf-8'});
+        const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='sorted-lines.txt'; a.click(); URL.revokeObjectURL(a.href);
+      };
+    </script>
+
+  <!-- JSON-LD: FAQ (SEO) -->
+  <script type="application/ld+json">
+  {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "자연 정렬이란?", "acceptedAnswer": {"@type": "Answer", "text": "문자열 내 숫자를 실제 숫자로 인식해 2 < 10처럼 사람이 보기에 자연스럽게 정렬합니다."}}, {"@type": "Question", "name": "대소문자 무시는 어떻게 동작하나요?", "acceptedAnswer": {"@type": "Answer", "text": "localeCompare의 sensitivity 옵션을 조정해 대소문자 차이를 줄입니다."}}, {"@type": "Question", "name": "빈 줄/공백 제거 옵션은 언제 사용하나요?", "acceptedAnswer": {"@type": "Answer", "text": "데이터 정리가 필요한 경우 결과의 일관성을 높이는 데 도움이 됩니다."}}, {"@type": "Question", "name": "개인정보가 서버로 전송되나요?", "acceptedAnswer": {"@type": "Answer", "text": "아니요. 모든 처리는 브라우저에서만 수행됩니다."}}]}
+  </script>
+
+    <footer>
+      <p>모든 처리는 브라우저에서만 실행됩니다. 개인정보가 서버로 전송되지 않습니다.</p>
+      <p class="stats" id="stats"></p>
+    </footer>
+  </div>
+
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({event:'tool_use', tool:'sort-lines'});
+  </script>
+</body>
+</html>

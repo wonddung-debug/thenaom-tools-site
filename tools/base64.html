@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Base64 인코딩/디코딩 — 텍스트/파일 문자열 변환 | Thenaom Tools</title>
+  <meta name="description" content="텍스트를 Base64로 인코딩하거나, Base64를 다시 텍스트로 디코딩합니다. URL-세이프 변환, 패딩(=) 유지/제거, 76자 줄바꿈 옵션 지원." />
+  <meta name="robots" content="index,follow" />
+
+  <link rel="canonical" href="https://tools.thenaom.com/tools/base64.html">
+  <link rel="alternate" hreflang="ko" href="https://tools.thenaom.com/tools/base64.html">
+  <link rel="alternate" hreflang="en" href="https://tools.thenaom.com/en/tools/base64.html">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Base64 인코딩/디코딩 — 텍스트/파일 문자열 변환" />
+  <meta property="og:description" content="텍스트를 Base64로 인코딩하거나, Base64를 다시 텍스트로 디코딩합니다. URL-세이프 변환, 패딩(=) 유지/제거, 76자 줄바꿈 옵션 지원." />
+  <meta property="og:image" content="https://tools.thenaom.com/assets/og-tool-base64-ko.png" />
+  <meta property="og:url" content="https://tools.thenaom.com/tools/base64.html" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="ko_KR" />
+
+  <!-- Theme bootstrap (early) -->
+  <script>
+  (function(){
+    try {
+      var saved=localStorage.getItem('theme');
+      var sys = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+      var mode=(saved==='dark'||saved==='light')?saved:sys;
+      var root=document.documentElement;
+      root.setAttribute('data-theme',mode);
+      root.classList.toggle('theme-dark', mode==='dark');
+      root.classList.toggle('theme-light', mode!=='dark');
+      document.addEventListener('DOMContentLoaded', function(){ if(document.body) document.body.setAttribute('data-theme',mode); });
+    } catch(e) {
+      document.documentElement.setAttribute('data-theme','light');
+    }
+  })();
+  </script>
+
+  <!-- GTM -->
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-N2BBPNCC');</script>
+
+  <!-- AdSense -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3006330103681332" crossorigin="anonymous"></script>
+
+  <style>
+    :root {
+      --bg:#ffffff; --text:#0b1220; --muted:#475569; --border:#e5e7eb; --card:#f9fafb; --brand:#0ea5e9;
+      --bg-dark:#0b1220; --text-dark:#e5e7eb; --muted-dark:#94a3b8; --border-dark:#1f2937; --card-dark:#111827; --brand-dark:#38bdf8;
+      --radius:14px; --shadow:0 8px 24px rgba(0,0,0,.08);
+    }
+    html,body{margin:0;padding:0;font-family:system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Apple SD Gothic Neo, Noto Sans KR, "맑은 고딕", sans-serif;line-height:1.5;background:var(--bg);color:var(--text);}
+    [data-theme='dark'] body{background:var(--bg-dark);color:var(--text-dark);}
+    .wrap{max-width:1100px;margin:0 auto;padding:24px;}
+    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+    header a.logo{text-decoration:none;color:inherit;font-weight:700;font-size:20px;}
+    .crumbs{font-size:13px;color:var(--muted);}
+    [data-theme='dark'] .crumbs{color:var(--muted-dark);}
+    h1{font-size:22px;margin:8px 0 12px;}
+    .desc{color:var(--muted);font-size:14px;margin-bottom:16px;}
+    [data-theme='dark'] .desc{color:var(--muted-dark);}
+    .panel{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin-bottom:16px;}
+    [data-theme='dark'] .panel{background:var(--card-dark);border-color:var(--border-dark);}
+    .grid{display:grid;grid-template-columns:1fr;gap:12px;}
+    @media(min-width:980px){.grid{grid-template-columns:1fr 1fr;}}
+    textarea{width:100%;min-height:240px;border:1px solid var(--border);border-radius:12px;padding:10px;font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;resize:vertical;background:#fff;color:#111;}
+    [data-theme='dark'] textarea{background:#0f172a;color:#e5e7eb;border-color:#1f2937;}
+    .controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+    .controls label{font-size:14px;margin-right:4px;}
+    .btn{appearance:none;border:1px solid var(--border);padding:8px 12px;border-radius:12px;background:#fff;cursor:pointer;}
+    .btn:hover{border-color:var(--brand);}
+    [data-theme='dark'] .btn{background:#0f172a;border-color:#1f2937;color:#e5e7eb;}
+    .btn.primary{background:var(--brand);border-color:var(--brand);color:#fff;}
+    [data-theme='dark'] .btn.primary{background:var(--brand-dark);border-color:var(--brand-dark);}
+    .stats{font-size:12px;color:var(--muted);}
+    [data-theme='dark'] .stats{color:var(--muted-dark);}
+    footer{margin-top:28px;font-size:12px;color:var(--muted);}
+    [data-theme='dark'] footer{color:var(--muted-dark);}
+    .adbox{margin:12px 0;display:block;min-height:60px;}
+  </style>
+</head>
+
+<body>
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-N2BBPNCC" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <div class="wrap">
+    <header>
+      <a href="/" class="logo">Thenaom Tools</a>
+      <div class="crumbs">홈 &rsaquo; 텍스트 정리 &rsaquo; Base64 인코딩/디코딩</div>
+    </header>
+
+    <h1>Base64 인코딩/디코딩</h1>
+    <p class="desc">텍스트를 Base64로 바꾸거나(Base64 Encode), Base64를 다시 텍스트로 복원합니다(Decode). 모든 동작은 브라우저에서만 처리됩니다.</p>
+    <div class="panel controls">
+      <label><input type="radio" name="mode" value="enc" checked> 인코딩</label>
+      <label><input type="radio" name="mode" value="dec"> 디코딩</label>
+      <span style="width:12px;display:inline-block"></span>
+      <label><input type="checkbox" id="urlsafe"> URL-safe(-_)</label>
+      <label><input type="checkbox" id="nopad"> 패딩 제거(=)</label>
+      <label><input type="checkbox" id="wrap76"> 76자 줄바꿈</label>
+      <button class="btn" id="swap">입력↔출력 바꾸기</button>
+      <button class="btn" id="clear">초기화</button>
+      <button class="btn primary" id="copy">결과 복사</button>
+      <button class="btn" id="download">TXT 다운로드</button>
+    </div>
+    
+    <ins class="adsbygoogle adbox"
+         style="display:block"
+         data-ad-client="ca-pub-3006330103681332"
+         data-ad-slot="0000000000"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
+
+    <div class="grid">
+      <div class="panel">
+        <label for="input">입력</label>
+        <textarea id="input" placeholder="여기에 텍스트 또는 Base64를 붙여넣으세요"></textarea>
+      </div>
+      <div class="panel">
+        <label for="output">출력</label>
+        <textarea id="output" placeholder="결과가 여기에 표시됩니다"></textarea>
+      </div>
+    </div>
+    <script>
+      function toBase64(str) {
+        return btoa(unescape(encodeURIComponent(str)));
+      }
+      function fromBase64(b64) {
+        return decodeURIComponent(escape(atob(b64)));
+      }
+      function urlSafe(s, on) {
+        if(!on) return s;
+        return s.replace(/\+/g,'-').replace(/\//g,'_');
+      }
+      function urlUnsafe(s, on) {
+        if(!on) return s;
+        return s.replace(/-/g,'+').replace(/_/g,'/');
+      }
+      function wrap76(s, on) {
+        if(!on) return s;
+        return s.replace(/(.{1,76})/g,'$1\n');
+      }
+      function stripPad(s, on) {
+        if(!on) return s;
+        return s.replace(/=+$/,'');
+      }
+      function restorePadIfNeeded(s) {
+        var mod = s.length % 4;
+        return mod===0 ? s : s + "=".repeat(4-mod);
+      }
+      const $in = document.getElementById('input');
+      const $out = document.getElementById('output');
+      const $urlsafe = document.getElementById('urlsafe');
+      const $nopad = document.getElementById('nopad');
+      const $wrap = document.getElementById('wrap76');
+      const $stats = document.getElementById('stats');
+
+      function update() {
+        const mode = document.querySelector('input[name=mode]:checked').value;
+        try {
+          if(mode==='enc') {
+            let s = toBase64($in.value);
+            s = urlSafe(s, $urlsafe.checked);
+            s = stripPad(s, $nopad.checked);
+            s = wrap76(s, $wrap.checked);
+            $out.value = s;
+          } else {
+            let b64 = $in.value.replace(/\s+/g,'');
+            b64 = urlUnsafe(b64, $urlsafe.checked);
+            b64 = restorePadIfNeeded(b64);
+            let s = fromBase64(b64);
+            $out.value = s;
+          }
+          $stats.textContent = `입력: ${$in.value.length}자 · 출력: ${$out.value.length}자`;
+        } catch(e) {
+          $out.value = '⚠️ 변환 오류: ' + e.message;
+        }
+      }
+      document.addEventListener('input', update);
+      document.addEventListener('change', update);
+      document.getElementById('swap').onclick = () => { const t=$in.value; $in.value=$out.value; $out.value=t; update(); };
+      document.getElementById('clear').onclick = () => { $in.value=''; $out.value=''; update(); };
+      document.getElementById('copy').onclick = async () => { try{ await navigator.clipboard.writeText($out.value); }catch(e){} };
+      document.getElementById('download').onclick = () => {
+        const blob = new Blob([$out.value], {type:'text/plain;charset=utf-8'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'base64-result.txt';
+        a.click();
+        URL.revokeObjectURL(a.href);
+      };
+      update();
+    </script>
+
+  <!-- JSON-LD: FAQ (SEO) -->
+  <script type="application/ld+json">
+  {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "URL-safe는 무엇인가요?", "acceptedAnswer": {"@type": "Answer", "text": "표준 Base64의 '+'와 '/' 문자를 각각 '-'와 '_'로 바꾸는 변형입니다. URL·파일명에서 안전합니다."}}, {"@type": "Question", "name": "패딩(=)을 제거해도 되나요?", "acceptedAnswer": {"@type": "Answer", "text": "대개 가능합니다. 다만 일부 파서가 패딩을 요구할 수 있어, 필요 시 옵션을 끄고 패딩을 유지하세요."}}, {"@type": "Question", "name": "76자 줄바꿈이 필요한가요?", "acceptedAnswer": {"@type": "Answer", "text": "MIME 형식(이메일 등)에서는 76자 줄바꿈이 요구되기도 합니다. 일반 텍스트/웹에서는 불필요합니다."}}, {"@type": "Question", "name": "개인정보가 서버로 전송되나요?", "acceptedAnswer": {"@type": "Answer", "text": "아니요. 모든 처리는 브라우저에서만 수행됩니다."}}]}
+  </script>
+
+    <footer>
+      <p>모든 처리는 브라우저에서만 실행됩니다. 개인정보가 서버로 전송되지 않습니다.</p>
+      <p class="stats" id="stats"></p>
+    </footer>
+  </div>
+
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({event:'tool_use', tool:'base64'});
+  </script>
+</body>
+</html>

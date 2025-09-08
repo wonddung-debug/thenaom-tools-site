@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>중복 줄 제거 — 첫/마지막 유지, 대소문자 무시, 공백 정리 | Thenaom Tools</title>
+  <meta name="description" content="여러 줄 텍스트에서 중복을 제거합니다. 첫 번째/마지막 항목 유지, 대소문자 무시, 공백/빈 줄 처리 옵션 제공." />
+  <meta name="robots" content="index,follow" />
+
+  <link rel="canonical" href="https://tools.thenaom.com/tools/dedupe-lines.html">
+  <link rel="alternate" hreflang="ko" href="https://tools.thenaom.com/tools/dedupe-lines.html">
+  <link rel="alternate" hreflang="en" href="https://tools.thenaom.com/en/tools/dedupe-lines.html">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="중복 줄 제거 — 첫/마지막 유지, 대소문자 무시, 공백 정리" />
+  <meta property="og:description" content="여러 줄 텍스트에서 중복을 제거합니다. 첫 번째/마지막 항목 유지, 대소문자 무시, 공백/빈 줄 처리 옵션 제공." />
+  <meta property="og:image" content="https://tools.thenaom.com/assets/og-tool-dedupe-lines-ko.png" />
+  <meta property="og:url" content="https://tools.thenaom.com/tools/dedupe-lines.html" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="ko_KR" />
+
+  <!-- Theme bootstrap (early) -->
+  <script>
+  (function(){
+    try {
+      var saved=localStorage.getItem('theme');
+      var sys = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+      var mode=(saved==='dark'||saved==='light')?saved:sys;
+      var root=document.documentElement;
+      root.setAttribute('data-theme',mode);
+      root.classList.toggle('theme-dark', mode==='dark');
+      root.classList.toggle('theme-light', mode!=='dark');
+      document.addEventListener('DOMContentLoaded', function(){ if(document.body) document.body.setAttribute('data-theme',mode); });
+    } catch(e) {
+      document.documentElement.setAttribute('data-theme','light');
+    }
+  })();
+  </script>
+
+  <!-- GTM -->
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-N2BBPNCC');</script>
+
+  <!-- AdSense -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3006330103681332" crossorigin="anonymous"></script>
+
+  <style>
+    :root {
+      --bg:#ffffff; --text:#0b1220; --muted:#475569; --border:#e5e7eb; --card:#f9fafb; --brand:#0ea5e9;
+      --bg-dark:#0b1220; --text-dark:#e5e7eb; --muted-dark:#94a3b8; --border-dark:#1f2937; --card-dark:#111827; --brand-dark:#38bdf8;
+      --radius:14px; --shadow:0 8px 24px rgba(0,0,0,.08);
+    }
+    html,body{margin:0;padding:0;font-family:system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Apple SD Gothic Neo, Noto Sans KR, "맑은 고딕", sans-serif;line-height:1.5;background:var(--bg);color:var(--text);}
+    [data-theme='dark'] body{background:var(--bg-dark);color:var(--text-dark);}
+    .wrap{max-width:1100px;margin:0 auto;padding:24px;}
+    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+    header a.logo{text-decoration:none;color:inherit;font-weight:700;font-size:20px;}
+    .crumbs{font-size:13px;color:var(--muted);}
+    [data-theme='dark'] .crumbs{color:var(--muted-dark);}
+    h1{font-size:22px;margin:8px 0 12px;}
+    .desc{color:var(--muted);font-size:14px;margin-bottom:16px;}
+    [data-theme='dark'] .desc{color:var(--muted-dark);}
+    .panel{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin-bottom:16px;}
+    [data-theme='dark'] .panel{background:var(--card-dark);border-color:var(--border-dark);}
+    .grid{display:grid;grid-template-columns:1fr;gap:12px;}
+    @media(min-width:980px){.grid{grid-template-columns:1fr 1fr;}}
+    textarea{width:100%;min-height:240px;border:1px solid var(--border);border-radius:12px;padding:10px;font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;resize:vertical;background:#fff;color:#111;}
+    [data-theme='dark'] textarea{background:#0f172a;color:#e5e7eb;border-color:#1f2937;}
+    .controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+    .controls label{font-size:14px;margin-right:4px;}
+    .btn{appearance:none;border:1px solid var(--border);padding:8px 12px;border-radius:12px;background:#fff;cursor:pointer;}
+    .btn:hover{border-color:var(--brand);}
+    [data-theme='dark'] .btn{background:#0f172a;border-color:#1f2937;color:#e5e7eb;}
+    .btn.primary{background:var(--brand);border-color:var(--brand);color:#fff;}
+    [data-theme='dark'] .btn.primary{background:var(--brand-dark);border-color:var(--brand-dark);}
+    .stats{font-size:12px;color:var(--muted);}
+    [data-theme='dark'] .stats{color:var(--muted-dark);}
+    footer{margin-top:28px;font-size:12px;color:var(--muted);}
+    [data-theme='dark'] footer{color:var(--muted-dark);}
+    .adbox{margin:12px 0;display:block;min-height:60px;}
+  </style>
+</head>
+
+<body>
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-N2BBPNCC" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <div class="wrap">
+    <header>
+      <a href="/" class="logo">Thenaom Tools</a>
+      <div class="crumbs">홈 &rsaquo; 텍스트 정리 &rsaquo; 중복 줄 제거</div>
+    </header>
+
+    <h1>중복 줄 제거</h1>
+    <p class="desc">중복된 라인을 제거합니다. 데이터 클렌징/정렬 전에 유용합니다.</p>
+    <div class="panel controls">
+      <label><input type="radio" name="keep" value="first" checked> 첫 번째 유지</label>
+      <label><input type="radio" name="keep" value="last"> 마지막 유지</label>
+      <span style="width:12px;display:inline-block"></span>
+      <label><input type="checkbox" id="ignorecase"> 대소문자 무시</label>
+      <label><input type="checkbox" id="trim"> 행 앞뒤 공백 제거</label>
+      <label><input type="checkbox" id="ignoreempty"> 빈 줄 제거</label>
+      <button class="btn" id="apply">중복 제거</button>
+      <button class="btn" id="clear">초기화</button>
+      <button class="btn primary" id="copy">결과 복사</button>
+      <button class="btn" id="download">TXT 다운로드</button>
+    </div>
+    
+    <ins class="adsbygoogle adbox"
+         style="display:block"
+         data-ad-client="ca-pub-3006330103681332"
+         data-ad-slot="0000000000"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
+
+    <div class="grid">
+      <div class="panel">
+        <label for="input">입력</label>
+        <textarea id="input" placeholder="한 줄에 하나씩 입력"></textarea>
+      </div>
+      <div class="panel">
+        <label for="output">출력</label>
+        <textarea id="output" placeholder="결과가 여기에 표시됩니다"></textarea>
+      </div>
+    </div>
+    <script>
+      const $in = document.getElementById('input');
+      const $out = document.getElementById('output');
+      const $stats = document.getElementById('stats');
+      function normalize(s, ignorecase, trim){ return (trim? s.trim(): s) [ignorecase? 'toLowerCase':'toString'](); }
+      function apply(){
+        const keepLast = document.querySelector('input[name=keep]:checked').value==='last';
+        const ignorecase = document.getElementById('ignorecase').checked;
+        const trim = document.getElementById('trim').checked;
+        const rmEmpty = document.getElementById('ignoreempty').checked;
+        const oriLines = $in.value.split(/\r?\n/);
+        const res = [];
+        const map = new Map();
+        for(let i=0;i<oriLines.length;i++) {
+          let line = oriLines[i];
+          if(trim) line = line.trim();
+          if(rmEmpty && line.length===0) continue;
+          const key = ignorecase ? line.toLowerCase() : line;
+          if(keepLast) {
+            map.set(key, line);
+          } else {
+            if(!map.has(key)) map.set(key, line);
+          }
+        }
+        for(const v of map.values()) res.push(v);
+        $out.value = res.join('\n');
+        const dupCount = Math.max(0, oriLines.length - res.length);
+        $stats.textContent = `입력 행: ${oriLines.length} · 결과 행: ${res.length} · 제거: ${dupCount}`;
+      }
+      document.getElementById('apply').onclick = apply;
+      document.getElementById('clear').onclick = ()=>{ $in.value=''; $out.value=''; $stats.textContent=''; };
+      document.getElementById('copy').onclick = async ()=>{ try{ await navigator.clipboard.writeText($out.value); }catch(e){} };
+      document.getElementById('download').onclick = ()=>{
+        const blob = new Blob([$out.value], {type:'text/plain;charset=utf-8'});
+        const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='deduped-lines.txt'; a.click(); URL.revokeObjectURL(a.href);
+      };
+    </script>
+
+  <!-- JSON-LD: FAQ (SEO) -->
+  <script type="application/ld+json">
+  {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "첫 번째/마지막 유지 차이는?", "acceptedAnswer": {"@type": "Answer", "text": "중복이 발견될 때 어느 항목을 결과에 남길지 결정합니다. 기본은 첫 번째 유지입니다."}}, {"@type": "Question", "name": "대소문자 무시와 공백 제거는 언제 쓰나요?", "acceptedAnswer": {"@type": "Answer", "text": "서로 형태가 다른 같은 값을 하나로 보기 위해 사용합니다."}}, {"@type": "Question", "name": "정렬도 함께 하나요?", "acceptedAnswer": {"@type": "Answer", "text": "이 도구는 중복만 제거합니다. 정렬은 ‘줄 정렬’ 도구를 사용하세요."}}, {"@type": "Question", "name": "개인정보가 서버로 전송되나요?", "acceptedAnswer": {"@type": "Answer", "text": "아니요. 모든 처리는 브라우저에서만 수행됩니다."}}]}
+  </script>
+
+    <footer>
+      <p>모든 처리는 브라우저에서만 실행됩니다. 개인정보가 서버로 전송되지 않습니다.</p>
+      <p class="stats" id="stats"></p>
+    </footer>
+  </div>
+
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({event:'tool_use', tool:'dedupe-lines'});
+  </script>
+</body>
+</html>
