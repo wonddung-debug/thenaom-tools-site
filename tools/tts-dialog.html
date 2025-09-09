@@ -71,6 +71,7 @@
     .ad-space{margin:8px 0}
     .panel{border:1px solid var(--border);border-radius:12px;background:linear-gradient(180deg, color-mix(in srgb, var(--card) 95%, transparent), var(--card));box-shadow:var(--shadow);padding:12px}
     .panel h2{margin:.1rem 0 .6rem;font-size:1.06rem}
+    .panel h3{margin:1rem 0 .6rem;font-size:1rem}
     .row{display:grid;grid-template-columns:1fr;gap:12px}
     @media(min-width:980px){.row{grid-template-columns:1fr 1fr}}
     .controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
@@ -89,6 +90,33 @@
 
     .pill{display:inline-block;padding:2px 8px;border:1px solid var(--border);border-radius:999px;font-size:12px;color:var(--muted)}
     .counter{display:flex;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:.92rem;margin-top:6px}
+  
+    /* 개선된 레이아웃 */
+    .main-grid{display:grid;grid-template-columns:1fr;gap:12px}
+    @media(min-width:980px){.main-grid{grid-template-columns:2fr 1fr}}
+    
+    .left-panel{display:flex;flex-direction:column;gap:12px}
+    .right-panel{display:flex;flex-direction:column;gap:12px}
+    
+    .role-table-container{overflow-x:auto}
+    .role-table{min-width:800px;width:100%}
+    
+    .options-grid{display:grid;grid-template-columns:1fr;gap:12px}
+    @media(min-width:600px){.options-grid{grid-template-columns:1fr 1fr}}
+    
+    .voice-options{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .voice-options label{min-width:100px;flex-shrink:0}
+    .voice-options select{min-width:200px}
+    
+    .chunk-options{margin-top:10px;padding:10px;border:1px solid var(--border);border-radius:8px;background:color-mix(in srgb,var(--card) 95%,transparent)}
+    
+    /* 진행 상태 바 추가 */
+    .progress-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin:8px 0}
+    .progress-fill{height:100%;background:var(--accent);transition:width 0.3s ease}
+    
+    /* 에러 메시지 스타일 */
+    .error-msg{background:color-mix(in srgb,#ef4444 15%,transparent);border:1px solid #ef4444;border-radius:8px;padding:10px;margin:10px 0;color:var(--text)}
+    .warning-msg{background:color-mix(in srgb,#f59e0b 15%,transparent);border:1px solid #f59e0b;border-radius:8px;padding:10px;margin:10px 0;color:var(--text)}
   </style>
 </head>
 <body>
@@ -133,38 +161,45 @@
       </div>
     </section>
 
-    <!-- 입력 & 실행 -->
+    <!-- 메인 컨텐츠 그리드 -->
     <section class="section">
-      <div class="row">
-        <!-- 입력 패널 -->
-        <div class="panel" aria-label="입력">
-          <h2>1) 텍스트 입력</h2>
-          <div class="controls" style="margin-bottom:6px">
-            <div role="tablist" aria-label="모드" class="controls" id="modeChips">
-              <button class="btn btn-secondary" data-val="plain" aria-pressed="false">일반</button>
-              <button class="btn btn-primary" data-val="dialog" aria-pressed="true">역할 대화</button>
-              <button class="btn btn-secondary" data-val="ssml" aria-pressed="false">세밀 조절(전문가용)</button>
+      <div class="main-grid">
+        <!-- 왼쪽 컬럼: 입력 및 역할 설정 -->
+        <div class="left-panel">
+          <!-- 텍스트 입력 -->
+          <div class="panel">
+            <h2>1) 텍스트 입력</h2>
+            <div class="controls" style="margin-bottom:8px">
+              <div role="tablist" aria-label="모드" class="controls" id="modeChips">
+                <button class="btn btn-secondary" data-val="plain" aria-pressed="false">일반</button>
+                <button class="btn btn-primary" data-val="dialog" aria-pressed="true">역할 대화</button>
+                <button class="btn btn-secondary" data-val="ssml" aria-pressed="false">세밀 조절(전문가용)</button>
+              </div>
             </div>
-            <span id="modeHint" class="small"></span>
-          </div>
-          <textarea id="editor" class="input mono" placeholder="예: 할머니: 오늘은 여기까지 하자.\n소년: 아직 할 말이 있어요!"></textarea>
-          <div class="counter" id="counter">0 글자 / 0 바이트</div>
+            <div class="small" id="modeHint" style="margin-bottom:8px;color:var(--muted)">역할 대화: 줄 앞에 "이름: 내용" 또는 "[이름] 내용"</div>
+            
+            <textarea id="editor" class="input mono" placeholder="예: 할머니: 오늘은 여기까지 하자.&#10;소년: 아직 할 말이 있어요!"></textarea>
+            <div class="counter" id="counter">0 글자 / 0 바이트</div>
 
-          <!-- ★ 요청: 긴 글 자동 나눔을 텍스트 입력 하단으로 이동 -->
-          <div class="panel" style="margin-top:10px">
-            <div class="controls">
-              <label for="chunkTgl" class="small" style="min-width:160px">긴 글 자동 나눔</label>
-              <button id="chunkTgl" class="btn btn-secondary" aria-pressed="true">ON</button>
-              <span class="small">요청 1회당 <b>5,000바이트</b> 제한. <b>한글 기준 대략 1,600자</b>를 넘으면 <b>오류</b>가 날 수 있어요. 이 기능을 <b>켜두면</b> 길이를 자동으로 나눠서 이어붙입니다.</span>
+            <!-- 긴 글 자동 나눔 옵션 -->
+            <div class="chunk-options">
+              <div class="controls">
+                <label for="chunkTgl" class="small" style="min-width:160px">긴 글 자동 나눔</label>
+                <button id="chunkTgl" class="btn btn-primary" aria-pressed="true">ON</button>
+              </div>
+              <div class="small" style="margin-top:6px">요청 1회당 <b>5,000바이트</b> 제한. <b>한글 기준 대략 1,600자</b>를 넘으면 <b>오류</b>가 날 수 있어요. 이 기능을 <b>켜두면</b> 길이를 자동으로 나누어서 이어붙입니다.</div>
             </div>
           </div>
 
-          <!-- 역할 대화 전용 옵션: 입력 바로 아래 표시 -->
-          <div id="dialogOptBlock" class="panel" style="margin-top:10px">
-            <div class="controls">
-              <div style="min-width:200px">
+          <!-- 역할 대화 전용 옵션 -->
+          <div class="panel" id="dialogOptions" style="display:block">
+            <h2>역할 대화 설정</h2>
+            
+            <!-- 대화 옵션 -->
+            <div class="options-grid">
+              <div>
                 <label class="small">말 바뀔 때 잠깐 쉬기(ms)</label>
-                <div class="controls">
+                <div class="controls" style="margin-top:4px">
                   <div id="switchChips" class="controls" role="group">
                     <button class="btn btn-secondary" data-val="0">0</button>
                     <button class="btn btn-primary" data-val="150">150 (추천)</button>
@@ -177,17 +212,17 @@
 
               <div>
                 <label class="small">줄마다 기본으로 되돌리기</label>
-                <button id="lineResetTgl" class="btn btn-primary" aria-pressed="true">ON</button>
+                <div style="margin-top:4px">
+                  <button id="lineResetTgl" class="btn btn-primary" aria-pressed="true">ON</button>
+                </div>
                 <div class="small" style="margin-top:4px;color:var(--muted)">ON이면 <b>그 줄에 적힌 이름만</b> 해당 목소리로 읽고, 다음 줄은 자동으로 <b>기본 목소리</b>로 돌아갑니다.</div>
               </div>
             </div>
 
-            <!-- 역할 표 -->
-            <div style="margin-top:10px">
-              <div class="controls" style="justify-content:space-between">
-                <div class="controls">
-                  <strong>이름 설정표</strong>
-                </div>
+            <!-- 역할 관리 도구 -->
+            <div style="margin-top:16px">
+              <div class="controls" style="justify-content:space-between;margin-bottom:8px">
+                <h3 style="margin:0">이름 설정표</h3>
                 <div class="controls">
                   <button id="detectBtn" class="btn btn-secondary small">이름 자동찾기</button>
                   <button id="addRoleBtn" class="btn btn-secondary small">이름 추가</button>
@@ -195,86 +230,112 @@
                   <button id="resetRolesBtn" class="btn btn-danger small">초기화</button>
                 </div>
               </div>
-              <div class="list" style="margin-top:6px">
-                <table class="small" id="roleTable">
-                  <thead><tr><th>이름</th><th>목소리</th><th>▶</th><th>속도(%)</th><th>톤(semi)</th><th>볼륨(dB)</th><th>듣기 편함</th><th>언어</th></tr></thead>
-                  <tbody></tbody>
-                </table>
+
+              <!-- 역할 테이블 -->
+              <div class="role-table-container">
+                <div class="list">
+                  <table class="small role-table" id="roleTable">
+                    <thead>
+                      <tr>
+                        <th>이름</th>
+                        <th>목소리</th>
+                        <th>▶</th>
+                        <th>속도(%)</th>
+                        <th>톤(semi)</th>
+                        <th>볼륨(dB)</th>
+                        <th>듣기 편함</th>
+                        <th>언어</th>
+                      </tr>
+                    </thead>
+                    <tbody></tbody>
+                  </table>
+                </div>
               </div>
               <div class="small" id="roleCount" style="margin-top:6px;color:var(--muted)"></div>
-            </div>
 
-            <!-- 선택 도구 -->
-            <div class="controls small" style="margin-top:8px">
-              <button id="aliasBtn" class="btn btn-secondary">선택한 문장에 이름 붙이기</button>
-              <button id="altBtn" class="btn btn-secondary">여러 줄에 A/B 번갈아 붙이기</button>
+              <!-- 선택 도구 -->
+              <div class="controls small" style="margin-top:8px">
+                <button id="aliasBtn" class="btn btn-secondary">선택한 문장에 이름 붙이기</button>
+                <button id="altBtn" class="btn btn-secondary">여러 줄에 A/B 번갈아 붙이기</button>
+              </div>
             </div>
+          </div>
+
+          <!-- SSML 치트시트 -->
+          <div id="ssmlCheat" class="panel" style="display:none">
+            <h3>SSML 명령(전체)</h3>
+            <ul class="small">
+              <li><code class="mono">&lt;speak&gt;...&lt;/speak&gt;</code> — 루트 컨테이너 (필수)</li>
+              <li><code class="mono">&lt;p&gt;</code>, <code class="mono">&lt;s&gt;</code> — 문단/문장 경계</li>
+              <li><code class="mono">&lt;break time="300ms"/&gt;</code> — 쉬기 (예: 150ms, 300ms)</li>
+              <li><code class="mono">&lt;emphasis level="moderate|strong|reduced"&gt;강조&lt;/emphasis&gt;</code></li>
+              <li><code class="mono">&lt;prosody rate="0.95" pitch="-2st" volume="+2dB"&gt;텍스트&lt;/prosody&gt;</code></li>
+              <li><code class="mono">&lt;say-as interpret-as="characters|digits|cardinal|ordinal|date|time|telephone"&gt;값&lt;/say-as&gt;</code></li>
+              <li><code class="mono">&lt;sub alias="대체 발음"&gt;원문&lt;/sub&gt;</code> — 발음 바꾸기</li>
+              <li><code class="mono">&lt;mark name="S1"/&gt;</code> — 타임포인트(마커)</li>
+            </ul>
           </div>
         </div>
 
-        <!-- 실행 패널 -->
-        <div class="panel" aria-label="실행">
-          <h2>2) 음성 만들기</h2>
-          <div class="controls">
-            <button id="makeBtn" class="btn btn-primary"><span id="makeLabel">음성 만들기</span></button>
-            <span id="status" class="small" style="margin-left:6px"></span>
-            <a id="download" class="small" href="#" style="display:none;text-decoration:underline;margin-left:auto">다운로드</a>
+        <!-- 오른쪽 컬럼: 설정 및 실행 -->
+        <div class="right-panel">
+          <!-- 기본 음성 설정 -->
+          <div class="panel">
+            <h2>기본 음성 설정</h2>
+            <div class="voice-options">
+              <label>언어</label>
+              <select id="baseLangSel"></select>
+            </div>
+            <div class="voice-options" style="margin-top:8px">
+              <label>목소리</label>
+              <select id="baseVoiceSel"></select>
+              <button id="basePreviewBtn" class="btn btn-secondary small">▶ 미리듣기</button>
+            </div>
           </div>
-          <audio id="player" controls style="margin-top:8px;width:100%"></audio>
-          <div class="controls small" style="margin-top:6px">
-            <button id="srtBtn" class="btn btn-secondary">SRT 자막 저장</button>
-            <button id="vttBtn" class="btn btn-secondary">VTT 자막 저장</button>
-            <span class="small" id="outInfo" style="margin-left:auto"></span>
-          </div>
-        </div>
-      </div>
-    </section>
 
-    <!-- 옵션 & 샘플 -->
-    <section class="section">
-      <div class="row">
-        <!-- 옵션 (공통) -->
-        <div class="panel">
-          <h2>3) 옵션창</h2>
-          <div class="row">
-            <div>
-              <h3>출력</h3>
-              <div class="controls">
-                <label style="min-width:90px">형식</label>
-                <div id="encChips" class="controls" role="group">
-                  <button class="btn btn-primary" data-val="MP3">MP3</button>
-                  <button class="btn btn-secondary" data-val="OGG_OPUS">OGG</button>
+          <!-- 출력 옵션 -->
+          <div class="panel">
+            <h2>출력 설정</h2>
+            <div class="options-grid">
+              <div>
+                <h3>형식</h3>
+                <div class="controls">
+                  <div id="encChips" class="controls" role="group">
+                    <button class="btn btn-primary" data-val="MP3">MP3</button>
+                    <button class="btn btn-secondary" data-val="OGG_OPUS">OGG</button>
+                    <button class="btn btn-secondary" data-val="LINEAR16">WAV</button>
+                  </div>
+                </div>
+                <div class="controls" style="margin-top:6px">
+                  <label style="min-width:90px">샘플레이트</label>
+                  <div id="srChips" class="controls" role="group">
+                    <button class="btn btn-secondary" data-val="24000">24k</button>
+                    <button class="btn btn-primary" data-val="44100">44.1k</button>
+                    <button class="btn btn-secondary" data-val="48000">48k</button>
+                  </div>
+                  <input id="srNum" type="number" min="8000" max="48000" step="1" placeholder="직접 입력" style="width:130px" />
                 </div>
               </div>
-              <div class="controls" style="margin-top:6px">
-                <label style="min-width:90px">샘플레이트</label>
-                <div id="srChips" class="controls" role="group">
-                  <button class="btn btn-secondary" data-val="24000">24k</button>
-                  <button class="btn btn-primary" data-val="44100">44.1k</button>
-                  <button class="btn btn-secondary" data-val="48000">48k</button>
+
+              <div>
+                <h3>문장 사이 쉬기(ms)</h3>
+                <div class="controls">
+                  <div id="sentChips" class="controls" role="group">
+                    <button class="btn btn-secondary" data-val="0">0</button>
+                    <button class="btn btn-secondary" data-val="150">150</button>
+                    <button class="btn btn-primary" data-val="300">300</button>
+                    <button class="btn btn-secondary" data-val="500">500</button>
+                  </div>
+                  <input id="sentNum" type="number" placeholder="예: 150" min="0" max="2000" step="10" style="width:130px" />
                 </div>
-                <input id="srNum" type="number" min="8000" max="48000" step="1" placeholder="직접 입력" style="width:130px" />
+                <div class="small" style="margin-top:4px;color:var(--muted)">자연스럽게 150 · 또박또박 300 · 천천히 500 (ms)</div>
               </div>
             </div>
 
-            <div>
-              <h3>문장 쉬기</h3>
+            <div style="margin-top:12px">
+              <h3>기타 옵션</h3>
               <div class="controls">
-                <label style="min-width:120px">문장 사이 쉬기(ms)</label>
-                <div id="sentChips" class="controls" role="group">
-                  <button class="btn btn-secondary" data-val="0">0</button>
-                  <button class="btn btn-secondary" data-val="150">150</button>
-                  <button class="btn btn-primary" data-val="300">300</button>
-                  <button class="btn btn-secondary" data-val="500">500</button>
-                </div>
-                <input id="sentNum" type="number" min="0" max="2000" step="10" placeholder="직접 입력" style="width:130px" />
-              </div>
-            </div>
-
-            <div>
-              <h3>볼륨/안전</h3>
-              <div class="controls">
-                <label style="min-width:120px">전체 음량 맞춤</label>
+                <label style="min-width:120px">전체 음성 크기 균등화</label>
                 <button id="normTgl" class="btn btn-primary" aria-pressed="true">ON</button>
               </div>
               <div class="controls" style="margin-top:6px">
@@ -288,14 +349,47 @@
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- 언어 샘플 -->
+          <!-- 음성 만들기 -->
+          <div class="panel">
+            <h2>2) 음성 만들기</h2>
+            <div class="controls">
+              <button id="makeBtn" class="btn btn-primary"><span id="makeLabel">음성 만들기</span></button>
+              <button id="cancelBtn" class="btn btn-danger" style="display:none">취소</button>
+              <span id="status" class="small" style="margin-left:6px"></span>
+            </div>
+            
+            <!-- 진행 상태 바 추가 -->
+            <div class="progress-bar" id="progressBar" style="display:none">
+              <div class="progress-fill" id="progressFill" style="width:0%"></div>
+            </div>
+            
+            <!-- 에러 메시지 영역 -->
+            <div id="errorArea"></div>
+            
+            <audio id="player" controls style="margin-top:8px;width:100%"></audio>
+            <div class="controls small" style="margin-top:6px">
+              <a id="download" class="btn btn-secondary small" href="#" style="display:none">다운로드</a>
+              <button id="srtBtn" class="btn btn-secondary small">SRT 자막 저장</button>
+              <button id="vttBtn" class="btn btn-secondary small">VTT 자막 저장</button>
+              <span class="small" id="outInfo" style="margin-left:auto"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 언어 샘플 & API 설정 -->
+    <section class="section">
+      <div class="row">
+        <!--<!-- 언어 샘플 -->
         <div class="panel">
-          <h2>4) 언어 샘플</h2>
+          <h2>언어 샘플</h2>
           <div class="controls">
             <label style="min-width:120px">언어 선택</label>
             <select id="sampleLang"></select>
+          </div>
+          <div class="controls" style="margin-top:8px">
             <label style="min-width:120px">샘플 문장</label>
             <input id="sampleText" type="text" class="mono" value="안녕하세요. 이것은 샘플 문장입니다." />
           </div>
@@ -307,15 +401,10 @@
             </table>
           </div>
         </div>
-      </div>
-    </section>
 
-    <!-- API 설정 & 설명서 -->
-    <section class="section">
-      <div class="row">
-        <!-- API -->
+        <!-- API 설정 -->
         <div class="panel">
-          <h2>5) API 설정</h2>
+          <h2>API 설정</h2>
           <div class="controls">
             <label style="min-width:140px" for="apiKey">Google TTS API 키</label>
             <input id="apiKey" type="password" placeholder="AIza... (당신의 키)" autocomplete="off" />
@@ -326,40 +415,42 @@
           </div>
           <p class="small" style="margin-top:6px;color:var(--muted)">키는 이 브라우저에만 저장됩니다. GCP 콘솔에서 Text-to-Speech API 활성화 → API 제한에서 TTS만 허용 → 내 도메인을 HTTP referrer로 추가하는 것을 권장합니다.</p>
         </div>
+      </div>
+    </section>
 
-        <!-- 설명서 (항상 펼친 상태) -->
-        <div class="panel">
-          <h2>설명서</h2>
-          <div class="small" style="line-height:1.7">
-            <h3>모드</h3>
-            <ul>
-              <li><b>일반</b>: 한 사람이 쭉 읽습니다. (이름 관련 UI 숨김)</li>
-              <li><b>역할 대화</b>: 줄 앞에 <code class="mono">이름: 내용</code> 또는 <code class="mono">[이름] 내용</code> 형태로 쓰면, 이름별 목소리를 적용합니다. <b>줄마다 기본으로 되돌리기</b>가 ON이면 그 줄만 해당 이름으로 읽고 다음 줄은 기본으로 돌아갑니다.</li>
-              <li><b>세밀 조절(전문가용)</b>: SSML을 직접 씁니다. 아래 명령 참조.</li>
-            </ul>
+    <!-- 설명서 -->
+    <section class="section">
+      <div class="panel">
+        <h2>설명서</h2>
+        <div class="small" style="line-height:1.7">
+          <h3>모드</h3>
+          <ul>
+            <li><b>일반</b>: 한 사람이 쭉 읽습니다. (이름 관련 UI 숨김)</li>
+            <li><b>역할 대화</b>: 줄 앞에 <code class="mono">이름: 내용</code> 또는 <code class="mono">[이름] 내용</code> 형태로 쓰면, 이름별 목소리를 적용합니다. <b>줄마다 기본으로 되돌리기</b>가 ON이면 그 줄만 해당 이름으로 읽고 다음 줄은 기본으로 돌아갑니다.</li>
+            <li><b>세밀 조절(전문가용)</b>: SSML을 직접 씁니다. 아래 명령 참조.</li>
+          </ul>
 
-            <h3>SSML 명령(전체)</h3>
-            <ul>
-              <li><code class="mono">&lt;speak&gt;...&lt;/speak&gt;</code> — 루트 컨테이너 (필수)</li>
-              <li><code class="mono">&lt;p&gt;</code>, <code class="mono">&lt;s&gt;</code> — 문단/문장 경계</li>
-              <li><code class="mono">&lt;break time="300ms"/&gt;</code> — 쉬기 (예: 150ms, 300ms)</li>
-              <li><code class="mono">&lt;emphasis level="moderate|strong|reduced"&gt;강조&lt;/emphasis&gt;</code></li>
-              <li><code class="mono">&lt;prosody rate="0.95" pitch="-2st" volume="+2dB"&gt;텍스트&lt;/prosody&gt;</code></li>
-              <li><code class="mono">&lt;say-as interpret-as="characters|digits|cardinal|ordinal|date|time|telephone"&gt;값&lt;/say-as&gt;</code></li>
-              <li><code class="mono">&lt;sub alias="대체 발음"&gt;원문&lt;/sub&gt;</code> — 발음 바꾸기</li>
-              <li><code class="mono">&lt;mark name="S1"/&gt;</code> — 타임포인트(마커)</li>
-            </ul>
+          <h3>SSML 명령(전체)</h3>
+          <ul>
+            <li><code class="mono">&lt;speak&gt;...&lt;/speak&gt;</code> — 루트 컨테이너 (필수)</li>
+            <li><code class="mono">&lt;p&gt;</code>, <code class="mono">&lt;s&gt;</code> — 문단/문장 경계</li>
+            <li><code class="mono">&lt;break time="300ms"/&gt;</code> — 쉬기 (예: 150ms, 300ms)</li>
+            <li><code class="mono">&lt;emphasis level="moderate|strong|reduced"&gt;강조&lt;/emphasis&gt;</code></li>
+            <li><code class="mono">&lt;prosody rate="0.95" pitch="-2st" volume="+2dB"&gt;텍스트&lt;/prosody&gt;</code></li>
+            <li><code class="mono">&lt;say-as interpret-as="characters|digits|cardinal|ordinal|date|time|telephone"&gt;값&lt;/say-as&gt;</code></li>
+            <li><code class="mono">&lt;sub alias="대체 발음"&gt;원문&lt;/sub&gt;</code> — 발음 바꾸기</li>
+            <li><code class="mono">&lt;mark name="S1"/&gt;</code> — 타임포인트(마커)</li>
+          </ul>
 
-            <h3>긴 글 자동 나눔</h3>
-            <p>Google TTS는 <b>요청당 5,000바이트</b> 제한이 있습니다. <b>한글만 기준 약 1,600자</b>를 넘기면 오류/끊김이 생길 수 있어 <b>자동 나눔 ON</b>을 권장합니다.</p>
+          <h3>긴 글 자동 나눔</h3>
+          <p>Google TTS는 <b>요청당 5,000바이트</b> 제한이 있습니다. <b>한글만 기준 약 1,600자</b>를 넘기면 오류/끊김이 생길 수 있어 <b>자동 나눔 ON</b>을 권장합니다.</p>
 
-            <h3>문제 해결</h3>
-            <ul>
-              <li><b>403/권한</b>: TTS API 활성화, API 제한에서 TTS 허용, referrer에 내 도메인 추가</li>
-              <li><b>출력 형식</b>: MP3가 가장 호환이 좋습니다.</li>
-              <li><b>오디오가 짧게 잘림</b>: 자동 나눔 ON인지 확인</li>
-            </ul>
-          </div>
+          <h3>문제 해결</h3>
+          <ul>
+            <li><b>403/권한</b>: TTS API 활성화, API 제한에서 TTS 허용, referrer에 내 도메인 추가</li>
+            <li><b>출력 형식</b>: MP3가 가장 호환이 좋습니다.</li>
+            <li><b>오디오가 짧게 잘림</b>: 자동 나눔 ON인지 확인</li>
+          </ul>
         </div>
       </div>
     </section>
@@ -385,267 +476,1190 @@
   <script>
     // Theme toggle (공통)
     (function(){
-      var btn=document.getElementById('themeToggle'); if(!btn) return;
-      function sync(){ var mode=document.documentElement.getAttribute('data-theme')||'light'; btn.setAttribute('aria-pressed', mode==='dark'); btn.querySelector('.icon').textContent = mode==='dark'?'🌙':'🌞'; btn.querySelector('.label').textContent = mode==='dark'?'다크':'라이트'; }
-      btn.addEventListener('click', function(){ var cur=document.documentElement.getAttribute('data-theme')||'light'; var next=(cur==='dark'?'light':'dark'); document.documentElement.setAttribute('data-theme', next); localStorage.setItem('theme', next); sync();});
+      const btn=document.getElementById('themeToggle'); 
+      if(!btn) return;
+      function sync(){ 
+        const mode=document.documentElement.getAttribute('data-theme')||'light'; 
+        btn.setAttribute('aria-pressed', mode==='dark'); 
+        btn.querySelector('.icon').textContent = mode==='dark'?'🌙':'🌞'; 
+        btn.querySelector('.label').textContent = mode==='dark'?'다크':'라이트'; 
+      }
+      btn.addEventListener('click', function(){ 
+        const cur=document.documentElement.getAttribute('data-theme')||'light'; 
+        const next=(cur==='dark'?'light':'dark'); 
+        document.documentElement.setAttribute('data-theme', next); 
+        localStorage.setItem('theme', next); 
+        sync();
+      });
       sync();
     })();
 
     // ===== 상태/저장 키 =====
-    const LS={KEY:'gcpKey', ROLES:'rolesV7', MODE:'modeV7', OPTS:'optsV7', SAMPLE:'sampleLangV7'};
-    const $=id=>document.getElementById(id);
-    const bCount=s=>new TextEncoder().encode(s||'').length;
-    const on=(el,ev,fn)=>el&&el.addEventListener(ev,fn);
-    const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+    const LS = {
+      KEY: 'gcpKey', 
+      ROLES: 'rolesV7', 
+      MODE: 'modeV7', 
+      OPTS: 'optsV7', 
+      SAMPLE: 'sampleLangV7'
+    };
+    
+    const $ = id => document.getElementById(id);
+    const bCount = s => new TextEncoder().encode(s||'').length;
+    const on = (el, ev, fn) => el && el.addEventListener(ev, fn);
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
+    
+    // 전역 변수들
+    let cancelRequested = false;
+    let activeAudioUrls = [];
 
     // 미니 API 배지
     function updateApiBadge(){
-      const has=!!localStorage.getItem(LS.KEY);
-      const badge=$('apiBadge'); const txt=$('apiMiniText');
+      const has = !!localStorage.getItem(LS.KEY);
+      const badge = $('apiBadge'); 
+      const txt = $('apiMiniText');
       badge.classList.toggle('btn-primary', has);
       badge.classList.toggle('btn-danger', !has);
-      badge.textContent = has? 'API 저장됨' : 'API 입력 필요';
-      txt.textContent = has? '이 브라우저에 API 키가 저장되어 있습니다' : 'API 키를 저장해야 사용할 수 있어요';
+      badge.textContent = has ? 'API 저장됨' : 'API 입력 필요';
+      txt.textContent = has ? '이 브라우저에 API 키가 저장되어 있습니다' : 'API 키를 저장해야 사용할 수 있어요';
     }
 
     // 카운터
-    const editor=$('editor');
-    function updateCounter(){ $('counter').textContent = editor.value.length+" 글자 / "+bCount(editor.value)+" 바이트"; }
-    on(editor,'input',updateCounter);
+    const editor = $('editor');
+    function updateCounter(){ 
+      $('counter').textContent = editor.value.length + " 글자 / " + bCount(editor.value) + " 바이트"; 
+    }
+    on(editor, 'input', updateCounter);
 
     // 모드
-    let mode= localStorage.getItem(LS.MODE)||'dialog';
-    function setMode(m){ mode=m; localStorage.setItem(LS.MODE,m); $('modeMini').textContent=(m==='plain'?'일반':(m==='dialog'?'역할 대화':'세밀 조절'));
-      document.querySelectorAll('#modeChips .btn').forEach(b=>{ const on=(b.dataset.val===m); b.classList.toggle('btn-primary', on); b.classList.toggle('btn-secondary', !on); b.setAttribute('aria-pressed', on); });
-      if(m==='plain'){
-        $('modeHint').textContent='일반: 한 사람이 쭉 읽습니다.';
-        editor.placeholder='예: 오늘은 여기까지 하자.';
-      }else if(m==='dialog'){
-        $('modeHint').textContent='역할 대화: 줄 앞에 "이름: 내용" 또는 "[이름] 내용"';
-        editor.placeholder='예: 할머니: 오늘은 여기까지 하자.\n소년: 아직 할 말이 있어요!';
-      }else{
-        $('modeHint').textContent='세밀 조절: <speak>…</speak> 에 SSML 명령 사용';
-        editor.placeholder='<speak>안녕하세요. <break time="300ms"/> 안내를 시작합니다.</speak>';
+    let mode = localStorage.getItem(LS.MODE) || 'dialog';
+    function setMode(m){ 
+      mode = m; 
+      localStorage.setItem(LS.MODE, m); 
+      $('modeMini').textContent = (m === 'plain' ? '일반' : (m === 'dialog' ? '역할 대화' : '세밀 조절'));
+      
+      document.querySelectorAll('#modeChips .btn').forEach(b => { 
+        const on = (b.dataset.val === m); 
+        b.classList.toggle('btn-primary', on); 
+        b.classList.toggle('btn-secondary', !on); 
+        b.setAttribute('aria-pressed', on); 
+      });
+      
+      if (m === 'plain') {
+        $('modeHint').textContent = '일반: 한 사람이 쭉 읽습니다.';
+        editor.placeholder = '예: 오늘은 여기까지 하자.';
+      } else if (m === 'dialog') {
+        $('modeHint').textContent = '역할 대화: 줄 앞에 "이름: 내용" 또는 "[이름] 내용"';
+        editor.placeholder = '예: 할머니: 오늘은 여기까지 하자.\n소년: 아직 할 말이 있어요!';
+      } else {
+        $('modeHint').textContent = '세밀 조절: <speak>…</speak> 에 SSML 명령 사용';
+        editor.placeholder = '<speak>안녕하세요. <break time="300ms"/> 안내를 시작합니다.</speak>';
       }
-      // 가시성
-      $('dialogOptBlock').style.display = (m==='dialog')? 'block':'none';
+      
+      const dialogOptions = $('dialogOptions');
+      const ssmlCheat = $('ssmlCheat');
+      
+      if (dialogOptions) {
+        dialogOptions.style.display = (m === 'dialog') ? 'block' : 'none';
+      }
+      if (ssmlCheat) {
+        ssmlCheat.style.display = (m === 'ssml') ? 'block' : 'none';
+      }
     }
-    document.querySelectorAll('#modeChips .btn').forEach(b=> on(b,'click',()=> setMode(b.dataset.val)));
+
+    // 모드 칩 이벤트
+    document.querySelectorAll('#modeChips .btn').forEach(b => 
+      on(b, 'click', () => setMode(b.dataset.val))
+    );
 
     // 칩/버튼 그룹 값
-    function setGroup(id,val){ const g=$(id); if(!g) return; g.querySelectorAll('.btn').forEach(b=>{ const on=(b.dataset.val===String(val)); b.classList.toggle('btn-primary', on); b.classList.toggle('btn-secondary', !on); b.setAttribute('aria-pressed', on); }); }
-    function getGroup(id){ const g=$(id); if(!g) return null; const a=[...g.querySelectorAll('.btn')].find(b=>b.getAttribute('aria-pressed')==='true'); return a? a.dataset.val : null; }
+    function setGroup(id, val){ 
+      const g = $(id); 
+      if (!g) return; 
+      g.querySelectorAll('.btn').forEach(b => { 
+        const on = (b.dataset.val === String(val)); 
+        b.classList.toggle('btn-primary', on); 
+        b.classList.toggle('btn-secondary', !on); 
+        b.setAttribute('aria-pressed', on); 
+      }); 
+    }
+    
+    function getGroup(id){ 
+      const g = $(id); 
+      if (!g) return null; 
+      const a = [...g.querySelectorAll('.btn')].find(b => b.getAttribute('aria-pressed') === 'true'); 
+      return a ? a.dataset.val : null; 
+    }
 
     // 자동 저장 옵션
-    function loadOpts(){ try{ return JSON.parse(localStorage.getItem(LS.OPTS)||'{}'); }catch{ return {}; } }
-    function autosave(){ const data={
-      enc:getGroup('encChips'), sr:getGroup('srChips'), srNum:$('srNum').value,
-      sent:getGroup('sentChips'), sentNum:$('sentNum').value,
-      sw:getGroup('switchChips'), swNum:$('switchNum').value,
-      norm:$('normTgl').getAttribute('aria-pressed')==='true',
-      chunk:$('chunkTgl').getAttribute('aria-pressed')==='true',
-      retry:getGroup('retryChips'),
-      lineReset:$('lineResetTgl').getAttribute('aria-pressed')==='true'
-    }; localStorage.setItem(LS.OPTS, JSON.stringify(data)); }
+    function loadOpts(){ 
+      try { 
+        return JSON.parse(localStorage.getItem(LS.OPTS) || '{}'); 
+      } catch { 
+        return {}; 
+      } 
+    }
+    
+    function autosave(){ 
+      const data = {
+        enc: getGroup('encChips'), 
+        sr: getGroup('srChips'), 
+        srNum: $('srNum').value,
+        sent: getGroup('sentChips'), 
+        sentNum: $('sentNum').value,
+        sw: getGroup('switchChips'), 
+        swNum: $('switchNum').value,
+        norm: $('normTgl').getAttribute('aria-pressed') === 'true',
+        chunk: $('chunkTgl').getAttribute('aria-pressed') === 'true',
+        retry: getGroup('retryChips'),
+        lineReset: $('lineResetTgl').getAttribute('aria-pressed') === 'true'
+      }; 
+      localStorage.setItem(LS.OPTS, JSON.stringify(data)); 
+    }
 
     // 토글 공통
-    function toggleBtn(btn){ const on = btn.getAttribute('aria-pressed')==='true'; btn.setAttribute('aria-pressed', String(!on)); btn.classList.toggle('btn-primary', !on); btn.classList.toggle('btn-secondary', on); btn.textContent = (!on)? 'ON':'OFF'; autosave(); }
+    function toggleBtn(btn){ 
+      const on = btn.getAttribute('aria-pressed') === 'true'; 
+      btn.setAttribute('aria-pressed', String(!on)); 
+      btn.classList.toggle('btn-primary', !on); 
+      btn.classList.toggle('btn-secondary', on); 
+      btn.textContent = (!on) ? 'ON' : 'OFF'; 
+      autosave(); 
+    }
 
-    // Wire
-    ['encChips','srChips','sentChips','switchChips','retryChips'].forEach(id=>{
-      const g=$(id); if(!g) return; g.querySelectorAll('.btn').forEach(b=> on(b,'click',()=>{ g.querySelectorAll('.btn').forEach(x=>{x.setAttribute('aria-pressed','false'); x.classList.remove('btn-primary'); x.classList.add('btn-secondary');}); b.setAttribute('aria-pressed','true'); b.classList.remove('btn-secondary'); b.classList.add('btn-primary'); autosave(); }));
+    // Wire events
+    ['encChips', 'srChips', 'sentChips', 'switchChips', 'retryChips'].forEach(id => {
+      const g = $(id); 
+      if (!g) return; 
+      g.querySelectorAll('.btn').forEach(b => 
+        on(b, 'click', () => { 
+          g.querySelectorAll('.btn').forEach(x => {
+            x.setAttribute('aria-pressed', 'false'); 
+            x.classList.remove('btn-primary'); 
+            x.classList.add('btn-secondary');
+          }); 
+          b.setAttribute('aria-pressed', 'true'); 
+          b.classList.remove('btn-secondary'); 
+          b.classList.add('btn-primary'); 
+          autosave(); 
+        })
+      );
     });
-    ['srNum','sentNum','switchNum'].forEach(id=> on($(id),'input',autosave));
-    on($('normTgl'),'click',e=> toggleBtn(e.currentTarget));
-    on($('chunkTgl'),'click',e=> toggleBtn(e.currentTarget));
-    on($('lineResetTgl'),'click',e=> toggleBtn(e.currentTarget));
+    
+    ['srNum', 'sentNum', 'switchNum'].forEach(id => on($(id), 'input', autosave));
+    on($('normTgl'), 'click', e => toggleBtn(e.currentTarget));
+    on($('chunkTgl'), 'click', e => toggleBtn(e.currentTarget));
+    on($('lineResetTgl'), 'click', e => toggleBtn(e.currentTarget));
 
     // API 키
-    const apiKey=$('apiKey');
-    on($('showKeyBtn'),'click',()=>{ apiKey.type = (apiKey.type==='password'?'text':'password'); $('showKeyBtn').textContent = (apiKey.type==='password'?'표시':'숨기기'); });
-    on($('saveKeyBtn'),'click',()=>{ const v=apiKey.value.trim(); if(!v) return alert('API 키를 입력하세요'); localStorage.setItem(LS.KEY,v); updateApiBadge(); alert('API 키 저장됨'); loadVoices().then(renderVoiceList); });
-    on($('clearKeyBtn'),'click',()=>{ localStorage.removeItem(LS.KEY); updateApiBadge(); alert('API 키 삭제됨'); });
-    on($('testBtn'),'click',async()=>{ try{ if(!localStorage.getItem(LS.KEY)) throw new Error('API 키가 없음'); await loadVoices(); alert('정상: 목소리 목록을 불러왔습니다'); }catch(e){ alert('실패: '+e.message); } });
+    const apiKey = $('apiKey');
+    on($('showKeyBtn'), 'click', () => { 
+      apiKey.type = (apiKey.type === 'password' ? 'text' : 'password'); 
+      $('showKeyBtn').textContent = (apiKey.type === 'password' ? '표시' : '숨기기'); 
+    });
+    
+    on($('saveKeyBtn'), 'click', () => { 
+      const v = apiKey.value.trim(); 
+      if (!v) return showError('API 키를 입력하세요'); 
+      localStorage.setItem(LS.KEY, v); 
+      updateApiBadge(); 
+      showSuccess('API 키 저장됨'); 
+      loadVoices().then(() => {
+        renderVoiceList(); 
+        renderBaseVoiceSelect();
+      }); 
+    });
+    
+    on($('clearKeyBtn'), 'click', () => { 
+      localStorage.removeItem(LS.KEY); 
+      updateApiBadge(); 
+      showWarning('API 키 삭제됨'); 
+    });
+    
+    on($('testBtn'), 'click', async () => { 
+      try { 
+        if (!localStorage.getItem(LS.KEY)) throw new Error('API 키가 없음'); 
+        await loadVoices(); 
+        showSuccess('정상: 목소리 목록을 불러왔습니다'); 
+      } catch (e) { 
+        showError('실패: ' + parseError(e)); 
+      } 
+    });
+
+    // 에러 메시지 표시 함수들
+    function showError(msg) {
+      const area = $('errorArea');
+      if (area) {
+        area.innerHTML = `<div class="error-msg">${msg}</div>`;
+        setTimeout(() => area.innerHTML = '', 5000);
+      } else {
+        alert(msg);
+      }
+    }
+
+    function showWarning(msg) {
+      const area = $('errorArea');
+      if (area) {
+        area.innerHTML = `<div class="warning-msg">${msg}</div>`;
+        setTimeout(() => area.innerHTML = '', 5000);
+      } else {
+        alert(msg);
+      }
+    }
+
+    function showSuccess(msg) {
+      alert(msg);
+    }
+
+    // 에러 파싱
+    function parseError(e) {
+      if (e.message) {
+        if (e.message.includes('403')) return '권한 오류: API 키를 확인하거나 API 제한 설정을 확인하세요';
+        if (e.message.includes('400')) return '잘못된 요청: 텍스트가 너무 길거나 형식이 잘못됨';
+        if (e.message.includes('429')) return '요청 한도 초과: 잠시 후 다시 시도하세요';
+        if (e.message.includes('500')) return 'Google 서버 오류: 잠시 후 다시 시도하세요';
+        if (e.message.includes('does not support SSML')) return '이 음성은 SSML을 지원하지 않습니다';
+        return e.message;
+      }
+      return String(e);
+    }
 
     // 목소리 목록
-    let VOICES=[]; let voiceIndex={};
-    async function loadVoices(){ const key=localStorage.getItem(LS.KEY); if(!key) return; const u=new URL('https://texttospeech.googleapis.com/v1/voices'); u.searchParams.set('key',key); const r=await fetch(u); const j=await r.json(); if(!r.ok) throw new Error(j.error?.message||r.statusText); VOICES=(j.voices||[]).sort((a,b)=> a.name>b.name?1:-1); voiceIndex={}; VOICES.forEach(v=> voiceIndex[v.name]=v); }
+    let VOICES = []; 
+    let voiceIndex = {};
+    
+    async function loadVoices(){ 
+      const key = localStorage.getItem(LS.KEY); 
+      if (!key) return; 
+      const u = new URL('https://texttospeech.googleapis.com/v1/voices'); 
+      u.searchParams.set('key', key); 
+      const r = await fetch(u); 
+      const j = await r.json(); 
+      if (!r.ok) throw new Error(j.error?.message || r.statusText); 
+      VOICES = (j.voices || []).sort((a, b) => a.name > b.name ? 1 : -1); 
+      voiceIndex = {}; 
+      VOICES.forEach(v => voiceIndex[v.name] = v); 
+    }
 
     // 이름(역할) 관리
-    const roleBody=document.querySelector('#roleTable tbody');
-    let roles = JSON.parse(localStorage.getItem(LS.ROLES)||'{}');
-    function ensureBaseRole(){ if(!roles._){ roles._={voice:'', speed:'100', pitch:'0', vol:'0', lang:'ko-KR', comfy:true}; } }
-    function saveRoles(){ localStorage.setItem(LS.ROLES, JSON.stringify(roles)); }
-    function roleRow(alias, data){ const tr=document.createElement('tr');
-      const langs=[...new Set(VOICES.flatMap(v=> v.languageCodes||[]))].sort();
-      const langOpts = langs.map(c=> `<option ${data.lang===c?'selected':''} value="${c}">${c}</option>`).join('');
-      const voicesForLang = VOICES.filter(v=> (v.languageCodes||[]).includes(data.lang));
-      const vOptions = `<option value="" ${!data.voice?'selected':''}>— 선택 —</option>` + (voicesForLang.length? voicesForLang: VOICES).map(v=> `<option ${data.voice===v.name?'selected':''} value="${v.name}">${v.name}</option>`).join('');
+    const roleBody = document.querySelector('#roleTable tbody');
+    let roles = JSON.parse(localStorage.getItem(LS.ROLES) || '{}');
+    
+    function ensureBaseRole(){ 
+      if (!roles._) { 
+        roles._ = {voice: '', speed: '100', pitch: '0', vol: '0', lang: 'ko-KR', comfy: true}; 
+      } 
+    }
+    
+    function saveRoles(){ 
+      localStorage.setItem(LS.ROLES, JSON.stringify(roles)); 
+    }
+    
+    function roleRow(alias, data){ 
+      const tr = document.createElement('tr');
+      const langs = [...new Set(VOICES.flatMap(v => v.languageCodes || []))].sort();
+      const langOpts = langs.map(c => `<option ${data.lang === c ? 'selected' : ''} value="${c}">${c}</option>`).join('');
+      const voicesForLang = VOICES.filter(v => (v.languageCodes || []).includes(data.lang));
+      const vOptions = `<option value="" ${!data.voice ? 'selected' : ''}>— 선택 —</option>` + 
+        (voicesForLang.length ? voicesForLang : VOICES).map(v => 
+          `<option ${data.voice === v.name ? 'selected' : ''} value="${v.name}">${v.name}</option>`
+        ).join('');
+      
       tr.innerHTML = `
-        <td class="mono">${alias==='_'? '기본': alias}${!data.voice?'<span style="background:#ef4444;color:#fff;border-radius:6px;padding:1px 6px;margin-left:6px;font-size:11px">목소리 선택</span>':''}</td>
+        <td class="mono">${alias === '_' ? '기본' : alias}${!data.voice ? '<span style="background:#ef4444;color:#fff;border-radius:6px;padding:1px 6px;margin-left:6px;font-size:11px">목소리 선택</span>' : ''}</td>
         <td><select class="voiceSel">${vOptions}</select></td>
         <td><button class="btn btn-secondary small prevBtn">▶</button></td>
         <td>
-          <div class="controls"><input class="speedNum" type="number" min="50" max="200" step="1" value="${data.speed}" style="width:90px" />
-            <div class="controls"><button class="btn btn-secondary small speedC" data-val="80">느리게</button><button class="btn btn-secondary small speedC" data-val="100">보통</button><button class="btn btn-secondary small speedC" data-val="120">빠르게</button></div>
+          <div class="controls">
+            <input class="speedNum" type="number" min="50" max="200" step="1" value="${data.speed}" style="width:90px" />
+            <div class="controls">
+              <button class="btn btn-secondary small speedC" data-val="80">느리게</button>
+              <button class="btn btn-secondary small speedC" data-val="100">보통</button>
+              <button class="btn btn-secondary small speedC" data-val="120">빠르게</button>
+            </div>
           </div>
         </td>
         <td>
-          <div class="controls"><input class="pitchNum" type="number" min="-12" max="12" step="1" value="${data.pitch}" style="width:90px" />
-            <div class="controls"><button class="btn btn-secondary small pitchC" data-val="-2">낮게</button><button class="btn btn-secondary small pitchC" data-val="0">보통</button><button class="btn btn-secondary small pitchC" data-val="+2">높게</button></div>
+          <div class="controls">
+            <input class="pitchNum" type="number" min="-12" max="12" step="1" value="${data.pitch}" style="width:90px" />
+            <div class="controls">
+              <button class="btn btn-secondary small pitchC" data-val="-2">낮게</button>
+              <button class="btn btn-secondary small pitchC" data-val="0">보통</button>
+              <button class="btn btn-secondary small pitchC" data-val="+2">높게</button>
+            </div>
           </div>
         </td>
         <td>
-          <div class="controls"><input class="volNum" type="number" min="-10" max="10" step="0.1" value="${data.vol}" style="width:90px" />
-            <div class="controls"><button class="btn btn-secondary small volC" data-val="-2">작게</button><button class="btn btn-secondary small volC" data-val="0">보통</button><button class="btn btn-secondary small volC" data-val="+2">크게</button></div>
+          <div class="controls">
+            <input class="volNum" type="number" min="-10" max="10" step="0.1" value="${data.vol}" style="width:90px" />
+            <div class="controls">
+              <button class="btn btn-secondary small volC" data-val="-2">작게</button>
+              <button class="btn btn-secondary small volC" data-val="0">보통</button>
+              <button class="btn btn-secondary small volC" data-val="+2">크게</button>
+            </div>
           </div>
         </td>
-        <td><button class="btn ${data.comfy?'btn-primary':'btn-secondary'} small comfy" aria-pressed="${data.comfy?'true':'false'}">${data.comfy?'ON':'OFF'}</button></td>
+        <td><button class="btn ${data.comfy ? 'btn-primary' : 'btn-secondary'} small comfy" aria-pressed="${data.comfy ? 'true' : 'false'}">${data.comfy ? 'ON' : 'OFF'}</button></td>
         <td><select class="langSel">${langOpts}</select></td>`;
-      tr.querySelector('.prevBtn').onclick=()=>{ const name=tr.querySelector('.voiceSel').value; if(!name) return alert('먼저 목소리를 선택하세요'); previewVoice(name, tr.querySelector('.langSel').value); };
-      tr.querySelector('.voiceSel').onchange=(e)=>{ data.voice=e.target.value; saveRoles(); renderRoles(); };
-      tr.querySelector('.langSel').onchange=(e)=>{ data.lang=e.target.value; saveRoles(); renderRoles(); };
-      tr.querySelectorAll('.speedC').forEach(b=> b.onclick=()=>{ data.speed=b.dataset.val; tr.querySelector('.speedNum').value=data.speed; saveRoles(); renderRoles(); });
-      tr.querySelectorAll('.pitchC').forEach(b=> b.onclick=()=>{ data.pitch=b.dataset.val; tr.querySelector('.pitchNum').value=data.pitch; saveRoles(); renderRoles(); });
-      tr.querySelectorAll('.volC').forEach(b=> b.onclick=()=>{ data.vol=b.dataset.val; tr.querySelector('.volNum').value=data.vol; saveRoles(); renderRoles(); });
-      tr.querySelector('.speedNum').oninput=(e)=>{ data.speed=String(e.target.value||'100'); saveRoles(); };
-      tr.querySelector('.pitchNum').oninput=(e)=>{ data.pitch=String(e.target.value||'0'); saveRoles(); };
-      tr.querySelector('.volNum').oninput=(e)=>{ data.vol=String(e.target.value||'0'); saveRoles(); };
-      tr.querySelector('.comfy').onclick=(e)=>{ const btn=e.currentTarget; const on=btn.getAttribute('aria-pressed')==='true'; btn.setAttribute('aria-pressed', String(!on)); data.comfy=!on; btn.classList.toggle('btn-primary', !on); btn.classList.toggle('btn-secondary', on); btn.textContent = (!on)?'ON':'OFF'; if(data.comfy){ data.speed='92'; data.pitch='-2'; } saveRoles(); renderRoles(); };
+      
+      // 이벤트 핸들러
+      tr.querySelector('.prevBtn').onclick = () => { 
+        const name = tr.querySelector('.voiceSel').value; 
+        if (!name) return showError('먼저 목소리를 선택하세요'); 
+        previewVoice(name, tr.querySelector('.langSel').value); 
+      };
+      
+      tr.querySelector('.voiceSel').onchange = (e) => { 
+        data.voice = e.target.value; 
+        saveRoles(); 
+        renderRoles(); 
+      };
+      
+      tr.querySelector('.langSel').onchange = (e) => { 
+        data.lang = e.target.value; 
+        saveRoles(); 
+        renderRoles(); 
+      };
+      
+      tr.querySelectorAll('.speedC').forEach(b => 
+        b.onclick = () => { 
+          data.speed = b.dataset.val; 
+          tr.querySelector('.speedNum').value = data.speed; 
+          saveRoles(); 
+          renderRoles(); 
+        }
+      );
+      
+      tr.querySelectorAll('.pitchC').forEach(b => 
+        b.onclick = () => { 
+          data.pitch = b.dataset.val; 
+          tr.querySelector('.pitchNum').value = data.pitch; 
+          saveRoles(); 
+          renderRoles(); 
+        }
+      );
+      
+      tr.querySelectorAll('.volC').forEach(b => 
+        b.onclick = () => { 
+          data.vol = b.dataset.val; 
+          tr.querySelector('.volNum').value = data.vol; 
+          saveRoles(); 
+          renderRoles(); 
+        }
+      );
+      
+      tr.querySelector('.speedNum').oninput = (e) => { 
+        data.speed = String(e.target.value || '100'); 
+        saveRoles(); 
+      };
+      
+      tr.querySelector('.pitchNum').oninput = (e) => { 
+        data.pitch = String(e.target.value || '0'); 
+        saveRoles(); 
+      };
+      
+      tr.querySelector('.volNum').oninput = (e) => { 
+        data.vol = String(e.target.value || '0'); 
+        saveRoles(); 
+      };
+      
+      tr.querySelector('.comfy').onclick = (e) => { 
+        const btn = e.currentTarget; 
+        const on = btn.getAttribute('aria-pressed') === 'true'; 
+        btn.setAttribute('aria-pressed', String(!on)); 
+        data.comfy = !on; 
+        btn.classList.toggle('btn-primary', !on); 
+        btn.classList.toggle('btn-secondary', on); 
+        btn.textContent = (!on) ? 'ON' : 'OFF'; 
+        if (data.comfy) { 
+          data.speed = '92'; 
+          data.pitch = '-2'; 
+        } 
+        saveRoles(); 
+        renderRoles(); 
+      };
+      
       return tr;
     }
-    function renderRoles(){ roleBody.innerHTML=''; ensureBaseRole(); const keys=Object.keys(roles).sort((a,b)=> a==='_'?-1:(b==='_'?1:a.localeCompare(b))); $('roleCount').textContent = `총 ${keys.length}개 이름`; keys.forEach(alias=> roleBody.appendChild(roleRow(alias, roles[alias]))); }
+    
+    function renderBaseVoiceSelect(){
+      ensureBaseRole();
+      const base = roles._;
+      const langs = [...new Set(VOICES.flatMap(v => v.languageCodes || []))].sort();
+      const langSel = $('baseLangSel');
+      const voiceSel = $('baseVoiceSel');
+      
+      if (langSel && langs.length > 0) {
+        langSel.innerHTML = langs.map(c => `<option ${base.lang === c ? 'selected' : ''} value="${c}">${c}</option>`).join('');
+      }
+      
+      const curLang = langSel ? langSel.value : base.lang || 'ko-KR';
+      const list = VOICES.filter(v => (v.languageCodes || []).includes(curLang));
+      
+      if (voiceSel) {
+        voiceSel.innerHTML = `<option value="" ${!base.voice ? 'selected' : ''}>(선택)</option>` + 
+          list.map(v => `<option ${base.voice === v.name ? 'selected' : ''} value="${v.name}">${v.name}</option>`).join('');
+      }
+      
+      if (langSel) {
+        langSel.onchange = () => { 
+          base.lang = langSel.value; 
+          saveRoles(); 
+          renderBaseVoiceSelect(); 
+        };
+      }
+      
+      if (voiceSel) {
+        voiceSel.onchange = () => { 
+          base.voice = voiceSel.value || ''; 
+          saveRoles(); 
+        };
+      }
+      
+      const previewBtn = $('basePreviewBtn');
+      if (previewBtn) {
+        previewBtn.onclick = () => {
+          const voiceValue = voiceSel ? voiceSel.value || '' : '';
+          const langValue = langSel ? langSel.value || 'ko-KR' : 'ko-KR';
+          previewVoice(voiceValue, langValue);
+        };
+      }
+    }
 
-    on($('addRoleBtn'),'click',()=>{ const name=prompt('추가할 이름 (예: 할머니)'); if(!name) return; roles[name]={voice:'', speed:'100', pitch:'0', vol:'0', lang:'ko-KR', comfy:false}; saveRoles(); renderRoles(); });
-    on($('resetRolesBtn'),'click',()=>{ if(!confirm('모든 이름 설정을 초기화할까요?')) return; roles={}; ensureBaseRole(); saveRoles(); renderRoles(); });
+    function renderRoles(){ 
+      if (!roleBody) return;
+      roleBody.innerHTML = ''; 
+      ensureBaseRole(); 
+      const keys = Object.keys(roles).sort((a, b) => a === '_' ? -1 : (b === '_' ? 1 : a.localeCompare(b))); 
+      const roleCount = $('roleCount');
+      if (roleCount) {
+        roleCount.textContent = `총 ${keys.length}개 이름`; 
+      }
+      keys.forEach(alias => roleBody.appendChild(roleRow(alias, roles[alias]))); 
+    }
+
+    on($('addRoleBtn'), 'click', () => { 
+      const name = prompt('추가할 이름 (예: 할머니)'); 
+      if (!name) return; 
+      roles[name] = {voice: '', speed: '100', pitch: '0', vol: '0', lang: 'ko-KR', comfy: false}; 
+      saveRoles(); 
+      renderRoles(); 
+    });
+    
+    on($('resetRolesBtn'), 'click', () => { 
+      if (!confirm('모든 이름 설정을 초기화할까요?')) return; 
+      roles = {}; 
+      ensureBaseRole(); 
+      saveRoles(); 
+      renderRoles(); 
+    });
 
     // 이름 자동찾기
-    function parseDialogByAlias(text, resetEachLine){ const lines=text.split(/\n/); const parts=[]; let cur='_'; for(const raw of lines){ const line=raw.trim(); if(!line){ parts.push({alias:resetEachLine?'_':cur,text:'\n'}); continue;} let m=line.match(/^([\w\uAC00-\uD7A3]{1,16}):\s*(.*)$/); if(m){ cur=m[1]; parts.push({alias:cur,text:m[2]}); if(resetEachLine) cur='_'; continue;} m=line.match(/^\[([\w\uAC00-\uD7A3]{1,16})\]\s*(.*)$/); if(m){ cur=m[1]; parts.push({alias:cur,text:m[2]}); if(resetEachLine) cur='_'; continue;} parts.push({alias:resetEachLine?'_':cur,text:line}); }
-      return parts.filter(p=>p.text&&p.text.trim()); }
-    function detectRoles(){ const parts=parseDialogByAlias(editor.value, $('lineResetTgl').getAttribute('aria-pressed')==='true'); const uniq=new Set(parts.map(p=>p.alias)); ensureBaseRole(); uniq.forEach(a=>{ if(!roles[a]) roles[a]={voice:'', speed:'100', pitch:'0', vol:'0', lang:'ko-KR', comfy:(a==='_')}; }); saveRoles(); renderRoles(); alert(uniq.size? `찾은 이름: ${[...uniq].join(', ')}`:'이름을 찾지 못했습니다. 예: "할머니: 내용"'); }
-    on($('detectBtn'),'click',detectRoles);
+    function parseDialogByAlias(text, resetEachLine){ 
+      const lines = text.split(/\n/); 
+      const parts = []; 
+      let cur = '_'; 
+      for (const raw of lines) { 
+        const line = raw.trim(); 
+        if (!line) { 
+          parts.push({alias: resetEachLine ? '_' : cur, text: '\n'}); 
+          continue;
+        } 
+        let m = line.match(/^([\w\uAC00-\uD7A3]{1,16}):\s*(.*)$/); 
+        if (m) { 
+          cur = m[1]; 
+          parts.push({alias: cur, text: m[2]}); 
+          if (resetEachLine) cur = '_'; 
+          continue;
+        } 
+        m = line.match(/^\[([\w\uAC00-\uD7A3]{1,16})\]\s*(.*)$/); 
+        if (m) { 
+          cur = m[1]; 
+          parts.push({alias: cur, text: m[2]}); 
+          if (resetEachLine) cur = '_'; 
+          continue;
+        } 
+        parts.push({alias: resetEachLine ? '_' : cur, text: line}); 
+      }
+      return parts.filter(p => p.text && p.text.trim()); 
+    }
+    
+    function detectRoles(){ 
+      const parts = parseDialogByAlias(editor.value, $('lineResetTgl').getAttribute('aria-pressed') === 'true'); 
+      const uniq = new Set(parts.map(p => p.alias)); 
+      ensureBaseRole(); 
+      uniq.forEach(a => { 
+        if (!roles[a]) roles[a] = {voice: '', speed: '100', pitch: '0', vol: '0', lang: 'ko-KR', comfy: (a === '_')}; 
+      }); 
+      saveRoles(); 
+      renderRoles(); 
+      showSuccess(`찾은 이름: ${[...uniq].join(', ')}`); 
+    }
+    on($('detectBtn'), 'click', detectRoles);
 
     // 편집 도우미
-    on($('aliasBtn'),'click',()=>{ const name=prompt('선택한 문장에 붙일 이름 (예: 할머니)'); if(!name) return; const ta=editor; const s=ta.selectionStart,e=ta.selectionEnd; const before=ta.value.slice(0,s), sel=ta.value.slice(s,e), after=ta.value.slice(e); ta.value = `${before}${name}: ${sel}${after}`; updateCounter(); });
-    on($('altBtn'),'click',()=>{ const A=prompt('첫 줄 이름(예: A)'), B=prompt('다음 줄 이름(예: B)'); if(!A||!B) return; const lines=editor.value.split(/\n/); let cur=A; for(let i=0;i<lines.length;i++){ if(lines[i].trim()){ lines[i]=`${cur}: `+lines[i]; cur=(cur===A?B:A);} } editor.value=lines.join('\n'); updateCounter(); });
+    on($('aliasBtn'), 'click', () => { 
+      const name = prompt('선택한 문장에 붙일 이름 (예: 할머니)'); 
+      if (!name) return; 
+      const ta = editor; 
+      const s = ta.selectionStart, e = ta.selectionEnd; 
+      const before = ta.value.slice(0, s), sel = ta.value.slice(s, e), after = ta.value.slice(e); 
+      ta.value = `${before}${name}: ${sel}${after}`; 
+      updateCounter(); 
+    });
+    
+    on($('altBtn'), 'click', () => { 
+      const A = prompt('첫 줄 이름(예: A)'), B = prompt('다음 줄 이름(예: B)'); 
+      if (!A || !B) return; 
+      const lines = editor.value.split(/\n/); 
+      let cur = A; 
+      for (let i = 0; i < lines.length; i++) { 
+        if (lines[i].trim()) { 
+          lines[i] = `${cur}: ` + lines[i]; 
+          cur = (cur === A ? B : A);
+        } 
+      } 
+      editor.value = lines.join('\n'); 
+      updateCounter(); 
+    });
 
     // 언어 샘플
-    const LANG_SAMPLES=[
-      { code:'ko-KR', name:'한국어(대한민국)', sample:'안녕하세요. 이것은 샘플 문장입니다.' },
-      { code:'en-US', name:'영어(미국)', sample:'Hello, this is a sample sentence.' },
-      { code:'en-GB', name:'영어(영국)', sample:'Hello, this is a sample sentence.' },
-      { code:'ja-JP', name:'일본어', sample:'こんにちは。これはサンプル文です。' },
-      { code:'zh-CN', name:'중국어(중국 표준)', sample:'你好。这是一句示例句子。' },
-      { code:'zh-TW', name:'중국어(대만)', sample:'你好。這是一句範例。' },
-      { code:'de-DE', name:'독일어', sample:'Hallo, dies ist ein Beispielsatz.' },
-      { code:'fr-FR', name:'프랑스어', sample:'Bonjour, ceci est une phrase exemple.' },
-      { code:'es-ES', name:'스페인어(스페인)', sample:'Hola, esta es una frase de ejemplo.' },
-      { code:'it-IT', name:'이탈리아어', sample:'Ciao, questa è una frase di esempio.' },
-      { code:'ru-RU', name:'러시아어', sample:'Здравствуйте. Это пример предложения.' },
-      { code:'pt-BR', name:'포르투갈어(브라질)', sample:'Olá, esta é uma frase de exemplo.' }
+    const LANG_SAMPLES = [
+      { code: 'ko-KR', name: '한국어(대한민국)', sample: '안녕하세요. 이것은 샘플 문장입니다.' },
+      { code: 'en-US', name: '영어(미국)', sample: 'Hello, this is a sample sentence.' },
+      { code: 'en-GB', name: '영어(영국)', sample: 'Hello, this is a sample sentence.' },
+      { code: 'ja-JP', name: '일본어', sample: 'こんにちは。これはサンプル文です。' },
+      { code: 'zh-CN', name: '중국어(중국 표준)', sample: '你好。这是一句示例句子。' },
+      { code: 'zh-TW', name: '중국어(대만)', sample: '你好。這是一句範例。' },
+      { code: 'de-DE', name: '독일어', sample: 'Hallo, dies ist ein Beispielsatz.' },
+      { code: 'fr-FR', name: '프랑스어', sample: 'Bonjour, ceci est une phrase exemple.' },
+      { code: 'es-ES', name: '스페인어(스페인)', sample: 'Hola, esta es una frase de ejemplo.' },
+      { code: 'it-IT', name: '이탈리아어', sample: 'Ciao, questa è una frase di esempio.' },
+      { code: 'ru-RU', name: '러시아어', sample: 'Здравствуйте. Это пример предложения.' },
+      { code: 'pt-BR', name: '포르투갈어(브라질)', sample: 'Olá, esta é uma frase de exemplo.' }
     ];
+    
     const voiceBody = document.querySelector('#voiceTable tbody');
-    function renderSample(){ const sel=$('sampleLang'); sel.innerHTML = LANG_SAMPLES.map(x=>`<option value="${x.code}">${x.name} — ${x.code}</option>`).join(''); const saved=localStorage.getItem(LS.SAMPLE); sel.value = saved || 'ko-KR'; const it=LANG_SAMPLES.find(x=>x.code===sel.value); if(it) $('sampleText').value=it.sample; renderVoiceList(); }
-    on($('sampleLang'),'change',()=>{ localStorage.setItem(LS.SAMPLE, $('sampleLang').value); const it=LANG_SAMPLES.find(x=>x.code===$('sampleLang').value); if(it) $('sampleText').value=it.sample; renderVoiceList(); });
-    function renderVoiceList(){ voiceBody.innerHTML=''; const lang=$('sampleLang').value; const list=VOICES.filter(v=> (v.languageCodes||[]).includes(lang)); list.forEach(v=>{ const tr=document.createElement('tr'); tr.innerHTML=`
+    
+    function renderSample(){ 
+      const sel = $('sampleLang'); 
+      if (!sel) return;
+      sel.innerHTML = LANG_SAMPLES.map(x => `<option value="${x.code}">${x.name} — ${x.code}</option>`).join(''); 
+      const saved = localStorage.getItem(LS.SAMPLE); 
+      sel.value = saved || 'ko-KR'; 
+      const it = LANG_SAMPLES.find(x => x.code === sel.value); 
+      if (it && $('sampleText')) $('sampleText').value = it.sample; 
+      renderVoiceList(); 
+    }
+    
+    on($('sampleLang'), 'change', () => { 
+      const sampleLang = $('sampleLang');
+      if (!sampleLang) return;
+      localStorage.setItem(LS.SAMPLE, sampleLang.value); 
+      const it = LANG_SAMPLES.find(x => x.code === sampleLang.value); 
+      if (it && $('sampleText')) $('sampleText').value = it.sample; 
+      renderVoiceList(); 
+    });
+    
+    function renderVoiceList(){ 
+      if (!voiceBody) return;
+      voiceBody.innerHTML = ''; 
+      const sampleLang = $('sampleLang');
+      if (!sampleLang) return;
+      const lang = sampleLang.value; 
+      const list = VOICES.filter(v => (v.languageCodes || []).includes(lang)); 
+      
+      list.forEach(v => { 
+        const tr = document.createElement('tr'); 
+        tr.innerHTML = `
         <td class="mono">${v.name}</td>
-        <td>${/Neural|Wavenet|Chirp|Standard/i.test(v.name)? (v.name.match(/(Chirp|Neural|Wavenet|Standard)/i)||['',''])[1] : '—'}</td>
-        <td>${v.ssmlGender||'—'}</td>
+        <td>${/Neural|Wavenet|Chirp|Standard/i.test(v.name) ? (v.name.match(/(Chirp|Neural|Wavenet|Standard)/i) || ['',''])[1] : '—'}</td>
+        <td>${v.ssmlGender || '—'}</td>
         <td><button class="btn btn-secondary small prevBtn">▶</button></td>
         <td><button class="btn btn-secondary small useBase">기본 이름</button></td>
         <td><button class="btn btn-secondary small useSelected">선택 이름…</button></td>`;
-      tr.querySelector('.prevBtn').onclick=()=> previewVoice(v.name, lang, $('sampleText').value);
-      tr.querySelector('.useBase').onclick=()=>{ ensureBaseRole(); roles._.lang=lang; roles._.voice=v.name; saveRoles(); renderRoles(); alert('기본 이름에 적용됨'); };
-      tr.querySelector('.useSelected').onclick=()=>{ const keys=Object.keys(roles); if(!keys.length){ alert('먼저 이름을 추가하세요'); return; } const name=prompt('어느 이름에 쓸까요? '+keys.join(', ')); if(!name||!roles[name]) return; roles[name].lang=lang; roles[name].voice=v.name; saveRoles(); renderRoles(); alert(`${name}에 적용됨`); };
-      voiceBody.appendChild(tr); }); }
+        
+        tr.querySelector('.prevBtn').onclick = () => {
+          const sampleText = $('sampleText');
+          previewVoice(v.name, lang, sampleText ? sampleText.value : '안녕하세요. 미리듣기입니다.');
+        };
+        
+        tr.querySelector('.useBase').onclick = () => { 
+          ensureBaseRole(); 
+          roles._.lang = lang; 
+          roles._.voice = v.name; 
+          saveRoles(); 
+          renderRoles(); 
+          renderBaseVoiceSelect();
+          showSuccess('기본 이름에 적용됨'); 
+        };
+        
+        tr.querySelector('.useSelected').onclick = () => { 
+          const keys = Object.keys(roles); 
+          if (!keys.length) { 
+            showError('먼저 이름을 추가하세요'); 
+            return; 
+          } 
+          const name = prompt('어느 이름에 쓸까요? ' + keys.join(', ')); 
+          if (!name || !roles[name]) return; 
+          roles[name].lang = lang; 
+          roles[name].voice = v.name; 
+          saveRoles(); 
+          renderRoles(); 
+          showSuccess(`${name}에 적용됨`); 
+        };
+        
+        voiceBody.appendChild(tr); 
+      }); 
+    }
 
     // 합성
-    function chipsVal(id){ return getGroup(id); }
-    function numOrChip(numEl, chipId){ const v=numEl.value.trim(); return v? Number(v) : Number(chipsVal(chipId)); }
-    const MAX_BYTES=4900; // 안전 마진
-    function splitChunks(text){ const out=[]; const paras=text.split(/\n{2,}/); for(const para of paras){ if(!para.trim()) continue; if(bCount(para)<=MAX_BYTES){ out.push(para); continue;} const sents=para.split(/(?<=[\.\!\?…]|[。！？])\s+/); let buf=''; for(const s of sents){ const cand=buf? (buf+' '+s):s; if(bCount(cand)>MAX_BYTES){ if(buf) out.push(buf); if(bCount(s)>MAX_BYTES){ let cur=s; while(bCount(cur)>MAX_BYTES){ let take=Math.floor(cur.length*0.6); while(take<cur.length && bCount(cur.slice(0,take))<=MAX_BYTES) take++; out.push(cur.slice(0,take-1)); cur=cur.slice(take-1);} if(cur.trim()) buf=cur; else buf=''; } else { buf=s; } } else { buf=cand; } } if(buf.trim()) out.push(buf);} return out; }
-    function insertBreaks(str, ms){ if(!ms||ms==='0') return str; const parts=str.split(/(?<=[\.\!\?…]|[。！？])\s+/); return parts.join(` <break time=\"${ms}ms\"/> `); }
+    function chipsVal(id){ 
+      return getGroup(id); 
+    }
+    
+    function numOrChip(numEl, chipId){ 
+      if (!numEl) return Number(chipsVal(chipId) || 0);
+      const v = numEl.value.trim(); 
+      return v ? Number(v) : Number(chipsVal(chipId) || 0); 
+    }
+    
+    const MAX_BYTES = 4900; // 안전 마진
+    
+    function splitChunks(text){ 
+      const out = []; 
+      const paras = text.split(/\n{2,}/); 
+      for (const para of paras) { 
+        if (!para.trim()) continue; 
+        if (bCount(para) <= MAX_BYTES) { 
+          out.push(para); 
+          continue;
+        } 
+        const sents = para.split(/(?<=[\.\!\?\…]|[。！？])\s+/); 
+        let buf = ''; 
+        for (const s of sents) { 
+          const cand = buf ? (buf + ' ' + s) : s; 
+          if (bCount(cand) > MAX_BYTES) { 
+            if (buf) out.push(buf); 
+            if (bCount(s) > MAX_BYTES) { 
+              let cur = s; 
+              while (bCount(cur) > MAX_BYTES) { 
+                let take = Math.floor(cur.length * 0.6); 
+                while (take < cur.length && bCount(cur.slice(0, take)) <= MAX_BYTES) take++; 
+                out.push(cur.slice(0, take - 1)); 
+                cur = cur.slice(take - 1);
+              } 
+              if (cur.trim()) buf = cur; 
+              else buf = ''; 
+            } else { 
+              buf = s; 
+            } 
+          } else { 
+            buf = cand; 
+          } 
+        } 
+        if (buf.trim()) out.push(buf);
+      } 
+      return out; 
+    }
+    
+    function stripSSML(text) {
+      return text.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+    }
+
+    function insertBreaks(str, ms, useSSML = true){ 
+      if (!ms || ms === '0' || !useSSML) return str; 
+      const parts = str.split(/(?<=[\.\!\?\…]|[。！？])\s+/); 
+      return parts.join(` <break time="${ms}ms"/> `); 
+    }
 
     async function synthesizeChunk({text, useSSML, voiceName, languageCode, rate, pitch, vol, encoding, sampleRate}){
-      const key=localStorage.getItem(LS.KEY); if(!key) throw new Error('API 키가 없습니다');
-      const input = useSSML? { ssml:`<speak>${text}</speak>` } : { text };
-      const voice={ languageCode }; if(voiceName) voice.name=voiceName;
-      const body={ input, voice, audioConfig:{ audioEncoding: encoding, speakingRate: rate, pitch: pitch, volumeGainDb: vol, sampleRateHertz: sampleRate } };
-      const url=`https://texttospeech.googleapis.com/v1/text:synthesize?key=${encodeURIComponent(key)}`;
-      const retries = Number(getGroup('retryChips')||'0');
-      for(let attempt=0; attempt<=retries; attempt++){
-        const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-        const j=await r.json(); if(r.ok) return j.audioContent; if(attempt===retries) throw new Error(j.error?.message||r.statusText); await sleep(300*(attempt+1));
+      const key = localStorage.getItem(LS.KEY); 
+      if (!key) throw new Error('API 키가 없습니다');
+      
+      const voice = { languageCode }; 
+      if (voiceName) voice.name = voiceName;
+      
+      const audioConfig = { 
+        audioEncoding: encoding, 
+        speakingRate: rate, 
+        pitch: pitch, 
+        volumeGainDb: vol, 
+        sampleRateHertz: sampleRate 
+      };
+      
+      const url = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${encodeURIComponent(key)}`;
+      const retries = Number(getGroup('retryChips') || '3');
+      
+      for (let attempt = 0; attempt <= retries; attempt++) {
+        if (cancelRequested) throw new Error('사용자가 취소함');
+        
+        if (useSSML) {
+          const ssmlBody = { 
+            input: { ssml: `<speak>${text}</speak>` }, 
+            voice, 
+            audioConfig 
+          };
+          
+          try {
+            const r = await fetch(url, {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify(ssmlBody)
+            });
+            const j = await r.json();
+            
+            if (r.ok) return j.audioContent;
+            
+            if (j.error?.message?.includes('does not support SSML')) {
+              console.warn('SSML 미지원 음성, 텍스트 모드로 전환:', voiceName);
+              const textBody = { 
+                input: { text: text.replace(/<[^>]*>/g, '') },
+                voice, 
+                audioConfig 
+              };
+              
+              const r2 = await fetch(url, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(textBody)
+              });
+              const j2 = await r2.json();
+              if (r2.ok) return j2.audioContent;
+              if (attempt === retries) throw new Error(j2.error?.message || r2.statusText);
+            } else {
+              if (attempt === retries) throw new Error(j.error?.message || r.statusText);
+            }
+          } catch (fetchError) {
+            if (attempt === retries) throw fetchError;
+          }
+        } else {
+          const textBody = { 
+            input: { text }, 
+            voice, 
+            audioConfig 
+          };
+          
+          try {
+            const r = await fetch(url, {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify(textBody)
+            });
+            const j = await r.json();
+            if (r.ok) return j.audioContent;
+            if (attempt === retries) throw new Error(j.error?.message || r.statusText);
+          } catch (fetchError) {
+            if (attempt === retries) throw fetchError;
+          }
+        }
+        
+        await sleep(300 * (attempt + 1));
       }
     }
-    function b64ToU8(b64){ const bin=atob(b64); const u8=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u8[i]=bin.charCodeAt(i); return u8; }
-    function concatU8(arrs){ const n=arrs.reduce((s,a)=>s+a.length,0); const out=new Uint8Array(n); let off=0; for(const a of arrs){ out.set(a,off); off+=a.length;} return out; }
+    
+    function b64ToU8(b64){ 
+      const bin = atob(b64); 
+      const u8 = new Uint8Array(bin.length); 
+      for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i); 
+      return u8; 
+    }
+    
+    function concatWavFiles(wavArrays, sampleRate = 44100) {
+      if (wavArrays.length === 0) return new Uint8Array();
+      if (wavArrays.length === 1) return wavArrays[0];
+      
+      const WAV_HEADER_SIZE = 44;
+      const audioDataArrays = wavArrays.map(wav => wav.slice(WAV_HEADER_SIZE));
+      const totalAudioLength = audioDataArrays.reduce((sum, data) => sum + data.length, 0);
+      const totalFileSize = WAV_HEADER_SIZE + totalAudioLength;
+      
+      const result = new Uint8Array(totalFileSize);
+      const view = new DataView(result.buffer);
+      
+      // RIFF 헤더
+      view.setUint32(0, 0x52494646, false); // "RIFF"
+      view.setUint32(4, totalFileSize - 8, true);
+      view.setUint32(8, 0x57415645, false); // "WAVE"
+      
+      // fmt 청크
+      view.setUint32(12, 0x666d7420, false); // "fmt "
+      view.setUint32(16, 16, true);
+      view.setUint16(20, 1, true);
+      view.setUint16(22, 1, true);
+      view.setUint32(24, sampleRate, true);
+      view.setUint32(28, sampleRate * 2, true);
+      view.setUint16(32, 2, true);
+      view.setUint16(34, 16, true);
+      
+      // data 청크
+      view.setUint32(36, 0x64617461, false); // "data"
+      view.setUint32(40, totalAudioLength, true);
+      
+      let offset = WAV_HEADER_SIZE;
+      for (const audioData of audioDataArrays) {
+        result.set(audioData, offset);
+        offset += audioData.length;
+      }
+      
+      return result;
+    }
 
-    async function previewVoice(name, lang, sample){ try{ const b64=await synthesizeChunk({text: sample||'안녕하세요. 미리듣기입니다.', useSSML:false, voiceName:name, languageCode:lang||'ko-KR', rate:1.0, pitch:0, vol:0, encoding:'MP3', sampleRate:Number($('srNum').value||chipsVal('srChips')||44100)}); const url=URL.createObjectURL(new Blob([b64ToU8(b64)],{type:'audio/mpeg'})); new Audio(url).play(); }catch(e){ alert('미리듣기 실패: '+e.message);} }
+    function concatU8(arrs, encoding = 'MP3', sampleRate = 44100){ 
+      if (arrs.length === 0) return new Uint8Array();
+      if (arrs.length === 1) return arrs[0];
+      
+      if (encoding === 'LINEAR16') {
+        return concatWavFiles(arrs, sampleRate);
+      }
+      
+      const totalSize = arrs.reduce((s, a) => s + a.length, 0);
+      const out = new Uint8Array(totalSize); 
+      let offset = 0; 
+      for (const arr of arrs) { 
+        out.set(arr, offset); 
+        offset += arr.length;
+      } 
+      
+      return out; 
+    }
 
-    function buildSegments(){ const text=editor.value; const enc=chipsVal('encChips')||'MP3'; const sr=Number($('srNum').value||chipsVal('srChips')||'44100'); const sp=String(numOrChip($('sentNum'),'sentChips')||300); const sw=String(numOrChip($('switchNum'),'switchChips')||150); const lineReset= $('lineResetTgl').getAttribute('aria-pressed')==='true'; const chunkOn=$('chunkTgl').getAttribute('aria-pressed')==='true';
-      const segs=[]; const splitter = chunkOn? splitChunks: (t)=>[t];
-      if(mode==='ssml'){
-        const chunks= splitter(text);
-        const base = roles._ || {voice:'', speed:'100', pitch:'0', vol:'0', lang:'ko-KR'};
-        chunks.forEach(ch=> segs.push({ alias:'기본', text: ch, ssml:true, voice: base.voice, lang: base.lang, rate: Number(base.speed)/100, pitch: Number(base.pitch), vol: Number(base.vol) }));
-      } else if(mode==='plain'){
-        const base = roles._ || {voice:'', speed:'100', pitch:'0', vol:'0', lang:'ko-KR'};
-        const inner = insertBreaks(text, sp);
-        splitter(inner).forEach(ch=> segs.push({ alias:'기본', text: ch, ssml:true, voice: base.voice, lang: base.lang, rate: Number(base.speed)/100, pitch: Number(base.pitch), vol: Number(base.vol) }));
+    async function previewVoice(name, lang, sample){ 
+      try { 
+        const srNum = $('srNum');
+        const sampleRate = Number((srNum ? srNum.value : '') || chipsVal('srChips') || 44100);
+        const b64 = await synthesizeChunk({
+          text: sample || '안녕하세요. 미리듣기입니다.', 
+          useSSML: false, 
+          voiceName: name, 
+          languageCode: lang || 'ko-KR', 
+          rate: 1.0, 
+          pitch: 0, 
+          vol: 0, 
+          encoding: 'MP3', 
+          sampleRate: sampleRate
+        }); 
+        const url = URL.createObjectURL(new Blob([b64ToU8(b64)], {type: 'audio/mpeg'})); 
+        new Audio(url).play(); 
+      } catch (e) { 
+        showError('미리듣기 실패: ' + parseError(e));
+      } 
+    }
+
+    function buildSegments(){ 
+      const text = editor.value; 
+      const enc = chipsVal('encChips') || 'MP3';
+      const srNum = $('srNum');
+      const sr = Number((srNum ? srNum.value : '') || chipsVal('srChips') || '44100'); 
+      const sentNum = $('sentNum');
+      const sp = String(numOrChip(sentNum, 'sentChips') || 300); 
+      const switchNum = $('switchNum');
+      const sw = String(numOrChip(switchNum, 'switchChips') || 150); 
+      const lineReset = $('lineResetTgl').getAttribute('aria-pressed') === 'true'; 
+      const chunkOn = $('chunkTgl').getAttribute('aria-pressed') === 'true';
+      
+      const segs = []; 
+      const splitter = chunkOn ? splitChunks : (t) => [t];
+      
+      if (mode === 'ssml') {
+        const chunks = splitter(text);
+        const base = roles._ || {voice: '', speed: '100', pitch: '0', vol: '0', lang: 'ko-KR'};
+        chunks.forEach(ch => segs.push({ 
+          alias: '기본', 
+          text: ch, 
+          ssml: true, 
+          voice: base.voice, 
+          lang: base.lang, 
+          rate: Number(base.speed) / 100, 
+          pitch: Number(base.pitch), 
+          vol: Number(base.vol) 
+        }));
+      } else if (mode === 'plain') {
+        const base = roles._ || {voice: '', speed: '100', pitch: '0', vol: '0', lang: 'ko-KR'};
+        const isAdvancedVoice = base.voice && (base.voice.includes('Neural') || base.voice.includes('Wavenet') || base.voice.includes('Chirp'));
+        const inner = insertBreaks(text, sp, isAdvancedVoice);
+        splitter(inner).forEach(ch => segs.push({ 
+          alias: '기본', 
+          text: ch, 
+          ssml: isAdvancedVoice, 
+          voice: base.voice, 
+          lang: base.lang, 
+          rate: Number(base.speed) / 100, 
+          pitch: Number(base.pitch), 
+          vol: Number(base.vol) 
+        }));
       } else { // dialog
         const parts = parseDialogByAlias(text, lineReset);
-        for(let i=0;i<parts.length;i++){
-          const cur=parts[i], next=parts[i+1];
-          const add = (next && next.alias!==cur.alias)? ` <break time=\"${sw}ms\"/>` : '';
-          const r = roles[cur.alias] || roles._ || {voice:'', speed:'100', pitch:'0', vol:'0', lang:'ko-KR'};
-          const inner = insertBreaks(cur.text, sp) + add;
-          splitter(inner).forEach(ch=> segs.push({ alias: cur.alias, text: ch, ssml:true, voice: r.voice, lang: r.lang, rate: Number(r.speed)/100, pitch: Number(r.pitch), vol: Number(r.vol) }));
+        for (let i = 0; i < parts.length; i++) {
+          const cur = parts[i], next = parts[i + 1];
+          const r = roles[cur.alias] || roles._ || {voice: '', speed: '100', pitch: '0', vol: '0', lang: 'ko-KR'};
+          const isAdvancedVoice = r.voice && (r.voice.includes('Neural') || r.voice.includes('Wavenet') || r.voice.includes('Chirp'));
+          const add = (next && next.alias !== cur.alias && isAdvancedVoice) ? ` <break time="${sw}ms"/>` : '';
+          const inner = insertBreaks(cur.text, sp, isAdvancedVoice) + add;
+          splitter(inner).forEach(ch => segs.push({ 
+            alias: cur.alias, 
+            text: ch, 
+            ssml: isAdvancedVoice, 
+            voice: r.voice, 
+            lang: r.lang, 
+            rate: Number(r.speed) / 100, 
+            pitch: Number(r.pitch), 
+            vol: Number(r.vol) 
+          }));
         }
       }
+      
       return {segs, enc, sr};
     }
 
-    let segmentsLog=[];
-    on($('makeBtn'),'click', async ()=>{
-      if(!localStorage.getItem(LS.KEY)) return alert('먼저 API 키를 저장하세요');
-      if(VOICES.length===0) await loadVoices();
-      if(mode!=='ssml'){
-        if(mode==='plain'){ if(!(roles._ && roles._.voice)) return alert('일반 모드: 기본 이름의 목소리를 먼저 선택하세요'); }
-        if(mode==='dialog'){
-          const missing=[]; Object.keys(roles).forEach(k=>{ if(!roles[k].voice) missing.push(k); }); if(missing.length>0) return alert('아래 이름 설정표에서 목소리를 선택하세요:\n'+missing.join(', '));
+    let segmentsLog = [];
+    
+    // 취소 버튼
+    on($('cancelBtn'), 'click', () => {
+      cancelRequested = true;
+      $('cancelBtn').style.display = 'none';
+    });
+    
+    on($('makeBtn'), 'click', async () => {
+      if (!localStorage.getItem(LS.KEY)) return showError('먼저 API 키를 저장하세요');
+      if (VOICES.length === 0) await loadVoices();
+      
+      if (mode !== 'ssml') {
+        if (mode === 'plain') { 
+          if (!(roles._ && roles._.voice)) return showError('일반 모드: 기본 이름의 목소리를 먼저 선택하세요'); 
+        }
+        if (mode === 'dialog') {
+          const missing = []; 
+          Object.keys(roles).forEach(k => { 
+            if (!roles[k].voice) missing.push(k); 
+          }); 
+          if (missing.length > 0) return showError('아래 이름 설정표에서 목소리를 선택하세요:\n' + missing.join(', '));
         }
       }
-      $('makeBtn').disabled=true; $('status').textContent='시작합니다…';
-      try{
+      
+      const makeBtn = $('makeBtn');
+      const cancelBtn = $('cancelBtn');
+      const status = $('status');
+      const progressBar = $('progressBar');
+      const progressFill = $('progressFill');
+      
+      makeBtn.disabled = true; 
+      cancelBtn.style.display = 'inline';
+      progressBar.style.display = 'block';
+      cancelRequested = false;
+      status.textContent = '시작합니다…';
+      
+      // 이전 오디오 URL 정리
+      activeAudioUrls.forEach(url => URL.revokeObjectURL(url));
+      activeAudioUrls = [];
+      
+      try {
         const {segs, enc, sr} = buildSegments();
-        const parts=[]; segmentsLog=[];
-        for(let i=0;i<segs.length;i++){
-          $('status').textContent = `만드는 중… (${i+1}/${segs.length})`;
-          const s=segs[i];
-          const b64= await synthesizeChunk({text:s.text, useSSML:s.ssml, voiceName:s.voice, languageCode:s.lang, rate:s.rate, pitch:s.pitch, vol:s.vol, encoding:enc, sampleRate:sr});
-          const u8=b64ToU8(b64); parts.push(u8);
-          segmentsLog.push({ alias:s.alias, text: s.text.replace(/\s+/g,' ').slice(0,80), dur: 0 });
+        const parts = []; 
+        segmentsLog = [];
+        
+        for (let i = 0; i < segs.length; i++) {
+          if (cancelRequested) {
+            throw new Error('사용자가 취소함');
+          }
+          
+          status.textContent = `만드는 중… (${i + 1}/${segs.length})`;
+          progressFill.style.width = `${((i + 1) / segs.length) * 100}%`;
+          
+          const s = segs[i];
+          const b64 = await synthesizeChunk({
+            text: s.text, 
+            useSSML: s.ssml, 
+            voiceName: s.voice, 
+            languageCode: s.lang, 
+            rate: s.rate, 
+            pitch: s.pitch, 
+            vol: s.vol, 
+            encoding: enc, 
+            sampleRate: sr
+          });
+          const u8 = b64ToU8(b64); 
+          parts.push(u8);
+          segmentsLog.push({ 
+            alias: s.alias, 
+            text: s.text.replace(/\s+/g, ' ').slice(0, 80), 
+            dur: 0 
+          });
           await sleep(8);
         }
-        const bytes=concatU8(parts); const mime=(enc==='OGG_OPUS'?'audio/ogg':'audio/mpeg'); const url=URL.createObjectURL(new Blob([bytes],{type:mime}));
-        $('player').src=url; const name=`tts-output-${new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')}.${enc==='OGG_OPUS'?'ogg':'mp3'}`; const dl=$('download'); dl.style.display='inline'; dl.href=url; dl.download=name; $('outInfo').textContent=`${(bytes.length/1024).toFixed(1)} KB · ${segs.length} 조각`; $('status').textContent='완료';
-      }catch(e){ console.error(e); alert('오류: '+e.message); $('status').textContent='실패'; }
-      $('makeBtn').disabled=false;
+        
+        const bytes = concatU8(parts, enc, sr); 
+        const mime = (enc === 'OGG_OPUS' ? 'audio/ogg' : (enc === 'LINEAR16' ? 'audio/wav' : 'audio/mpeg')); 
+        const url = URL.createObjectURL(new Blob([bytes], {type: mime}));
+        activeAudioUrls.push(url);
+        
+        const player = $('player');
+        if (player) player.src = url; 
+        
+        const ext = (enc === 'OGG_OPUS' ? 'ogg' : (enc === 'LINEAR16' ? 'wav' : 'mp3'));
+        const name = `tts-output-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.${ext}`; 
+        const dl = $('download'); 
+        if (dl) {
+          dl.style.display = 'inline'; 
+          dl.href = url; 
+          dl.download = name; 
+        }
+        
+        const outInfo = $('outInfo');
+        if (outInfo) {
+          outInfo.textContent = `${(bytes.length / 1024).toFixed(1)} KB · ${segs.length} 조각`; 
+        }
+        status.textContent = '완료';
+        progressFill.style.width = '100%';
+      } catch (e) { 
+        console.error(e); 
+        showError('오류: ' + parseError(e)); 
+        status.textContent = '실패'; 
+        progressFill.style.width = '0%';
+      }
+      
+      makeBtn.disabled = false;
+      cancelBtn.style.display = 'none';
+      setTimeout(() => {
+        progressBar.style.display = 'none';
+      }, 2000);
     });
 
-    function toSrt(){ let t=0, out='', i=1; for(const seg of segmentsLog){ const fmt=(x)=>{ const h=String(Math.floor(x/3600)).padStart(2,'0'); x%=3600; const m=String(Math.floor(x/60)).padStart(2,'0'); const s=String(Math.floor(x%60)).padStart(2,'0'); const ms=String(Math.floor((x%1)*1000)).padStart(3,'0'); return `${h}:${m}:${s},${ms}`}; const s=fmt(t), e=fmt(t+(seg.dur||0)); out+=`${i++}\n${s} --> ${e}\n${seg.alias?('['+seg.alias+'] '):''}${seg.text}\n\n`; t+=(seg.dur||0);} return out; }
-    function toVtt(){ let t=0, out='WEBVTT\n\n'; for(const seg of segmentsLog){ const fmt=(x)=>{ const h=String(Math.floor(x/3600)).padStart(2,'0'); x%=3600; const m=String(Math.floor(x/60)).padStart(2,'0'); const s=String(Math.floor(x%60)).padStart(2,'0'); const ms=String(Math.floor((x%1)*1000)).padStart(3,'0'); return `${h}:${m}:${s}.${ms}`}; const s=fmt(t), e=fmt(t+(seg.dur||0)); out+=`${s} --> ${e}\n${seg.alias?('['+seg.alias+'] '):''}${seg.text}\n\n`; t+=(seg.dur||0);} return out; }
-    function downloadText(name, text){ const url=URL.createObjectURL(new Blob([text],{type:'text/plain;charset=utf-8'})); const a=document.createElement('a'); a.href=url; a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 80); }
-    on($('srtBtn'),'click',()=>{ if(!segmentsLog.length) return alert('먼저 음성을 만드세요'); downloadText('subtitles.srt', toSrt()); });
-    on($('vttBtn'),'click',()=>{ if(!segmentsLog.length) return alert('먼저 음성을 만드세요'); downloadText('subtitles.vtt', toVtt()); });
+    function toSrt(){ 
+      let t = 0, out = '', i = 1; 
+      for (const seg of segmentsLog) { 
+        const fmt = (x) => { 
+          const h = String(Math.floor(x / 3600)).padStart(2, '0'); 
+          x %= 3600; 
+          const m = String(Math.floor(x / 60)).padStart(2, '0'); 
+          const s = String(Math.floor(x % 60)).padStart(2, '0'); 
+          const ms = String(Math.floor((x % 1) * 1000)).padStart(3, '0'); 
+          return `${h}:${m}:${s},${ms}`;
+        }; 
+        const s = fmt(t), e = fmt(t + (seg.dur || 0)); 
+        out += `${i++}\n${s} --> ${e}\n${seg.alias ? ('[' + seg.alias + '] ') : ''}${seg.text}\n\n`; 
+        t += (seg.dur || 0);
+      } 
+      return out; 
+    }
+    
+    function toVtt(){ 
+      let t = 0, out = 'WEBVTT\n\n'; 
+      for (const seg of segmentsLog) { 
+        const fmt = (x) => { 
+          const h = String(Math.floor(x / 3600)).padStart(2, '0'); 
+          x %= 3600; 
+          const m = String(Math.floor(x / 60)).padStart(2, '0'); 
+          const s = String(Math.floor(x % 60)).padStart(2, '0'); 
+          const ms = String(Math.floor((x % 1) * 1000)).padStart(3, '0'); 
+          return `${h}:${m}:${s}.${ms}`;
+        }; 
+        const s = fmt(t), e = fmt(t + (seg.dur || 0)); 
+        out += `${s} --> ${e}\n${seg.alias ? ('[' + seg.alias + '] ') : ''}${seg.text}\n\n`; 
+        t += (seg.dur || 0);
+      } 
+      return out; 
+    }
+    
+    function downloadText(name, text){ 
+      const url = URL.createObjectURL(new Blob([text], {type: 'text/plain;charset=utf-8'})); 
+      const a = document.createElement('a'); 
+      a.href = url; 
+      a.download = name; 
+      document.body.appendChild(a); 
+      a.click(); 
+      setTimeout(() => { 
+        URL.revokeObjectURL(url); 
+        a.remove(); 
+      }, 80); 
+    }
+    
+    on($('srtBtn'), 'click', () => { 
+      if (!segmentsLog.length) return showError('먼저 음성을 만드세요'); 
+      downloadText('subtitles.srt', toSrt()); 
+    });
+    
+    on($('vttBtn'), 'click', () => { 
+      if (!segmentsLog.length) return showError('먼저 음성을 만드세요'); 
+      downloadText('subtitles.vtt', toVtt()); 
+    });
+
+    // 모두 듣기 편하게 버튼
+    on($('seniorAllBtn'), 'click', () => {
+      if (!confirm('모든 이름을 듣기 편한 설정(속도 92%, 톤 -2)으로 변경할까요?')) return;
+      Object.keys(roles).forEach(alias => {
+        roles[alias].speed = '92';
+        roles[alias].pitch = '-2';
+        roles[alias].comfy = true;
+      });
+      saveRoles();
+      renderRoles();
+      showSuccess('모든 이름이 듣기 편한 설정으로 변경되었습니다');
+    });
 
     // 초기화
-    (async function init(){ updateApiBadge(); setMode(mode); const o=JSON.parse(localStorage.getItem(LS.OPTS)||'{}');
+    (async function init(){ 
+      updateApiBadge(); 
+      setMode(mode);const o = loadOpts();
+      
       // 옵션 복원
-      setGroup('encChips', o.enc||'MP3'); setGroup('srChips', o.sr||'44100'); $('srNum').value=o.srNum||''; setGroup('sentChips', o.sent||'300'); $('sentNum').value=o.sentNum||''; setGroup('switchChips', o.sw||'150'); $('switchNum').value=o.swNum||''; $('normTgl').setAttribute('aria-pressed', String(o.norm!==false)); $('normTgl').classList.toggle('btn-primary', o.norm!==false); $('normTgl').classList.toggle('btn-secondary', o.norm===false); $('normTgl').textContent=(o.norm===false?'OFF':'ON'); $('chunkTgl').setAttribute('aria-pressed', String(o.chunk!==false)); $('chunkTgl').classList.toggle('btn-primary', o.chunk!==false); $('chunkTgl').classList.toggle('btn-secondary', o.chunk===false); $('chunkTgl').textContent=(o.chunk===false?'OFF':'ON'); $('lineResetTgl').setAttribute('aria-pressed', String(o.lineReset!==false)); $('lineResetTgl').classList.toggle('btn-primary', o.lineReset!==false); $('lineResetTgl').classList.toggle('btn-secondary', o.lineReset===false); $('lineResetTgl').textContent=(o.lineReset===false?'OFF':'ON');
-      await loadVoices(); ensureBaseRole(); renderRoles(); renderSample(); updateCounter(); autosave(); })();
+      setGroup('encChips', o.enc || 'MP3'); 
+      setGroup('srChips', o.sr || '44100'); 
+      if ($('srNum')) $('srNum').value = o.srNum || ''; 
+      setGroup('sentChips', o.sent || '300'); 
+      if ($('sentNum')) $('sentNum').value = o.sentNum || ''; 
+      setGroup('switchChips', o.sw || '150'); 
+      if ($('switchNum')) $('switchNum').value = o.swNum || ''; 
+      
+      const normTgl = $('normTgl');
+      if (normTgl) {
+        normTgl.setAttribute('aria-pressed', String(o.norm !== false)); 
+        normTgl.classList.toggle('btn-primary', o.norm !== false); 
+        normTgl.classList.toggle('btn-secondary', o.norm === false); 
+        normTgl.textContent = (o.norm === false ? 'OFF' : 'ON');
+      }
+      
+      const chunkTgl = $('chunkTgl');
+      if (chunkTgl) {
+        chunkTgl.setAttribute('aria-pressed', String(o.chunk !== false)); 
+        chunkTgl.classList.toggle('btn-primary', o.chunk !== false); 
+        chunkTgl.classList.toggle('btn-secondary', o.chunk === false); 
+        chunkTgl.textContent = (o.chunk === false ? 'OFF' : 'ON');
+      }
+      
+      const lineResetTgl = $('lineResetTgl');
+      if (lineResetTgl) {
+        lineResetTgl.setAttribute('aria-pressed', String(o.lineReset !== false)); 
+        lineResetTgl.classList.toggle('btn-primary', o.lineReset !== false); 
+        lineResetTgl.classList.toggle('btn-secondary', o.lineReset === false); 
+        lineResetTgl.textContent = (o.lineReset === false ? 'OFF' : 'ON');
+      }
+      
+      setGroup('retryChips', o.retry || '3');
+      
+      // API 키 복원
+      const savedKey = localStorage.getItem(LS.KEY);
+      if (savedKey && apiKey) {
+        apiKey.value = savedKey;
+      }
+      
+      try {
+        await loadVoices(); 
+      } catch (e) {
+        console.warn('음성 로드 실패:', e.message);
+      }
+      
+      ensureBaseRole(); 
+      renderRoles(); 
+      renderSample(); 
+      renderBaseVoiceSelect(); 
+      updateCounter(); 
+      autosave();
+      
+      // 페이지 떠날 때 메모리 정리
+      window.addEventListener('beforeunload', () => {
+        activeAudioUrls.forEach(url => URL.revokeObjectURL(url));
+      });
+    })();
   </script>
-  <script src="assets/js/tts-dialog.js"></script>
 </body>
 </html>
