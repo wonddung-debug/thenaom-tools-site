@@ -1,0 +1,1200 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TTS 역할 대화 생성기</title>
+  <style>
+    :root{ 
+      --bg:#ffffff; --text:#0b1220; --muted:#6b7280; --border:#e5e7eb; 
+      --card:#ffffff; --accent:#2563eb; --btn-text:#ffffff; 
+      --shadow:0 4px 12px rgba(0,0,0,.1); --input:#0b1220; --input-bg:var(--card); 
+      --success:#10b981; --warning:#f59e0b; --danger:#ef4444;
+    }
+    
+    [data-theme="dark"]{ 
+      --bg:#0f172a; --text:#f1f5f9; --muted:#9ca3af; --border:#374151; 
+      --card:#1f2937; --accent:#3b82f6; --btn-text:#ffffff; 
+      --shadow:0 4px 12px rgba(0,0,0,.3); --input:#f9fafb; --input-bg:#374151; 
+    }
+    
+    * { box-sizing: border-box; }
+    html, body { 
+      background: var(--bg); color: var(--text); margin: 0; 
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Noto Sans KR, Arial, sans-serif;
+    }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+    /* 메인 레이아웃 */
+    .main-layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+    @media(min-width: 768px) {
+      .main-layout {
+        grid-template-columns: 2fr 1fr;
+      }
+    }
+
+    .left-section, .right-section {
+      display: flex; flex-direction: column; gap: 16px;
+    }
+
+    /* 패널 */
+    .panel {
+      border: 1px solid var(--border); border-radius: 8px; background: var(--card);
+      box-shadow: var(--shadow); padding: 16px;
+    }
+    .panel h2 { margin: 0 0 12px 0; font-size: 1.1rem; font-weight: 600; }
+
+    /* 버튼 */
+    .btn {
+      padding: 8px 16px; border: 1px solid var(--border); border-radius: 6px;
+      background: var(--card); color: var(--text); cursor: pointer; font-size: 0.9rem;
+      transition: all 0.2s; text-decoration: none; display: inline-block;
+    }
+    .btn:hover { border-color: var(--accent); color: var(--accent); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-primary { background: var(--accent); border-color: var(--accent); color: var(--btn-text); }
+    .btn-primary:hover { background: color-mix(in srgb, var(--accent) 90%, black); }
+    .btn-danger { background: var(--danger); border-color: var(--danger); color: white; }
+    .btn.small { padding: 4px 8px; font-size: 0.8rem; }
+    .btn.large { width: 100%; height: 44px; font-size: 1rem; font-weight: 500; }
+
+    /* 입력 요소 */
+    .text-input {
+      width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 6px;
+      background: var(--input-bg); color: var(--input); font-family: monospace;
+      font-size: 0.9rem; line-height: 1.5; resize: vertical; min-height: 300px;
+    }
+    
+    select, input[type="text"], input[type="password"] {
+      width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px;
+      background: var(--input-bg); color: var(--input); font-size: 0.9rem;
+    }
+
+    /* 캐릭터 카드 */
+    .character-list {
+      display: flex; flex-direction: column; gap: 12px; max-height: 400px; overflow-y: auto;
+    }
+
+    .character-card {
+      border: 1px solid var(--border); border-radius: 6px; padding: 12px;
+      background: var(--card);
+    }
+
+    .character-card.default {
+      border-color: var(--accent); background: color-mix(in srgb, var(--accent) 5%, var(--card));
+    }
+
+    .character-header {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;
+    }
+    .character-name { font-weight: 500; }
+    .character-status { font-size: 1.1em; }
+
+    .voice-row {
+      display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px;
+    }
+    .voice-row label {
+      font-size: 0.85rem; font-weight: 500; color: var(--muted);
+    }
+
+    .character-actions {
+      display: flex; gap: 8px;
+    }
+
+    /* 설정 행 */
+    .setting-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px;
+    }
+    .setting-row:last-child { margin-bottom: 0; }
+    .setting-row label { font-size: 0.9rem; }
+    .setting-row select { max-width: 150px; }
+
+    /* 토글 */
+    .toggle[aria-pressed="true"] {
+      background: var(--accent); border-color: var(--accent); color: var(--btn-text);
+    }
+
+    /* 툴바 */
+    .toolbar {
+      display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;
+    }
+
+    /* 진행 상태 */
+    .progress {
+      height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; margin: 12px 0;
+    }
+    .progress-fill {
+      height: 100%; background: var(--accent); transition: width 0.3s; width: 0%;
+    }
+
+    /* 헤더 */
+    .header {
+      text-align: center; padding: 20px 0; margin-bottom: 20px;
+    }
+    .header h1 { margin: 0; color: var(--accent); }
+
+    /* 상태 */
+    .status-ok { color: var(--success); }
+    .status-warning { color: var(--warning); }
+    .status-error { color: var(--danger); }
+
+    /* 카운터 */
+    .counter {
+      margin-top: 8px; font-size: 0.85rem; color: var(--muted);
+    }
+
+    /* API 상태 */
+    .api-status {
+      display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
+    }
+    .status-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+    }
+    .status-dot.connected { background: var(--success); }
+    .status-dot.disconnected { background: var(--danger); }
+
+    /* 에러 메시지 */
+    .error-msg, .warning-msg, .success-msg {
+      padding: 8px 12px; border-radius: 6px; font-size: 0.85rem; margin: 8px 0;
+    }
+    .error-msg {
+      background: color-mix(in srgb, var(--danger) 10%, var(--card));
+      border: 1px solid var(--danger); color: var(--danger);
+    }
+    .warning-msg {
+      background: color-mix(in srgb, var(--warning) 10%, var(--card));
+      border: 1px solid var(--warning); color: var(--warning);
+    }
+    .success-msg {
+      background: color-mix(in srgb, var(--success) 10%, var(--card));
+      border: 1px solid var(--success); color: var(--success);
+    }
+
+    /* 다크모드 토글 */
+    .theme-toggle {
+      position: fixed; top: 20px; right: 20px; z-index: 100;
+      background: var(--card); border: 1px solid var(--border); border-radius: 6px;
+      padding: 8px; cursor: pointer;
+    }
+
+    /* 추가 캐릭터 */
+    .add-character {
+      border: 2px dashed var(--border); border-radius: 6px; padding: 20px;
+      text-align: center; cursor: pointer; transition: border-color 0.2s;
+    }
+    .add-character:hover { border-color: var(--accent); }
+
+    /* 로딩 */
+    .loading {
+      display: inline-block; width: 16px; height: 16px;
+      border: 2px solid var(--border);
+      border-top: 2px solid var(--accent);
+      border-radius: 50%; animation: spin 1s linear infinite;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <!-- 다크모드 토글 -->
+  <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+
+  <div class="container">
+    
+    <!-- 헤더 -->
+    <div class="header">
+      <h1>🎭 TTS 역할 대화 생성기</h1>
+      <p>각 캐릭터마다 다른 목소리로 대화를 음성으로 변환</p>
+    </div>
+
+    <!-- 메인 레이아웃 -->
+    <div class="main-layout">
+      
+      <!-- 왼쪽: 텍스트 입력 -->
+      <div class="left-section">
+        
+        <!-- 텍스트 입력 -->
+<div class="panel">
+  <h2>📝 대화 텍스트</h2>
+  
+  <!-- 편집 도구를 상단으로 이동 -->
+  <div class="toolbar" style="margin-bottom: 12px;">
+    
+    <button class="btn small" onclick="addNameToSelection()">➕ 이름 추가</button>
+    <button class="btn small" onclick="alternateNames()">🔄 A/B 번갈아</button>
+    <button class="btn small" onclick="clearText()">🗑️ 전체 삭제</button>
+  </div>
+  
+  <textarea 
+    id="textInput" 
+    class="text-input" 
+    placeholder="할머니: 옛날 옛적에 말이야...&#10;소년: 어떤 이야기예요?&#10;할머니: 아주 재미있는 이야기란다.">할머니: 옛날 옛적에 말이야...
+소년: 어떤 이야기예요?
+할머니: 아주 재미있는 이야기란다.
+소년: 빨리 들려주세요!</textarea>
+          <div class="counter" id="counter">89 글자</div>
+          <div id="charactersFound" class="success-msg" style="display:none;"></div>
+        </div>
+
+        <!-- 대화 설정 -->
+        <div class="panel">
+          <h2>⚙️ 대화 설정</h2>
+          
+          <div class="setting-row">
+            <label>화자 전환시 쉬기</label>
+            <select id="speakerPause">
+              <option value="0">0ms</option>
+              <option value="150" selected>150ms</option>
+              <option value="300">300ms</option>
+              <option value="500">500ms</option>
+            </select>
+          </div>
+          
+          <div class="setting-row">
+            <label>문장 사이 쉬기</label>
+            <select id="sentencePause">
+              <option value="0">0ms</option>
+              <option value="150">150ms</option>
+              <option value="300" selected>300ms</option>
+              <option value="500">500ms</option>
+            </select>
+          </div>
+          
+          <div class="setting-row">
+            <label>긴 글 자동 나눔</label>
+            <button class="btn btn-primary toggle" id="autoSplit" aria-pressed="true">ON</button>
+          </div>
+        </div>
+
+
+
+      </div>
+
+      <!-- 오른쪽: 캐릭터 설정 & 생성 -->
+      <div class="right-section">
+        
+        <!-- 캐릭터 목소리 설정 -->
+        <div class="panel">
+          <h2>👥 캐릭터 설정</h2>
+          
+          <div class="toolbar">
+            <button class="btn small" onclick="findCharacters()">🔍 캐릭터 찾기</button>
+            <button class="btn small" onclick="addCharacter()">➕ 캐릭터 추가</button>
+            <button class="btn btn-danger small" onclick="resetCharacters()">🗑️ 전체 초기화</button>
+          </div>
+          
+          <div class="character-list" id="characterList">
+            <!-- 캐릭터들이 여기에 동적으로 추가됩니다 -->
+          </div>
+          
+          <div class="add-character" onclick="addCharacter()">
+            ➕ 새 캐릭터 추가
+          </div>
+        </div>
+
+        <!-- 출력 설정 -->
+        <div class="panel">
+          <h2>🎛️ 출력 설정</h2>
+          
+          <div class="setting-row">
+            <label>형식</label>
+            <select id="audioFormat">
+              <option value="MP3" selected>MP3</option>
+              <option value="LINEAR16">WAV</option>
+              <option value="OGG_OPUS">OGG</option>
+            </select>
+          </div>
+          
+          <div class="setting-row">
+            <label>샘플레이트</label>
+            <select id="sampleRate">
+              <option value="24000">24kHz</option>
+              <option value="44100" selected>44.1kHz</option>
+              <option value="48000">48kHz</option>
+            </select>
+          </div>
+          
+          <div class="setting-row">
+            <label>재시도</label>
+            <select id="retryCount">
+              <option value="0">0회</option>
+              <option value="1">1회</option>
+              <option value="3" selected>3회</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 음성 생성 -->
+        <div class="panel">
+          <h2>🎬 음성 생성</h2>
+          
+          <div id="generationInfo" style="margin-bottom: 12px; font-size: 0.9rem; color: var(--muted);">
+            • 캐릭터 수: <span id="characterCount">0</span>개<br>
+            • 텍스트: <span id="textLength">0</span>글자<br>
+            • 예상 시간: <span id="estimatedTime">-</span>
+          </div>
+          
+          <button class="btn btn-primary large" id="generateBtn" onclick="generateAudio()">
+            음성 만들기
+          </button>
+          
+          <div class="progress" id="progressBar" style="display: none;">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+          
+          <div id="status" style="margin: 8px 0; font-size: 0.9rem; color: var(--muted); display: none;">
+          </div>
+          
+          <audio controls id="audioPlayer" style="width: 100%; margin-top: 12px; display: none;"></audio>
+          
+          <div class="toolbar" id="downloadTools" style="margin-top: 12px; display: none;">
+            <button class="btn" id="downloadBtn">💾 다운로드</button>
+            <button class="btn" onclick="shareAudio()">🔗 공유</button>
+          </div>
+          
+          <div id="generationResult" style="display: none;"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+        <!-- API 설정 -->
+        <div class="panel">
+          <h2>🔑 API 설정</h2>
+          
+          <div class="api-status">
+            <div class="status-dot" id="apiStatusDot"></div>
+            <span id="apiStatusText">API 상태 확인 중...</span>
+          </div>
+          
+          <div style="margin-bottom: 8px;">
+            <label style="display: block; margin-bottom: 4px; font-size: 0.9rem;">Google TTS API 키</label>
+            <input type="password" id="apiKey" placeholder="AIza..." autocomplete="off">
+          </div>
+          
+          <div class="toolbar">
+            <button class="btn small" onclick="saveApiKey()">저장</button>
+            <button class="btn small" onclick="testApiKey()">테스트</button>
+            <button class="btn btn-danger small" onclick="clearApiKey()">삭제</button>
+          </div>
+          
+          <div class="warning-msg">
+            <strong>API 키 얻는 방법:</strong><br>
+            1. <a href="https://console.cloud.google.com" target="_blank">Google Cloud Console</a> 접속<br>
+            2. 프로젝트 생성 후 "Text-to-Speech API" 활성화<br>
+            3. "사용자 인증 정보" > "API 키" 생성
+          </div>
+        </div>
+
+  <script>
+    // 전역 변수
+    let characters = {};
+    let voices = [];
+    let isGenerating = false;
+
+    // 텍스트 전체 삭제 기능
+function clearText() {
+  if (confirm('텍스트를 모두 삭제하시겠습니까?')) {
+    document.getElementById('textInput').value = '';
+    updateCounter();
+    saveSettings();
+    showMessage('텍스트가 삭제되었습니다.', 'warning');
+  }
+}
+
+    // 다크모드 토글
+    function toggleTheme() {
+      const html = document.documentElement;
+      const current = html.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      document.querySelector('.theme-toggle').textContent = next === 'dark' ? '☀️' : '🌙';
+    }
+
+    // 초기 테마 설정
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    document.querySelector('.theme-toggle').textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+
+    // 페이지 로드시 초기화
+    document.addEventListener('DOMContentLoaded', function() {
+      loadSavedData();
+      setupEventListeners();
+      checkApiKey();
+      loadVoices();
+      renderCharacters();
+      updateGenerationInfo();
+    });
+
+    // 이벤트 리스너 설정
+    function setupEventListeners() {
+      // 토글 버튼
+      document.querySelectorAll('.toggle').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const pressed = this.getAttribute('aria-pressed') === 'true';
+          this.setAttribute('aria-pressed', !pressed);
+          this.textContent = pressed ? 'OFF' : 'ON';
+          this.classList.toggle('btn-primary', !pressed);
+          saveSettings();
+        });
+      });
+
+      // 텍스트 입력 이벤트
+      const textInput = document.getElementById('textInput');
+      textInput.addEventListener('input', function() {
+        updateCounter();
+        updateGenerationInfo();
+        saveSettings();
+      });
+
+      // 설정 변경 이벤트
+      ['speakerPause', 'sentencePause', 'audioFormat', 'sampleRate', 'retryCount'].forEach(id => {
+        document.getElementById(id).addEventListener('change', saveSettings);
+      });
+
+      // API 키 입력 이벤트
+      document.getElementById('apiKey').addEventListener('input', function() {
+        if (this.value.length > 10) {
+          checkApiKey();
+        }
+      });
+    }
+
+    // 텍스트 카운터 업데이트
+    function updateCounter() {
+      const text = document.getElementById('textInput').value;
+      document.getElementById('counter').textContent = text.length + ' 글자';
+    }
+
+    // 생성 정보 업데이트
+    function updateGenerationInfo() {
+      const text = document.getElementById('textInput').value;
+      const characterCount = Object.keys(characters).length;
+      const textLength = text.length;
+      const estimatedSeconds = Math.ceil(textLength / 10); // 대략적인 추정
+      
+      document.getElementById('characterCount').textContent = characterCount;
+      document.getElementById('textLength').textContent = textLength;
+      document.getElementById('estimatedTime').textContent = estimatedSeconds > 0 ? `약 ${estimatedSeconds}초` : '-';
+    }
+
+    // 캐릭터 찾기
+    function findCharacters() {
+      const text = document.getElementById('textInput').value;
+      const lines = text.split('\n');
+      const foundCharacters = new Set();
+      
+      lines.forEach(line => {
+        const match = line.match(/^([^:]+):/);
+        if (match) {
+          const name = match[1].trim();
+          if (name.length > 0 && name.length < 20) {
+            foundCharacters.add(name);
+          }
+        }
+      });
+
+      // 기본 캐릭터가 없으면 추가
+      if (!characters['기본']) {
+        characters['기본'] = {
+          voice: 'ko-KR-Neural2-A',
+          style: 'normal'
+        };
+      }
+
+      // 발견된 캐릭터들 추가
+      foundCharacters.forEach(name => {
+        if (!characters[name]) {
+          characters[name] = {
+            voice: 'ko-KR-Neural2-B',
+            style: 'normal'
+          };
+        }
+      });
+
+      if (foundCharacters.size > 0) {
+        document.getElementById('charactersFound').style.display = 'block';
+        document.getElementById('charactersFound').textContent = 
+          `발견된 캐릭터: ${Array.from(foundCharacters).join(', ')}`;
+        renderCharacters();
+        updateGenerationInfo();
+        saveSettings();
+      } else {
+        showMessage('캐릭터를 찾을 수 없습니다. "이름: 대사" 형식으로 입력해주세요.', 'warning');
+      }
+    }
+
+    // 캐릭터 추가
+    function addCharacter() {
+      const name = prompt('캐릭터 이름을 입력하세요:');
+      if (name && name.trim() && !characters[name.trim()]) {
+        characters[name.trim()] = {
+          voice: 'ko-KR-Neural2-A',
+          style: 'normal'
+        };
+        renderCharacters();
+        updateGenerationInfo();
+        saveSettings();
+      }
+    }
+
+    // 캐릭터 삭제
+    function deleteCharacter(name) {
+      if (name === '기본') {
+        showMessage('기본 캐릭터는 삭제할 수 없습니다.', 'warning');
+        return;
+      }
+      if (confirm(`"${name}" 캐릭터를 삭제하시겠습니까?`)) {
+        delete characters[name];
+        renderCharacters();
+        updateGenerationInfo();
+        saveSettings();
+      }
+    }
+
+    // 캐릭터 초기화
+    function resetCharacters() {
+      if (confirm('모든 캐릭터 설정을 초기화하시겠습니까?')) {
+        characters = {
+          '기본': {
+            voice: 'ko-KR-Neural2-A',
+            style: 'normal'
+          }
+        };
+        renderCharacters();
+        updateGenerationInfo();
+        saveSettings();
+      }
+    }
+
+    // 캐릭터 렌더링
+    function renderCharacters() {
+      const container = document.getElementById('characterList');
+      container.innerHTML = '';
+
+      Object.keys(characters).forEach(name => {
+        const character = characters[name];
+        const isDefault = name === '기본';
+        
+        const card = document.createElement('div');
+        card.className = `character-card ${isDefault ? 'default' : ''}`;
+        
+        card.innerHTML = `
+          <div class="character-header">
+            <span class="character-name">${name}</span>
+            <span class="character-status ${character.voice ? 'status-ok' : 'status-warning'}">${character.voice ? '✓' : '!'}</span>
+          </div>
+          <div class="voice-row">
+            <label>목소리</label>
+            <select onchange="updateCharacterVoice('${name}', this.value)">
+              ${getVoiceOptions(character.voice)}
+            </select>
+          </div>
+          <div class="voice-row">
+            <label>스타일</label>
+            <select onchange="updateCharacterStyle('${name}', this.value)">
+              <option value="normal" ${character.style === 'normal' ? 'selected' : ''}>보통</option>
+              <option value="slow" ${character.style === 'slow' ? 'selected' : ''}>느리게</option>
+              <option value="fast" ${character.style === 'fast' ? 'selected' : ''}>빠르게</option>
+              <option value="high" ${character.style === 'high' ? 'selected' : ''}>높게</option>
+              <option value="low" ${character.style === 'low' ? 'selected' : ''}>낮게</option>
+              <option value="slow-low" ${character.style === 'slow-low' ? 'selected' : ''}>느리게 + 낮게</option>
+              <option value="fast-high" ${character.style === 'fast-high' ? 'selected' : ''}>빠르게 + 높게</option>
+            </select>
+          </div>
+          <div class="character-actions">
+            <button class="btn small" onclick="testCharacterVoice('${name}')">▶ 테스트</button>
+            ${!isDefault ? `<button class="btn btn-danger small" onclick="deleteCharacter('${name}')">✕</button>` : ''}
+          </div>
+          ${!character.voice ? '<div class="error-msg">목소리를 선택하세요</div>' : ''}
+        `;
+        
+        container.appendChild(card);
+      });
+    }
+
+    // 목소리 옵션 생성
+    function getVoiceOptions(selectedVoice) {
+      const defaultVoices = [
+        { name: 'ko-KR-Neural2-A', label: 'ko-KR-Neural2-A (여성, 고품질)' },
+        { name: 'ko-KR-Neural2-B', label: 'ko-KR-Neural2-B (남성, 고품질)' },
+        { name: 'ko-KR-Neural2-C', label: 'ko-KR-Neural2-C (여성, 고품질)' },
+        { name: 'ko-KR-Wavenet-A', label: 'ko-KR-Wavenet-A (여성, 프리미엄)' },
+        { name: 'ko-KR-Wavenet-B', label: 'ko-KR-Wavenet-B (남성, 프리미엄)' },
+        { name: 'ko-KR-Wavenet-C', label: 'ko-KR-Wavenet-C (여성, 프리미엄)' },
+        { name: 'ko-KR-Wavenet-D', label: 'ko-KR-Wavenet-D (남성, 프리미엄)' },
+        { name: 'ko-KR-Standard-A', label: 'ko-KR-Standard-A (여성, 기본)' },
+        { name: 'ko-KR-Standard-B', label: 'ko-KR-Standard-B (남성, 기본)' },
+        { name: 'ko-KR-Standard-C', label: 'ko-KR-Standard-C (여성, 기본)' },
+        { name: 'ko-KR-Standard-D', label: 'ko-KR-Standard-D (남성, 기본)' }
+      ];
+
+      if (voices.length > 0) {
+        return voices.map(voice => 
+          `<option value="${voice.name}" ${voice.name === selectedVoice ? 'selected' : ''}>${voice.name}</option>`
+        ).join('');
+      } else {
+        return defaultVoices.map(voice => 
+          `<option value="${voice.name}" ${voice.name === selectedVoice ? 'selected' : ''}>${voice.label}</option>`
+        ).join('');
+      }
+    }
+
+    // 캐릭터 목소리 업데이트
+    function updateCharacterVoice(name, voice) {
+      characters[name].voice = voice;
+      renderCharacters();
+      saveSettings();
+    }
+
+    // 캐릭터 스타일 업데이트
+    function updateCharacterStyle(name, style) {
+      characters[name].style = style;
+      saveSettings();
+    }
+
+    // 캐릭터 음성 테스트
+    async function testCharacterVoice(name) {
+      const character = characters[name];
+      if (!character.voice) {
+        showMessage('먼저 목소리를 선택하세요.', 'error');
+        return;
+      }
+
+      const apiKey = localStorage.getItem('tts_api_key');
+      if (!apiKey) {
+        showMessage('API 키를 먼저 설정하세요.', 'error');
+        return;
+      }
+
+      try {
+        const testText = `안녕하세요. ${name} 캐릭터입니다.`;
+        const audioUrl = await synthesizeSpeech(testText, character.voice, character.style, apiKey);
+        
+        const audio = new Audio(audioUrl);
+        audio.play();
+        
+        showMessage(`${name} 캐릭터 음성을 재생합니다.`, 'success');
+      } catch (error) {
+        showError('음성 테스트 실패: ' + error.message);
+      }
+    }
+
+    // 음성 합성 함수
+    // 음성 합성 함수 (수정된 버전)
+async function synthesizeSpeech(text, voiceName, style, apiKey) {
+  const url = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`;
+  
+  // Chirp 모델 감지
+  const isChirp = voiceName.toLowerCase().includes('chirp');
+  
+  // 스타일에 따른 설정
+  let rate = 1.0;
+  let pitch = 0.0;
+  
+  if (!isChirp) {
+    // Chirp가 아닌 경우에만 pitch 적용
+    switch (style) {
+      case 'slow': rate = 0.8; break;
+      case 'fast': rate = 1.3; break;
+      case 'high': pitch = 4.0; break;
+      case 'low': pitch = -4.0; break;
+      case 'slow-low': rate = 0.8; pitch = -3.0; break;
+      case 'fast-high': rate = 1.2; pitch = 3.0; break;
+    }
+  } else {
+    // Chirp 모델용 제한된 설정 (속도만 조절)
+    switch (style) {
+      case 'slow':
+      case 'slow-low': rate = 0.8; break;
+      case 'fast':
+      case 'fast-high': rate = 1.2; break;
+      case 'high':
+      case 'low': 
+        // pitch는 적용하지 않고 속도로만 차이 만들기
+        rate = style === 'high' ? 1.1 : 0.9;
+        break;
+    }
+  }
+
+  const requestBody = {
+    input: { text: text },
+    voice: {
+      languageCode: 'ko-KR',
+      name: voiceName
+    },
+    audioConfig: {
+      audioEncoding: document.getElementById('audioFormat').value,
+      speakingRate: rate,
+      sampleRateHertz: parseInt(document.getElementById('sampleRate').value)
+    }
+  };
+
+  // Chirp가 아닌 경우에만 pitch 추가
+  if (!isChirp) {
+    requestBody.audioConfig.pitch = pitch;
+  }
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(requestBody)
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error?.message || '음성 합성 실패');
+  }
+
+  const data = await response.json();
+  const audioBytes = data.audioContent;
+  
+  // Base64를 Blob으로 변환
+  const byteCharacters = atob(audioBytes);
+  const byteNumbers = new Array(byteCharacters.length);
+  for (let i = 0; i < byteCharacters.length; i++) {
+    byteNumbers[i] = byteCharacters.charCodeAt(i);
+  }
+  const byteArray = new Uint8Array(byteNumbers);
+  
+  const audioFormat = document.getElementById('audioFormat').value;
+  const mimeType = audioFormat === 'MP3' ? 'audio/mpeg' : 
+                 audioFormat === 'LINEAR16' ? 'audio/wav' : 'audio/ogg';
+  
+  const blob = new Blob([byteArray], { type: mimeType });
+  return URL.createObjectURL(blob);
+}
+
+    // API 키 관련 함수들
+    function saveApiKey() {
+      const apiKey = document.getElementById('apiKey').value.trim();
+      if (!apiKey) {
+        showMessage('API 키를 입력하세요.', 'error');
+        return;
+      }
+      
+      localStorage.setItem('tts_api_key', apiKey);
+      showMessage('API 키가 저장되었습니다.', 'success');
+      checkApiKey();
+      loadVoices();
+    }
+
+    function clearApiKey() {
+      if (confirm('API 키를 삭제하시겠습니까?')) {
+        localStorage.removeItem('tts_api_key');
+        document.getElementById('apiKey').value = '';
+        checkApiKey();
+        showMessage('API 키가 삭제되었습니다.', 'warning');
+      }
+    }
+
+    async function testApiKey() {
+      const apiKey = document.getElementById('apiKey').value.trim() || localStorage.getItem('tts_api_key');
+      if (!apiKey) {
+        showMessage('API 키를 입력하세요.', 'error');
+        return;
+      }
+
+      try {
+        updateApiStatus('testing', '테스트 중...');
+        await loadVoices(apiKey);
+        updateApiStatus('connected', 'API 연결 성공');
+        showMessage('API 키가 정상 작동합니다.', 'success');
+      } catch (error) {
+        updateApiStatus('disconnected', 'API 연결 실패');
+        showError('API 테스트 실패: ' + error.message);
+      }
+    }
+
+    function checkApiKey() {
+      const apiKey = localStorage.getItem('tts_api_key');
+      if (apiKey) {
+        document.getElementById('apiKey').value = apiKey;
+        updateApiStatus('connected', 'API 키 저장됨');
+      } else {
+        updateApiStatus('disconnected', 'API 키 필요');
+      }
+    }
+
+    function updateApiStatus(status, message) {
+      const dot = document.getElementById('apiStatusDot');
+      const text = document.getElementById('apiStatusText');
+      
+      dot.className = 'status-dot';
+      if (status === 'connected') {
+        dot.classList.add('connected');
+      } else if (status === 'disconnected') {
+        dot.classList.add('disconnected');
+      }
+      
+      text.textContent = message;
+    }
+
+    // 목소리 목록 로드
+    async function loadVoices(apiKey = null) {
+      const key = apiKey || localStorage.getItem('tts_api_key');
+      if (!key) return;
+
+      try {
+        const url = `https://texttospeech.googleapis.com/v1/voices?key=${key}`;
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+          throw new Error('목소리 목록 로드 실패');
+        }
+        
+        const data = await response.json();
+        voices = data.voices.filter(voice => 
+          voice.languageCodes.includes('ko-KR')
+        );
+        
+        renderCharacters(); // 목소리 옵션 업데이트
+      } catch (error) {
+        console.warn('목소리 목록 로드 실패:', error);
+      }
+    }
+
+    // 목소리 선택 시 Chirp 경고 표시
+if (voiceName.toLowerCase().includes('chirp')) {
+  // Chirp 모델 경고 메시지 표시
+  card.innerHTML += '<div class="warning-msg">Chirp 모델은 음높이 조절이 제한됩니다.</div>';
+}
+
+    // 메인 음성 생성 함수
+    async function generateAudio() {
+      if (isGenerating) return;
+      
+      const apiKey = localStorage.getItem('tts_api_key');
+      if (!apiKey) {
+        showError('API 키를 먼저 설정하세요.');
+        return;
+      }
+
+      const text = document.getElementById('textInput').value.trim();
+      if (!text) {
+        showError('텍스트를 입력하세요.');
+        return;
+      }
+
+      // 캐릭터 목소리 확인
+      const missingVoices = Object.keys(characters).filter(name => !characters[name].voice);
+      if (missingVoices.length > 0) {
+        showError(`다음 캐릭터의 목소리를 선택하세요: ${missingVoices.join(', ')}`);
+        return;
+      }
+
+      try {
+        isGenerating = true;
+        updateGenerateButton(true);
+        showProgress(0, '텍스트 분석 중...');
+
+        // 텍스트 파싱
+        const segments = parseText(text);
+        
+        if (segments.length === 0) {
+          throw new Error('처리할 텍스트가 없습니다.');
+        }
+
+        // 각 세그먼트별 음성 생성
+        const audioUrls = [];
+        for (let i = 0; i < segments.length; i++) {
+          const segment = segments[i];
+          const progress = ((i + 1) / segments.length) * 100;
+          showProgress(progress, `${segment.character} 음성 생성 중... (${i + 1}/${segments.length})`);
+          
+          const audioUrl = await synthesizeSpeech(
+            segment.text, 
+            characters[segment.character].voice,
+            characters[segment.character].style,
+            apiKey
+          );
+          
+          audioUrls.push(audioUrl);
+          
+          // 화자 전환 쉬기 시간 추가 (마지막 세그먼트 제외)
+          if (i < segments.length - 1) {
+            const pauseMs = parseInt(document.getElementById('speakerPause').value);
+            if (pauseMs > 0) {
+              await new Promise(resolve => setTimeout(resolve, pauseMs));
+            }
+          }
+        }
+
+        // 첫 번째 오디오만 재생 (완전한 합성은 복잡함)
+        if (audioUrls.length > 0) {
+          showProgress(100, '완료!');
+          showGeneratedAudio(audioUrls[0], segments.length);
+          
+          if (audioUrls.length > 1) {
+            showMessage(`${audioUrls.length}개 음성이 생성되었습니다. 첫 번째 음성만 재생됩니다.`, 'warning');
+          }
+        }
+
+      } catch (error) {
+        showError('음성 생성 실패: ' + error.message);
+      } finally {
+        isGenerating = false;
+        updateGenerateButton(false);
+        hideProgress();
+      }
+    }
+
+    // 텍스트 파싱
+    function parseText(text) {
+      const lines = text.split('\n').filter(line => line.trim());
+      const segments = [];
+      
+      for (const line of lines) {
+        const match = line.match(/^([^:]+):\s*(.+)$/);
+        if (match) {
+          const character = match[1].trim();
+          const dialogue = match[2].trim();
+          
+          if (characters[character]) {
+            segments.push({
+              character: character,
+              text: dialogue
+            });
+          } else {
+            // 알 수 없는 캐릭터는 기본 캐릭터로
+            segments.push({
+              character: '기본',
+              text: line
+            });
+          }
+        } else {
+          // 형식이 맞지 않는 라인은 기본 캐릭터로
+          segments.push({
+            character: '기본',
+            text: line
+          });
+        }
+      }
+      
+      return segments;
+    }
+
+    // UI 업데이트 함수들
+    function updateGenerateButton(generating) {
+      const btn = document.getElementById('generateBtn');
+      if (generating) {
+        btn.innerHTML = '<span class="loading"></span> 생성 중...';
+        btn.disabled = true;
+      } else {
+        btn.innerHTML = '음성 만들기';
+        btn.disabled = false;
+      }
+    }
+
+    function showProgress(percent, message) {
+      const progressBar = document.getElementById('progressBar');
+      const progressFill = document.getElementById('progressFill');
+      const status = document.getElementById('status');
+      
+      progressBar.style.display = 'block';
+      progressFill.style.width = percent + '%';
+      status.style.display = 'block';
+      status.textContent = message;
+    }
+
+    function hideProgress() {
+      document.getElementById('progressBar').style.display = 'none';
+      document.getElementById('status').style.display = 'none';
+    }
+
+    function showGeneratedAudio(audioUrl, segmentCount) {
+      const player = document.getElementById('audioPlayer');
+      const downloadTools = document.getElementById('downloadTools');
+      const downloadBtn = document.getElementById('downloadBtn');
+      
+      player.src = audioUrl;
+      player.style.display = 'block';
+      downloadTools.style.display = 'flex';
+      
+      // 다운로드 링크 설정
+      downloadBtn.onclick = () => {
+        const a = document.createElement('a');
+        a.href = audioUrl;
+        a.download = `tts-audio-${new Date().toISOString().slice(0, 19).replace(/[:.]/g, '-')}.${getFileExtension()}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      };
+
+      showMessage('음성이 생성되었습니다!', 'success');
+    }
+
+    function getFileExtension() {
+      const format = document.getElementById('audioFormat').value;
+      return format === 'MP3' ? 'mp3' : format === 'LINEAR16' ? 'wav' : 'ogg';
+    }
+
+    // 메시지 표시
+    function showMessage(message, type = 'info') {
+      const className = type === 'error' ? 'error-msg' : 
+                      type === 'warning' ? 'warning-msg' : 'success-msg';
+      
+      const div = document.createElement('div');
+      div.className = className;
+      div.textContent = message;
+      
+      document.body.appendChild(div);
+      div.style.position = 'fixed';
+      div.style.top = '80px';
+      div.style.right = '20px';
+      div.style.zIndex = '1000';
+      div.style.maxWidth = '300px';
+      
+      setTimeout(() => {
+        if (div.parentNode) {
+          div.parentNode.removeChild(div);
+        }
+      }, 3000);
+    }
+
+    function showError(message) {
+      showMessage(message, 'error');
+    }
+
+    // 편집 도구 함수들
+    function addNameToSelection() {
+      const textarea = document.getElementById('textInput');
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      
+      if (start === end) {
+        showMessage('텍스트를 선택한 후 사용하세요.', 'warning');
+        return;
+      }
+      
+      const name = prompt('추가할 이름을 입력하세요:');
+      if (!name) return;
+      
+      const selectedText = textarea.value.substring(start, end);
+      const newText = `${name}: ${selectedText}`;
+      
+      textarea.value = textarea.value.substring(0, start) + newText + textarea.value.substring(end);
+      updateCounter();
+    }
+
+    function alternateNames() {
+      const nameA = prompt('첫 번째 이름을 입력하세요:');
+      if (!nameA) return;
+      
+      const nameB = prompt('두 번째 이름을 입력하세요:');
+      if (!nameB) return;
+      
+      const textarea = document.getElementById('textInput');
+      const lines = textarea.value.split('\n');
+      let currentName = nameA;
+      
+      const newLines = lines.map(line => {
+        if (line.trim() && !line.includes(':')) {
+          const result = `${currentName}: ${line}`;
+          currentName = currentName === nameA ? nameB : nameA;
+          return result;
+        }
+        return line;
+      });
+      
+      textarea.value = newLines.join('\n');
+      updateCounter();
+    }
+
+    // 공유 기능
+    function shareAudio() {
+      if (navigator.share) {
+        navigator.share({
+          title: 'TTS 생성 음성',
+          text: 'TTS로 생성한 음성입니다.',
+          url: window.location.href
+        });
+      } else {
+        // 브라우저가 Web Share API를 지원하지 않는 경우
+        const url = window.location.href;
+        navigator.clipboard.writeText(url).then(() => {
+          showMessage('링크가 클립보드에 복사되었습니다.', 'success');
+        }).catch(() => {
+          showMessage('링크 복사에 실패했습니다.', 'error');
+        });
+      }
+    }
+
+    // 설정 저장/로드
+    function saveSettings() {
+      const settings = {
+        characters: characters,
+        textInput: document.getElementById('textInput').value,
+        speakerPause: document.getElementById('speakerPause').value,
+        sentencePause: document.getElementById('sentencePause').value,
+        autoSplit: document.getElementById('autoSplit').getAttribute('aria-pressed') === 'true',
+        audioFormat: document.getElementById('audioFormat').value,
+        sampleRate: document.getElementById('sampleRate').value,
+        retryCount: document.getElementById('retryCount').value
+      };
+      
+      localStorage.setItem('tts_settings', JSON.stringify(settings));
+    }
+
+    function loadSavedData() {
+      try {
+        const settings = JSON.parse(localStorage.getItem('tts_settings') || '{}');
+        
+        if (settings.characters) {
+          characters = settings.characters;
+        } else {
+          // 기본 캐릭터 설정
+          characters = {
+            '기본': {
+              voice: 'ko-KR-Neural2-A',
+              style: 'normal'
+            }
+          };
+        }
+        
+        if (settings.textInput) {
+          document.getElementById('textInput').value = settings.textInput;
+        }
+        
+        if (settings.speakerPause) {
+          document.getElementById('speakerPause').value = settings.speakerPause;
+        }
+        
+        if (settings.sentencePause) {
+          document.getElementById('sentencePause').value = settings.sentencePause;
+        }
+        
+        if (settings.autoSplit !== undefined) {
+          const btn = document.getElementById('autoSplit');
+          btn.setAttribute('aria-pressed', settings.autoSplit);
+          btn.textContent = settings.autoSplit ? 'ON' : 'OFF';
+          btn.classList.toggle('btn-primary', settings.autoSplit);
+        }
+        
+        if (settings.audioFormat) {
+          document.getElementById('audioFormat').value = settings.audioFormat;
+        }
+        
+        if (settings.sampleRate) {
+          document.getElementById('sampleRate').value = settings.sampleRate;
+        }
+        
+        if (settings.retryCount) {
+          document.getElementById('retryCount').value = settings.retryCount;
+        }
+        
+      } catch (error) {
+        console.warn('설정 로드 실패:', error);
+      }
+    }
+  </script>
+</body>
+</html>

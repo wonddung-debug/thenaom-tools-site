@@ -4,14 +4,14 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>문자를 음성으로 — 역할 낭독 도구 (한국어)</title>
-  <meta name="description" content="BYO Google TTS. 역할 대화/일반/세밀 조절. 자동 저장 옵션, 언어별 보이스 미리듣기, 긴 글 자동 나눔, 자막 저장. 줄마다 역할 초기화 지원. 사이트 공통 UI/테마 통일." />
+  <meta name="description" content="BYO Google TTS. 역할 대화/일반/세밀 조절. 자동 저장 옵션, 언어별 보이스 미리듣기, 긴 글 자동 나눔. 사이트 공통 UI/테마 통일." />
   <meta name="robots" content="index,follow" />
   <link rel="canonical" href="/tools/tts-dialog.html" />
   <link rel="alternate" hreflang="ko" href="/tools/tts-dialog.html" />
   <link rel="alternate" hreflang="en" href="/en/tools/tts-dialog.html" />
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
   <meta property="og:title" content="문자를 음성으로 — 역할 낭독 도구 (한국어)" />
-  <meta property="og:description" content="Google Cloud TTS로 내 API키로 합성. 역할 대화/일반/세밀 조절, 긴 글 자동 나눔, 자막 저장, 언어별 보이스 샘플." />
+  <meta property="og:description" content="Google Cloud TTS로 내 API키로 합성. 역할 대화/일반/세밀 조절, 긴 글 자동 나눔, 언어별 보이스 샘플." />
   <meta property="og:image" content="/assets/og-tool-tts-dialog.png" />
   <meta property="og:url" content="/tools/tts-dialog.html" />
   <meta property="og:type" content="website" />
@@ -46,7 +46,7 @@
     html,body{background:var(--bg)!important}
     body{color:var(--text)!important;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Noto Sans KR,Arial,sans-serif}
     a{color:var(--accent);text-decoration:none}
-    .container{max-width:1120px;margin:0 auto;padding:0 16px}
+    .container{max-width:1200px;margin:0 auto;padding:0 16px}
 
     /* Header 공통 */
     header.site{position:sticky;top:0;z-index:100;background:var(--bg)!important;border-bottom:1px solid var(--border)}
@@ -79,7 +79,7 @@
     .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
 
     /* Inputs */
-    textarea.input{width:100%;min-height:260px;padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--input-bg);color:var(--input);font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:.98rem;line-height:1.45;resize:vertical;white-space:pre-wrap}
+    textarea.input{width:100%;min-height:400px;padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--input-bg);color:var(--input);font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:.98rem;line-height:1.45;resize:vertical;white-space:pre-wrap}
     textarea.output{width:100%;min-height:220px;padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:.98rem;line-height:1.45;resize:vertical}
     select,input[type=text],input[type=password],input[type=number]{width:100%;padding:.6rem .72rem;border:1px solid var(--border);border-radius:.7rem;background:var(--input-bg);color:var(--input)}
 
@@ -91,12 +91,12 @@
     .pill{display:inline-block;padding:2px 8px;border:1px solid var(--border);border-radius:999px;font-size:12px;color:var(--muted)}
     .counter{display:flex;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:.92rem;margin-top:6px}
   
-    /* 개선된 레이아웃 */
-    .main-grid{display:grid;grid-template-columns:1fr;gap:12px}
-    @media(min-width:980px){.main-grid{grid-template-columns:2fr 1fr}}
+    /* 새로운 메인 레이아웃 - 좌우 분할 */
+    .main-layout{display:grid;grid-template-columns:1fr;gap:16px}
+    @media(min-width:768px){.main-layout{grid-template-columns:2fr 1fr}}
     
-    .left-panel{display:flex;flex-direction:column;gap:12px}
-    .right-panel{display:flex;flex-direction:column;gap:12px}
+    .left-section{display:flex;flex-direction:column;gap:12px}
+    .right-section{display:flex;flex-direction:column;gap:12px}
     
     .role-table-container{overflow-x:auto}
     .role-table{min-width:800px;width:100%}
@@ -105,18 +105,47 @@
     @media(min-width:600px){.options-grid{grid-template-columns:1fr 1fr}}
     
     .voice-options{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-    .voice-options label{min-width:100px;flex-shrink:0}
-    .voice-options select{min-width:200px}
+    .voice-options label{min-width:80px;flex-shrink:0;font-size:0.9rem}
+    .voice-options select{min-width:200px;flex:1}
     
     .chunk-options{margin-top:10px;padding:10px;border:1px solid var(--border);border-radius:8px;background:color-mix(in srgb,var(--card) 95%,transparent)}
     
-    /* 진행 상태 바 추가 */
+    /* 진행 상태 바 */
     .progress-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin:8px 0}
     .progress-fill{height:100%;background:var(--accent);transition:width 0.3s ease}
     
     /* 에러 메시지 스타일 */
     .error-msg{background:color-mix(in srgb,#ef4444 15%,transparent);border:1px solid #ef4444;border-radius:8px;padding:10px;margin:10px 0;color:var(--text)}
     .warning-msg{background:color-mix(in srgb,#f59e0b 15%,transparent);border:1px solid #f59e0b;border-radius:8px;padding:10px;margin:10px 0;color:var(--text)}
+    
+    /* 슬라이더 스타일 */
+    .slider-container{display:flex;align-items:center;gap:8px;margin:8px 0}
+    .slider{flex:1;height:6px;border-radius:3px;background:var(--border);appearance:none;outline:none}
+    .slider::-webkit-slider-thumb{appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer}
+    .slider::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer;border:none}
+    .slider-value{min-width:60px;text-align:center;font-family:monospace;font-size:0.9rem}
+    
+    /* 목소리 정보 스타일 */
+    .voice-info{font-size:0.85rem;color:var(--muted);margin-top:2px}
+    .voice-tag{display:inline-block;padding:1px 6px;margin:0 2px;border-radius:4px;font-size:0.75rem;font-weight:500}
+    .voice-tag.female{background:color-mix(in srgb,#ec4899 20%,transparent);color:#be185d}
+    .voice-tag.male{background:color-mix(in srgb,#3b82f6 20%,transparent);color:#1d4ed8}
+    .voice-tag.neutral{background:color-mix(in srgb,#6b7280 20%,transparent);color:#374151}
+    .voice-tag.premium{background:color-mix(in srgb,#f59e0b 20%,transparent);color:#d97706}
+    .voice-tag.standard{background:color-mix(in srgb,#10b981 20%,transparent);color:#047857}
+    .voice-tag.latest{background:color-mix(in srgb,#8b5cf6 20%,transparent);color:#7c3aed}
+    
+    /* 설정 그룹 스타일 */
+    .setting-group{margin-bottom:16px}
+    .setting-group label{display:block;margin-bottom:4px;font-size:0.9rem;font-weight:500}
+    .setting-group select{width:100%}
+    
+    /* 반응형 개선 */
+    @media(max-width:767px){
+      .voice-options{flex-direction:column;align-items:stretch}
+      .voice-options label{min-width:auto}
+      .voice-options select{min-width:auto}
+    }
   </style>
 </head>
 <body>
@@ -161,14 +190,14 @@
       </div>
     </section>
 
-    <!-- 메인 컨텐츠 그리드 -->
+    <!-- 메인 컨텐츠 레이아웃 - 좌우 분할 -->
     <section class="section">
-      <div class="main-grid">
-        <!-- 왼쪽 컬럼: 입력 및 역할 설정 -->
-        <div class="left-panel">
-          <!-- 텍스트 입력 -->
+      <div class="main-layout">
+        <!-- 왼쪽 섹션: 텍스트 입력 및 역할 관리 -->
+        <div class="left-section">
+          <!-- 모드 선택 -->
           <div class="panel">
-            <h2>1) 텍스트 입력</h2>
+            <h2>모드 선택</h2>
             <div class="controls" style="margin-bottom:8px">
               <div role="tablist" aria-label="모드" class="controls" id="modeChips">
                 <button class="btn btn-secondary" data-val="plain" aria-pressed="false">일반</button>
@@ -176,8 +205,12 @@
                 <button class="btn btn-secondary" data-val="ssml" aria-pressed="false">세밀 조절(전문가용)</button>
               </div>
             </div>
-            <div class="small" id="modeHint" style="margin-bottom:8px;color:var(--muted)">역할 대화: 줄 앞에 "이름: 내용" 또는 "[이름] 내용"</div>
-            
+            <div class="small" id="modeHint" style="color:var(--muted)">역할 대화: 줄 앞에 "이름: 내용" 또는 "[이름] 내용"</div>
+          </div>
+
+          <!-- 텍스트 입력 -->
+          <div class="panel">
+            <h2>텍스트 입력</h2>
             <textarea id="editor" class="input mono" placeholder="예: 할머니: 오늘은 여기까지 하자.&#10;소년: 아직 할 말이 있어요!"></textarea>
             <div class="counter" id="counter">0 글자 / 0 바이트</div>
 
@@ -197,24 +230,20 @@
             
             <!-- 대화 옵션 -->
             <div class="options-grid">
-              <div>
-                <label class="small">말 바뀔 때 잠깐 쉬기(ms)</label>
-                <div class="controls" style="margin-top:4px">
-                  <div id="switchChips" class="controls" role="group">
-                    <button class="btn btn-secondary" data-val="0">0</button>
-                    <button class="btn btn-primary" data-val="150">150 (추천)</button>
-                    <button class="btn btn-secondary" data-val="300">300</button>
-                  </div>
-                  <input id="switchNum" type="number" min="0" max="2000" step="10" placeholder="직접 입력" style="width:130px" />
-                </div>
+              <div class="setting-group">
+                <label>말 바뀔 때 잠깐 쉬기</label>
+                <select id="switchSelect">
+                  <option value="0">0ms - 바로 이어서</option>
+                  <option value="150" selected>150ms - 추천</option>
+                  <option value="300">300ms - 여유롭게</option>
+                  <option value="500">500ms - 충분히</option>
+                </select>
                 <div class="small" style="margin-top:4px;color:var(--muted)">말하는 사람이 바뀌는 지점에만 짧게 쉬어 더 자연스럽게 들립니다.</div>
               </div>
 
-              <div>
-                <label class="small">줄마다 기본으로 되돌리기</label>
-                <div style="margin-top:4px">
-                  <button id="lineResetTgl" class="btn btn-primary" aria-pressed="true">ON</button>
-                </div>
+              <div class="setting-group">
+                <label>줄마다 기본으로 되돌리기</label>
+                <button id="lineResetTgl" class="btn btn-primary" aria-pressed="true">ON</button>
                 <div class="small" style="margin-top:4px;color:var(--muted)">ON이면 <b>그 줄에 적힌 이름만</b> 해당 목소리로 읽고, 다음 줄은 자동으로 <b>기본 목소리</b>로 돌아갑니다.</div>
               </div>
             </div>
@@ -277,74 +306,136 @@
           </div>
         </div>
 
-        <!-- 오른쪽 컬럼: 설정 및 실행 -->
-        <div class="right-panel">
+        <!-- 오른쪽 섹션: 음성 설정 및 실행 -->
+        <div class="right-section">
           <!-- 기본 음성 설정 -->
           <div class="panel">
             <h2>기본 음성 설정</h2>
-            <div class="voice-options">
+            <div class="setting-group">
               <label>언어</label>
               <select id="baseLangSel"></select>
             </div>
-            <div class="voice-options" style="margin-top:8px">
+            <div class="setting-group">
               <label>목소리</label>
               <select id="baseVoiceSel"></select>
-              <button id="basePreviewBtn" class="btn btn-secondary small">▶ 미리듣기</button>
+              <button id="basePreviewBtn" class="btn btn-secondary small" style="margin-top:6px">▶ 미리듣기</button>
+            </div>
+            <div id="baseVoiceInfo" class="voice-info"></div>
+          </div>
+
+          <!-- 일반 모드 음성 조절 -->
+          <div class="panel" id="plainVoiceControls" style="display:none">
+            <h2>음성 조절</h2>
+            
+            <div class="setting-group">
+              <label>말하기 속도</label>
+              <div class="slider-container">
+                <input type="range" id="plainSpeedSlider" class="slider" min="25" max="400" value="100" step="5">
+                <span class="slider-value" id="plainSpeedValue">100%</span>
+              </div>
+              <div class="controls" style="margin-top:4px">
+                <button class="btn btn-secondary small" onclick="setPlainSpeed(75)">느리게</button>
+                <button class="btn btn-secondary small" onclick="setPlainSpeed(100)">보통</button>
+                <button class="btn btn-secondary small" onclick="setPlainSpeed(150)">빠르게</button>
+              </div>
+            </div>
+
+            <div class="setting-group">
+              <label>음높이 (반음)</label>
+              <div class="slider-container">
+                <input type="range" id="plainPitchSlider" class="slider" min="-20" max="20" value="0" step="1">
+                <span class="slider-value" id="plainPitchValue">0</span>
+              </div>
+              <div class="controls" style="margin-top:4px">
+                <button class="btn btn-secondary small" onclick="setPlainPitch(-5)">낮게</button>
+                <button class="btn btn-secondary small" onclick="setPlainPitch(0)">보통</button>
+                <button class="btn btn-secondary small" onclick="setPlainPitch(5)">높게</button>
+              </div>
+            </div>
+
+            <div class="setting-group">
+              <label>볼륨 (dB)</label>
+              <div class="slider-container">
+                <input type="range" id="plainVolumeSlider" class="slider" min="-10" max="16" value="0" step="0.5">
+                <span class="slider-value" id="plainVolumeValue">0dB</span>
+              </div>
+              <div class="controls" style="margin-top:4px">
+                <button class="btn btn-secondary small" onclick="setPlainVolume(-6)">작게</button>
+                <button class="btn btn-secondary small" onclick="setPlainVolume(0)">보통</button>
+                <button class="btn btn-secondary small" onclick="setPlainVolume(6)">크게</button>
+
+              </div>
             </div>
           </div>
 
-          <!-- 출력 옵션 -->
+          <!-- 오디오 효과 프로필 -->
+          <div class="panel">
+            <h2>오디오 효과</h2>
+            <div class="setting-group">
+              <label>재생 환경 최적화</label>
+              <select id="effectsProfileSel">
+                <option value="">없음 (기본)</option>
+                <option value="headphone-class-device">헤드폰용</option>
+                <option value="handset-class-device">휴대폰 스피커용</option>
+                <option value="small-bluetooth-speaker-class-device">블루투스 스피커 (소형)</option>
+                <option value="medium-bluetooth-speaker-class-device">블루투스 스피커 (중형)</option>
+                <option value="large-home-entertainment-class-device">홈 오디오 시스템용</option>
+                <option value="large-automotive-class-device">자동차용</option>
+                <option value="telephony-class-application">전화통화용</option>
+                <option value="wearable-class-device">웨어러블 기기용</option>
+              </select>
+              <div class="small" style="margin-top:6px;color:var(--muted)">선택한 재생 환경에 맞게 음질을 최적화합니다.</div>
+            </div>
+          </div>
+
+          <!-- 출력 설정 -->
           <div class="panel">
             <h2>출력 설정</h2>
-            <div class="options-grid">
-              <div>
-                <h3>형식</h3>
-                <div class="controls">
-                  <div id="encChips" class="controls" role="group">
-                    <button class="btn btn-primary" data-val="MP3">MP3</button>
-                    <button class="btn btn-secondary" data-val="OGG_OPUS">OGG</button>
-                    <button class="btn btn-secondary" data-val="LINEAR16">WAV</button>
-                  </div>
-                </div>
-                <div class="controls" style="margin-top:6px">
-                  <label style="min-width:90px">샘플레이트</label>
-                  <div id="srChips" class="controls" role="group">
-                    <button class="btn btn-secondary" data-val="24000">24k</button>
-                    <button class="btn btn-primary" data-val="44100">44.1k</button>
-                    <button class="btn btn-secondary" data-val="48000">48k</button>
-                  </div>
-                  <input id="srNum" type="number" min="8000" max="48000" step="1" placeholder="직접 입력" style="width:130px" />
-                </div>
-              </div>
-
-              <div>
-                <h3>문장 사이 쉬기(ms)</h3>
-                <div class="controls">
-                  <div id="sentChips" class="controls" role="group">
-                    <button class="btn btn-secondary" data-val="0">0</button>
-                    <button class="btn btn-secondary" data-val="150">150</button>
-                    <button class="btn btn-primary" data-val="300">300</button>
-                    <button class="btn btn-secondary" data-val="500">500</button>
-                  </div>
-                  <input id="sentNum" type="number" placeholder="예: 150" min="0" max="2000" step="10" style="width:130px" />
-                </div>
-                <div class="small" style="margin-top:4px;color:var(--muted)">자연스럽게 150 · 또박또박 300 · 천천히 500 (ms)</div>
-              </div>
+            
+            <div class="setting-group">
+              <label>오디오 형식</label>
+              <select id="encodingSelect">
+                <option value="MP3">MP3 (일반용, 작은 파일)</option>
+                <option value="LINEAR16">WAV (고품질, 큰 파일)</option>
+                <option value="OGG_OPUS">OGG (압축 효율적)</option>
+              </select>
             </div>
 
-            <div style="margin-top:12px">
-              <h3>기타 옵션</h3>
-              <div class="controls">
-                <label style="min-width:120px">전체 음성 크기 균등화</label>
-                <button id="normTgl" class="btn btn-primary" aria-pressed="true">ON</button>
-              </div>
-              <div class="controls" style="margin-top:6px">
-                <label style="min-width:120px">재시도</label>
-                <div id="retryChips" class="controls" role="group">
-                  <button class="btn btn-secondary" data-val="0">0</button>
-                  <button class="btn btn-secondary" data-val="1">1</button>
-                  <button class="btn btn-primary" data-val="3">3</button>
-                  <button class="btn btn-secondary" data-val="5">5</button>
+            <div class="setting-group">
+              <label>샘플레이트</label>
+              <select id="sampleRateSelect">
+                <option value="24000">24kHz (기본)</option>
+                <option value="44100">44.1kHz (CD 품질)</option>
+                <option value="48000">48kHz (고품질)</option>
+              </select>
+            </div>
+
+            <div class="setting-group">
+              <label>문장 사이 쉬기</label>
+              <select id="sentenceBreakSelect">
+                <option value="0">0ms - 연속으로</option>
+                <option value="150">150ms - 자연스럽게</option>
+                <option value="300">300ms - 또박또박</option>
+                <option value="500">500ms - 천천히</option>
+                <option value="1000">1000ms - 여유롭게</option>
+              </select>
+            </div>
+
+            <div class="setting-group">
+              <label>기타 설정</label>
+              <div class="controls" style="flex-direction:column;align-items:stretch;gap:6px">
+                <div class="controls">
+                  <label style="min-width:120px">전체 음성 크기 균등화</label>
+                  <button id="normTgl" class="btn btn-primary" aria-pressed="true">ON</button>
+                </div>
+                <div class="controls">
+                  <label style="min-width:120px">재시도 횟수</label>
+                  <select id="retrySelect" style="width:100px">
+                    <option value="0">0회</option>
+                    <option value="1">1회</option>
+                    <option value="3" selected>3회</option>
+                    <option value="5">5회</option>
+                  </select>
                 </div>
               </div>
             </div>
@@ -352,14 +443,14 @@
 
           <!-- 음성 만들기 -->
           <div class="panel">
-            <h2>2) 음성 만들기</h2>
-            <div class="controls">
-              <button id="makeBtn" class="btn btn-primary"><span id="makeLabel">음성 만들기</span></button>
-              <button id="cancelBtn" class="btn btn-danger" style="display:none">취소</button>
-              <span id="status" class="small" style="margin-left:6px"></span>
+            <h2>음성 생성</h2>
+            <div class="controls" style="flex-direction:column;gap:8px">
+              <button id="makeBtn" class="btn btn-primary" style="width:100%"><span id="makeLabel">음성 만들기</span></button>
+              <button id="cancelBtn" class="btn btn-danger" style="display:none;width:100%">취소</button>
+              <span id="status" class="small"></span>
             </div>
             
-            <!-- 진행 상태 바 추가 -->
+            <!-- 진행 상태 바 -->
             <div class="progress-bar" id="progressBar" style="display:none">
               <div class="progress-fill" id="progressFill" style="width:0%"></div>
             </div>
@@ -368,11 +459,9 @@
             <div id="errorArea"></div>
             
             <audio id="player" controls style="margin-top:8px;width:100%"></audio>
-            <div class="controls small" style="margin-top:6px">
-              <a id="download" class="btn btn-secondary small" href="#" style="display:none">다운로드</a>
-              <button id="srtBtn" class="btn btn-secondary small">SRT 자막 저장</button>
-              <button id="vttBtn" class="btn btn-secondary small">VTT 자막 저장</button>
-              <span class="small" id="outInfo" style="margin-left:auto"></span>
+            <div class="controls small" style="margin-top:6px;flex-direction:column;gap:6px">
+              <a id="download" class="btn btn-secondary small" href="#" style="display:none;width:100%">다운로드</a>
+              <span class="small" id="outInfo" style="text-align:center"></span>
             </div>
           </div>
         </div>
@@ -382,21 +471,21 @@
     <!-- 언어 샘플 & API 설정 -->
     <section class="section">
       <div class="row">
-        <!--<!-- 언어 샘플 -->
+        <!-- 언어 샘플 -->
         <div class="panel">
           <h2>언어 샘플</h2>
-          <div class="controls">
-            <label style="min-width:120px">언어 선택</label>
+          <div class="setting-group">
+            <label>언어 선택</label>
             <select id="sampleLang"></select>
           </div>
-          <div class="controls" style="margin-top:8px">
-            <label style="min-width:120px">샘플 문장</label>
+          <div class="setting-group">
+            <label>샘플 문장</label>
             <input id="sampleText" type="text" class="mono" value="안녕하세요. 이것은 샘플 문장입니다." />
           </div>
           <div class="small" style="margin:8px 0;color:var(--muted)">언어를 고르면 아래에 그 언어의 목소리들이 쭉 나옵니다. 각 행의 ▶로 들어보고, 버튼으로 이름 설정표에 바로 지정할 수 있어요.</div>
           <div class="list">
             <table class="small" id="voiceTable">
-              <thead><tr><th>이름</th><th>유형</th><th>성별</th><th>▶</th><th>기본 이름에 쓰기</th><th>선택 이름에 쓰기</th></tr></thead>
+              <thead><tr><th>이름</th><th>정보</th><th>▶</th><th>기본 이름에 쓰기</th><th>선택 이름에 쓰기</th></tr></thead>
               <tbody></tbody>
             </table>
           </div>
@@ -405,13 +494,17 @@
         <!-- API 설정 -->
         <div class="panel">
           <h2>API 설정</h2>
-          <div class="controls">
-            <label style="min-width:140px" for="apiKey">Google TTS API 키</label>
-            <input id="apiKey" type="password" placeholder="AIza... (당신의 키)" autocomplete="off" />
-            <button id="showKeyBtn" class="btn btn-secondary">표시</button>
-            <button id="saveKeyBtn" class="btn btn-primary">저장</button>
-            <button id="clearKeyBtn" class="btn btn-danger">삭제</button>
-            <button id="testBtn" class="btn btn-secondary" style="margin-left:auto">테스트</button>
+          <div class="setting-group">
+            <label for="apiKey">Google TTS API 키</label>
+            <div class="controls" style="flex-direction:column;gap:6px">
+              <input id="apiKey" type="password" placeholder="AIza... (당신의 키)" autocomplete="off" />
+              <div class="controls">
+                <button id="showKeyBtn" class="btn btn-secondary">표시</button>
+                <button id="saveKeyBtn" class="btn btn-primary">저장</button>
+                <button id="clearKeyBtn" class="btn btn-danger">삭제</button>
+                <button id="testBtn" class="btn btn-secondary">테스트</button>
+              </div>
+            </div>
           </div>
           <p class="small" style="margin-top:6px;color:var(--muted)">키는 이 브라우저에만 저장됩니다. GCP 콘솔에서 Text-to-Speech API 활성화 → API 제한에서 TTS만 허용 → 내 도메인을 HTTP referrer로 추가하는 것을 권장합니다.</p>
         </div>
@@ -425,32 +518,22 @@
         <div class="small" style="line-height:1.7">
           <h3>모드</h3>
           <ul>
-            <li><b>일반</b>: 한 사람이 쭉 읽습니다. (이름 관련 UI 숨김)</li>
-            <li><b>역할 대화</b>: 줄 앞에 <code class="mono">이름: 내용</code> 또는 <code class="mono">[이름] 내용</code> 형태로 쓰면, 이름별 목소리를 적용합니다. <b>줄마다 기본으로 되돌리기</b>가 ON이면 그 줄만 해당 이름으로 읽고 다음 줄은 기본으로 돌아갑니다.</li>
+            <li><b>일반</b>: 한 사람이 쭉 읽습니다. 음성 조절과 오디오 효과를 사용할 수 있습니다.</li>
+            <li><b>역할 대화</b>: 줄 앞에 <code class="mono">이름: 내용</code> 또는 <code class="mono">[이름] 내용</code> 형태로 쓰면, 이름별 목소리를 적용합니다.</li>
             <li><b>세밀 조절(전문가용)</b>: SSML을 직접 씁니다. 아래 명령 참조.</li>
           </ul>
 
-          <h3>SSML 명령(전체)</h3>
+          <h3>새로운 기능</h3>
           <ul>
-            <li><code class="mono">&lt;speak&gt;...&lt;/speak&gt;</code> — 루트 컨테이너 (필수)</li>
-            <li><code class="mono">&lt;p&gt;</code>, <code class="mono">&lt;s&gt;</code> — 문단/문장 경계</li>
-            <li><code class="mono">&lt;break time="300ms"/&gt;</code> — 쉬기 (예: 150ms, 300ms)</li>
-            <li><code class="mono">&lt;emphasis level="moderate|strong|reduced"&gt;강조&lt;/emphasis&gt;</code></li>
-            <li><code class="mono">&lt;prosody rate="0.95" pitch="-2st" volume="+2dB"&gt;텍스트&lt;/prosody&gt;</code></li>
-            <li><code class="mono">&lt;say-as interpret-as="characters|digits|cardinal|ordinal|date|time|telephone"&gt;값&lt;/say-as&gt;</code></li>
-            <li><code class="mono">&lt;sub alias="대체 발음"&gt;원문&lt;/sub&gt;</code> — 발음 바꾸기</li>
-            <li><code class="mono">&lt;mark name="S1"/&gt;</code> — 타임포인트(마커)</li>
+            <li><b>개선된 UI</b>: 텍스트 입력을 왼쪽에 넓게, 설정을 오른쪽에 깔끔하게 배치했습니다.</li>
+            <li><b>정확한 목소리 정보</b>: 성별, 모델 유형, 품질 등급을 정확하게 표시합니다.</li>
+            <li><b>드롭다운 설정</b>: 모든 출력 설정을 사용하기 쉬운 드롭다운으로 변경했습니다.</li>
+            <li><b>음성 조절</b>: 일반 모드에서 속도, 음높이, 볼륨을 세밀하게 조절할 수 있습니다.</li>
+            <li><b>오디오 효과</b>: 헤드폰, 스피커, 자동차 등 재생 환경에 맞게 음질을 최적화합니다.</li>
           </ul>
 
           <h3>긴 글 자동 나눔</h3>
-          <p>Google TTS는 <b>요청당 5,000바이트</b> 제한이 있습니다. <b>한글만 기준 약 1,600자</b>를 넘기면 오류/끊김이 생길 수 있어 <b>자동 나눔 ON</b>을 권장합니다.</p>
-
-          <h3>문제 해결</h3>
-          <ul>
-            <li><b>403/권한</b>: TTS API 활성화, API 제한에서 TTS 허용, referrer에 내 도메인 추가</li>
-            <li><b>출력 형식</b>: MP3가 가장 호환이 좋습니다.</li>
-            <li><b>오디오가 짧게 잘림</b>: 자동 나눔 ON인지 확인</li>
-          </ul>
+          <p>Google TTS는 <b>요청당 5,000바이트</b> 제한이 있습니다. <b>한글만 기준 약 1,600자</b>를 넘기면 오류/느김이 생길 수 있어 <b>자동 나눔 ON</b>을 권장합니다.</p>
         </div>
       </div>
     </section>
@@ -497,10 +580,10 @@
     // ===== 상태/저장 키 =====
     const LS = {
       KEY: 'gcpKey', 
-      ROLES: 'rolesV7', 
-      MODE: 'modeV7', 
-      OPTS: 'optsV7', 
-      SAMPLE: 'sampleLangV7'
+      ROLES: 'rolesV8', 
+      MODE: 'modeV8', 
+      OPTS: 'optsV8', 
+      SAMPLE: 'sampleLangV8'
     };
     
     const $ = id => document.getElementById(id);
@@ -530,13 +613,14 @@
     }
     on(editor, 'input', updateCounter);
 
-    // 모드
+    // 모드 설정
     let mode = localStorage.getItem(LS.MODE) || 'dialog';
     function setMode(m){ 
       mode = m; 
       localStorage.setItem(LS.MODE, m); 
       $('modeMini').textContent = (m === 'plain' ? '일반' : (m === 'dialog' ? '역할 대화' : '세밀 조절'));
       
+      // 모드 버튼 상태 변경
       document.querySelectorAll('#modeChips .btn').forEach(b => { 
         const on = (b.dataset.val === m); 
         b.classList.toggle('btn-primary', on); 
@@ -544,8 +628,9 @@
         b.setAttribute('aria-pressed', on); 
       });
       
+      // 힌트 텍스트 변경
       if (m === 'plain') {
-        $('modeHint').textContent = '일반: 한 사람이 쭉 읽습니다.';
+        $('modeHint').textContent = '일반: 한 사람이 쭉 읽습니다. 오른쪽에서 음성을 세밀하게 조절할 수 있어요.';
         editor.placeholder = '예: 오늘은 여기까지 하자.';
       } else if (m === 'dialog') {
         $('modeHint').textContent = '역할 대화: 줄 앞에 "이름: 내용" 또는 "[이름] 내용"';
@@ -555,14 +640,19 @@
         editor.placeholder = '<speak>안녕하세요. <break time="300ms"/> 안내를 시작합니다.</speak>';
       }
       
+      // 패널 표시/숨김
       const dialogOptions = $('dialogOptions');
       const ssmlCheat = $('ssmlCheat');
+      const plainVoiceControls = $('plainVoiceControls');
       
       if (dialogOptions) {
         dialogOptions.style.display = (m === 'dialog') ? 'block' : 'none';
       }
       if (ssmlCheat) {
         ssmlCheat.style.display = (m === 'ssml') ? 'block' : 'none';
+      }
+      if (plainVoiceControls) {
+        plainVoiceControls.style.display = (m === 'plain') ? 'block' : 'none';
       }
     }
 
@@ -571,24 +661,40 @@
       on(b, 'click', () => setMode(b.dataset.val))
     );
 
-    // 칩/버튼 그룹 값
-    function setGroup(id, val){ 
-      const g = $(id); 
-      if (!g) return; 
-      g.querySelectorAll('.btn').forEach(b => { 
-        const on = (b.dataset.val === String(val)); 
-        b.classList.toggle('btn-primary', on); 
-        b.classList.toggle('btn-secondary', !on); 
-        b.setAttribute('aria-pressed', on); 
-      }); 
+    // 일반 모드 음성 조절 함수들
+    function setPlainSpeed(value) {
+      $('plainSpeedSlider').value = value;
+      $('plainSpeedValue').textContent = value + '%';
+      autosave();
     }
-    
-    function getGroup(id){ 
-      const g = $(id); 
-      if (!g) return null; 
-      const a = [...g.querySelectorAll('.btn')].find(b => b.getAttribute('aria-pressed') === 'true'); 
-      return a ? a.dataset.val : null; 
+
+    function setPlainPitch(value) {
+      $('plainPitchSlider').value = value;
+      $('plainPitchValue').textContent = value;
+      autosave();
     }
+
+    function setPlainVolume(value) {
+      $('plainVolumeSlider').value = value;
+      $('plainVolumeValue').textContent = value + 'dB';
+      autosave();
+    }
+
+    // 슬라이더 이벤트
+    on($('plainSpeedSlider'), 'input', (e) => {
+      $('plainSpeedValue').textContent = e.target.value + '%';
+      autosave();
+    });
+
+    on($('plainPitchSlider'), 'input', (e) => {
+      $('plainPitchValue').textContent = e.target.value;
+      autosave();
+    });
+
+    on($('plainVolumeSlider'), 'input', (e) => {
+      $('plainVolumeValue').textContent = e.target.value + 'dB';
+      autosave();
+    });
 
     // 자동 저장 옵션
     function loadOpts(){ 
@@ -601,17 +707,18 @@
     
     function autosave(){ 
       const data = {
-        enc: getGroup('encChips'), 
-        sr: getGroup('srChips'), 
-        srNum: $('srNum').value,
-        sent: getGroup('sentChips'), 
-        sentNum: $('sentNum').value,
-        sw: getGroup('switchChips'), 
-        swNum: $('switchNum').value,
-        norm: $('normTgl').getAttribute('aria-pressed') === 'true',
-        chunk: $('chunkTgl').getAttribute('aria-pressed') === 'true',
-        retry: getGroup('retryChips'),
-        lineReset: $('lineResetTgl').getAttribute('aria-pressed') === 'true'
+        encoding: $('encodingSelect') ? $('encodingSelect').value : 'MP3',
+        sampleRate: $('sampleRateSelect') ? $('sampleRateSelect').value : '44100',
+        sentenceBreak: $('sentenceBreakSelect') ? $('sentenceBreakSelect').value : '300',
+        switchDelay: $('switchSelect') ? $('switchSelect').value : '150',
+        norm: $('normTgl') ? $('normTgl').getAttribute('aria-pressed') === 'true' : true,
+        chunk: $('chunkTgl') ? $('chunkTgl').getAttribute('aria-pressed') === 'true' : true,
+        retry: $('retrySelect') ? $('retrySelect').value : '3',
+        lineReset: $('lineResetTgl') ? $('lineResetTgl').getAttribute('aria-pressed') === 'true' : true,
+        plainSpeed: $('plainSpeedSlider') ? $('plainSpeedSlider').value : '100',
+        plainPitch: $('plainPitchSlider') ? $('plainPitchSlider').value : '0',
+        plainVolume: $('plainVolumeSlider') ? $('plainVolumeSlider').value : '0',
+        effectsProfile: $('effectsProfileSel') ? $('effectsProfileSel').value : ''
       }; 
       localStorage.setItem(LS.OPTS, JSON.stringify(data)); 
     }
@@ -626,26 +733,12 @@
       autosave(); 
     }
 
-    // Wire events
-    ['encChips', 'srChips', 'sentChips', 'switchChips', 'retryChips'].forEach(id => {
-      const g = $(id); 
-      if (!g) return; 
-      g.querySelectorAll('.btn').forEach(b => 
-        on(b, 'click', () => { 
-          g.querySelectorAll('.btn').forEach(x => {
-            x.setAttribute('aria-pressed', 'false'); 
-            x.classList.remove('btn-primary'); 
-            x.classList.add('btn-secondary');
-          }); 
-          b.setAttribute('aria-pressed', 'true'); 
-          b.classList.remove('btn-secondary'); 
-          b.classList.add('btn-primary'); 
-          autosave(); 
-        })
-      );
+    // 드롭다운 이벤트들
+    ['encodingSelect', 'sampleRateSelect', 'sentenceBreakSelect', 'switchSelect', 'retrySelect', 'effectsProfileSel'].forEach(id => {
+      const el = $(id);
+      if (el) on(el, 'change', autosave);
     });
     
-    ['srNum', 'sentNum', 'switchNum'].forEach(id => on($(id), 'input', autosave));
     on($('normTgl'), 'click', e => toggleBtn(e.currentTarget));
     on($('chunkTgl'), 'click', e => toggleBtn(e.currentTarget));
     on($('lineResetTgl'), 'click', e => toggleBtn(e.currentTarget));
@@ -680,6 +773,8 @@
         if (!localStorage.getItem(LS.KEY)) throw new Error('API 키가 없음'); 
         await loadVoices(); 
         showSuccess('정상: 목소리 목록을 불러왔습니다'); 
+        renderVoiceList(); 
+        renderBaseVoiceSelect();
       } catch (e) { 
         showError('실패: ' + parseError(e)); 
       } 
@@ -723,6 +818,66 @@
       return String(e);
     }
 
+    // 개선된 목소리 분석 함수
+    function analyzeVoice(voice) {
+      const name = voice.name.toLowerCase();
+      
+      // 실제 API 데이터 사용
+      let gender = 'neutral';
+      if (voice.ssmlGender === 'FEMALE') gender = 'female';
+      else if (voice.ssmlGender === 'MALE') gender = 'male';
+      else if (voice.ssmlGender === 'NEUTRAL') gender = 'neutral';
+      
+      // 모델 유형 및 품질 분석
+      let modelType = 'Standard';
+      let quality = 'standard';
+      let isLatest = false;
+      
+      if (name.includes('neural2')) {
+        modelType = 'Neural2';
+        quality = 'premium';
+        isLatest = true;
+      } else if (name.includes('wavenet')) {
+        modelType = 'WaveNet';
+        quality = 'premium';
+      } else if (name.includes('chirp3') || name.includes('chirp-hd')) {
+        modelType = 'Chirp HD';
+        quality = 'premium';
+        isLatest = true;
+      } else if (name.includes('studio')) {
+        modelType = 'Studio';
+        quality = 'premium';
+        isLatest = true;
+      } else if (name.includes('standard')) {
+        modelType = 'Standard';
+        quality = 'standard';
+      }
+      
+      return { gender, modelType, quality, isLatest };
+    }
+
+    // 목소리 정보 표시
+    function formatVoiceInfo(voice) {
+      const info = analyzeVoice(voice);
+      const genderText = info.gender === 'female' ? '여성' : (info.gender === 'male' ? '남성' : '중성');
+      
+      let tags = `<span class="voice-tag ${info.gender}">${genderText}</span>`;
+      tags += `<span class="voice-tag ${info.quality}">${info.modelType}</span>`;
+      if (info.isLatest) {
+        tags += `<span class="voice-tag latest">최신</span>`;
+      }
+      
+      return tags;
+    }
+
+    // 드롭다운용 목소리 옵션 텍스트
+    function formatVoiceOption(voice) {
+      const info = analyzeVoice(voice);
+      const genderText = info.gender === 'female' ? '여성' : (info.gender === 'male' ? '남성' : '중성');
+      const latestText = info.isLatest ? ', 최신' : '';
+      return `${voice.name} (${genderText}, ${info.modelType}${latestText})`;
+    }
+
     // 목소리 목록
     let VOICES = []; 
     let voiceIndex = {};
@@ -761,7 +916,7 @@
       const voicesForLang = VOICES.filter(v => (v.languageCodes || []).includes(data.lang));
       const vOptions = `<option value="" ${!data.voice ? 'selected' : ''}>— 선택 —</option>` + 
         (voicesForLang.length ? voicesForLang : VOICES).map(v => 
-          `<option ${data.voice === v.name ? 'selected' : ''} value="${v.name}">${v.name}</option>`
+          `<option ${data.voice === v.name ? 'selected' : ''} value="${v.name}">${formatVoiceOption(v)}</option>`
         ).join('');
       
       tr.innerHTML = `
@@ -887,6 +1042,7 @@
       const langs = [...new Set(VOICES.flatMap(v => v.languageCodes || []))].sort();
       const langSel = $('baseLangSel');
       const voiceSel = $('baseVoiceSel');
+      const voiceInfo = $('baseVoiceInfo');
       
       if (langSel && langs.length > 0) {
         langSel.innerHTML = langs.map(c => `<option ${base.lang === c ? 'selected' : ''} value="${c}">${c}</option>`).join('');
@@ -897,7 +1053,17 @@
       
       if (voiceSel) {
         voiceSel.innerHTML = `<option value="" ${!base.voice ? 'selected' : ''}>(선택)</option>` + 
-          list.map(v => `<option ${base.voice === v.name ? 'selected' : ''} value="${v.name}">${v.name}</option>`).join('');
+          list.map(v => `<option ${base.voice === v.name ? 'selected' : ''} value="${v.name}">${formatVoiceOption(v)}</option>`).join('');
+      }
+      
+      // 목소리 정보 표시
+      if (voiceInfo && base.voice) {
+        const selectedVoice = voiceIndex[base.voice];
+        if (selectedVoice) {
+          voiceInfo.innerHTML = formatVoiceInfo(selectedVoice);
+        }
+      } else if (voiceInfo) {
+        voiceInfo.innerHTML = '';
       }
       
       if (langSel) {
@@ -911,7 +1077,8 @@
       if (voiceSel) {
         voiceSel.onchange = () => { 
           base.voice = voiceSel.value || ''; 
-          saveRoles(); 
+          saveRoles();
+          renderBaseVoiceSelect(); // 정보 업데이트
         };
       }
       
@@ -920,6 +1087,7 @@
         previewBtn.onclick = () => {
           const voiceValue = voiceSel ? voiceSel.value || '' : '';
           const langValue = langSel ? langSel.value || 'ko-KR' : 'ko-KR';
+          if (!voiceValue) return showError('먼저 목소리를 선택하세요');
           previewVoice(voiceValue, langValue);
         };
       }
@@ -1072,8 +1240,7 @@
         const tr = document.createElement('tr'); 
         tr.innerHTML = `
         <td class="mono">${v.name}</td>
-        <td>${/Neural|Wavenet|Chirp|Standard/i.test(v.name) ? (v.name.match(/(Chirp|Neural|Wavenet|Standard)/i) || ['',''])[1] : '—'}</td>
-        <td>${v.ssmlGender || '—'}</td>
+        <td>${formatVoiceInfo(v)}</td>
         <td><button class="btn btn-secondary small prevBtn">▶</button></td>
         <td><button class="btn btn-secondary small useBase">기본 이름</button></td>
         <td><button class="btn btn-secondary small useSelected">선택 이름…</button></td>`;
@@ -1113,19 +1280,10 @@
     }
 
     // 합성
-    function chipsVal(id){ 
-      return getGroup(id); 
-    }
-    
-    function numOrChip(numEl, chipId){ 
-      if (!numEl) return Number(chipsVal(chipId) || 0);
-      const v = numEl.value.trim(); 
-      return v ? Number(v) : Number(chipsVal(chipId) || 0); 
-    }
-    
     const MAX_BYTES = 4900; // 안전 마진
     
-    function splitChunks(text){ 
+    // 수정된 splitChunks 함수 - 청크 간 쉬기 추가
+    function splitChunks(text, sentenceBreakMs = 0){ 
       const out = []; 
       const paras = text.split(/\n{2,}/); 
       for (const para of paras) { 
@@ -1159,20 +1317,24 @@
         } 
         if (buf.trim()) out.push(buf);
       } 
+      
+      // 청크 간 쉬기 추가 (마지막 청크 제외)
+      if (sentenceBreakMs > 0 && out.length > 1) {
+        for (let i = 0; i < out.length - 1; i++) {
+          out[i] += ` <break time="${sentenceBreakMs}ms"/>`;
+        }
+      }
+      
       return out; 
     }
     
-    function stripSSML(text) {
-      return text.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
-    }
-
     function insertBreaks(str, ms, useSSML = true){ 
       if (!ms || ms === '0' || !useSSML) return str; 
       const parts = str.split(/(?<=[\.\!\?\…]|[。！？])\s+/); 
       return parts.join(` <break time="${ms}ms"/> `); 
     }
 
-    async function synthesizeChunk({text, useSSML, voiceName, languageCode, rate, pitch, vol, encoding, sampleRate}){
+    async function synthesizeChunk({text, useSSML, voiceName, languageCode, rate, pitch, vol, encoding, sampleRate, effectsProfile}){
       const key = localStorage.getItem(LS.KEY); 
       if (!key) throw new Error('API 키가 없습니다');
       
@@ -1187,8 +1349,13 @@
         sampleRateHertz: sampleRate 
       };
       
+      // 오디오 효과 프로필 추가
+      if (effectsProfile) {
+        audioConfig.effectsProfileId = [effectsProfile];
+      }
+      
       const url = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${encodeURIComponent(key)}`;
-      const retries = Number(getGroup('retryChips') || '3');
+      const retries = Number($('retrySelect') ? $('retrySelect').value : '3');
       
       for (let attempt = 0; attempt <= retries; attempt++) {
         if (cancelRequested) throw new Error('사용자가 취소함');
@@ -1325,8 +1492,7 @@
 
     async function previewVoice(name, lang, sample){ 
       try { 
-        const srNum = $('srNum');
-        const sampleRate = Number((srNum ? srNum.value : '') || chipsVal('srChips') || 44100);
+        const sampleRate = Number($('sampleRateSelect') ? $('sampleRateSelect').value : '44100');
         const b64 = await synthesizeChunk({
           text: sample || '안녕하세요. 미리듣기입니다.', 
           useSSML: false, 
@@ -1347,18 +1513,16 @@
 
     function buildSegments(){ 
       const text = editor.value; 
-      const enc = chipsVal('encChips') || 'MP3';
-      const srNum = $('srNum');
-      const sr = Number((srNum ? srNum.value : '') || chipsVal('srChips') || '44100'); 
-      const sentNum = $('sentNum');
-      const sp = String(numOrChip(sentNum, 'sentChips') || 300); 
-      const switchNum = $('switchNum');
-      const sw = String(numOrChip(switchNum, 'switchChips') || 150); 
-      const lineReset = $('lineResetTgl').getAttribute('aria-pressed') === 'true'; 
-      const chunkOn = $('chunkTgl').getAttribute('aria-pressed') === 'true';
+      const enc = $('encodingSelect') ? $('encodingSelect').value : 'MP3';
+      const sr = Number($('sampleRateSelect') ? $('sampleRateSelect').value : '44100');
+      const sp = $('sentenceBreakSelect') ? $('sentenceBreakSelect').value : '300';
+      const sw = $('switchSelect') ? $('switchSelect').value : '150';
+      const lineReset = $('lineResetTgl') ? $('lineResetTgl').getAttribute('aria-pressed') === 'true' : true;
+      const chunkOn = $('chunkTgl') ? $('chunkTgl').getAttribute('aria-pressed') === 'true' : true;
+      const effectsProfile = $('effectsProfileSel') ? $('effectsProfileSel').value : '';
       
       const segs = []; 
-      const splitter = chunkOn ? splitChunks : (t) => [t];
+      const splitter = chunkOn ? (t) => splitChunks(t, Number(sp)) : (t) => [t];
       
       if (mode === 'ssml') {
         const chunks = splitter(text);
@@ -1371,10 +1535,17 @@
           lang: base.lang, 
           rate: Number(base.speed) / 100, 
           pitch: Number(base.pitch), 
-          vol: Number(base.vol) 
+          vol: Number(base.vol),
+          effectsProfile: effectsProfile
         }));
       } else if (mode === 'plain') {
         const base = roles._ || {voice: '', speed: '100', pitch: '0', vol: '0', lang: 'ko-KR'};
+        
+        // 일반 모드에서는 슬라이더 값 사용
+        const plainSpeed = $('plainSpeedSlider') ? Number($('plainSpeedSlider').value) / 100 : Number(base.speed) / 100;
+        const plainPitch = $('plainPitchSlider') ? Number($('plainPitchSlider').value) : Number(base.pitch);
+        const plainVolume = $('plainVolumeSlider') ? Number($('plainVolumeSlider').value) : Number(base.vol);
+        
         const isAdvancedVoice = base.voice && (base.voice.includes('Neural') || base.voice.includes('Wavenet') || base.voice.includes('Chirp'));
         const inner = insertBreaks(text, sp, isAdvancedVoice);
         splitter(inner).forEach(ch => segs.push({ 
@@ -1383,9 +1554,10 @@
           ssml: isAdvancedVoice, 
           voice: base.voice, 
           lang: base.lang, 
-          rate: Number(base.speed) / 100, 
-          pitch: Number(base.pitch), 
-          vol: Number(base.vol) 
+          rate: plainSpeed, 
+          pitch: plainPitch, 
+          vol: plainVolume,
+          effectsProfile: effectsProfile
         }));
       } else { // dialog
         const parts = parseDialogByAlias(text, lineReset);
@@ -1403,7 +1575,8 @@
             lang: r.lang, 
             rate: Number(r.speed) / 100, 
             pitch: Number(r.pitch), 
-            vol: Number(r.vol) 
+            vol: Number(r.vol),
+            effectsProfile: effectsProfile
           }));
         }
       }
@@ -1411,8 +1584,6 @@
       return {segs, enc, sr};
     }
 
-    let segmentsLog = [];
-    
     // 취소 버튼
     on($('cancelBtn'), 'click', () => {
       cancelRequested = true;
@@ -1455,7 +1626,6 @@
       try {
         const {segs, enc, sr} = buildSegments();
         const parts = []; 
-        segmentsLog = [];
         
         for (let i = 0; i < segs.length; i++) {
           if (cancelRequested) {
@@ -1475,15 +1645,11 @@
             pitch: s.pitch, 
             vol: s.vol, 
             encoding: enc, 
-            sampleRate: sr
+            sampleRate: sr,
+            effectsProfile: s.effectsProfile
           });
           const u8 = b64ToU8(b64); 
           parts.push(u8);
-          segmentsLog.push({ 
-            alias: s.alias, 
-            text: s.text.replace(/\s+/g, ' ').slice(0, 80), 
-            dur: 0 
-          });
           await sleep(8);
         }
         
@@ -1524,65 +1690,6 @@
       }, 2000);
     });
 
-    function toSrt(){ 
-      let t = 0, out = '', i = 1; 
-      for (const seg of segmentsLog) { 
-        const fmt = (x) => { 
-          const h = String(Math.floor(x / 3600)).padStart(2, '0'); 
-          x %= 3600; 
-          const m = String(Math.floor(x / 60)).padStart(2, '0'); 
-          const s = String(Math.floor(x % 60)).padStart(2, '0'); 
-          const ms = String(Math.floor((x % 1) * 1000)).padStart(3, '0'); 
-          return `${h}:${m}:${s},${ms}`;
-        }; 
-        const s = fmt(t), e = fmt(t + (seg.dur || 0)); 
-        out += `${i++}\n${s} --> ${e}\n${seg.alias ? ('[' + seg.alias + '] ') : ''}${seg.text}\n\n`; 
-        t += (seg.dur || 0);
-      } 
-      return out; 
-    }
-    
-    function toVtt(){ 
-      let t = 0, out = 'WEBVTT\n\n'; 
-      for (const seg of segmentsLog) { 
-        const fmt = (x) => { 
-          const h = String(Math.floor(x / 3600)).padStart(2, '0'); 
-          x %= 3600; 
-          const m = String(Math.floor(x / 60)).padStart(2, '0'); 
-          const s = String(Math.floor(x % 60)).padStart(2, '0'); 
-          const ms = String(Math.floor((x % 1) * 1000)).padStart(3, '0'); 
-          return `${h}:${m}:${s}.${ms}`;
-        }; 
-        const s = fmt(t), e = fmt(t + (seg.dur || 0)); 
-        out += `${s} --> ${e}\n${seg.alias ? ('[' + seg.alias + '] ') : ''}${seg.text}\n\n`; 
-        t += (seg.dur || 0);
-      } 
-      return out; 
-    }
-    
-    function downloadText(name, text){ 
-      const url = URL.createObjectURL(new Blob([text], {type: 'text/plain;charset=utf-8'})); 
-      const a = document.createElement('a'); 
-      a.href = url; 
-      a.download = name; 
-      document.body.appendChild(a); 
-      a.click(); 
-      setTimeout(() => { 
-        URL.revokeObjectURL(url); 
-        a.remove(); 
-      }, 80); 
-    }
-    
-    on($('srtBtn'), 'click', () => { 
-      if (!segmentsLog.length) return showError('먼저 음성을 만드세요'); 
-      downloadText('subtitles.srt', toSrt()); 
-    });
-    
-    on($('vttBtn'), 'click', () => { 
-      if (!segmentsLog.length) return showError('먼저 음성을 만드세요'); 
-      downloadText('subtitles.vtt', toVtt()); 
-    });
-
     // 모두 듣기 편하게 버튼
     on($('seniorAllBtn'), 'click', () => {
       if (!confirm('모든 이름을 듣기 편한 설정(속도 92%, 톤 -2)으로 변경할까요?')) return;
@@ -1599,16 +1706,16 @@
     // 초기화
     (async function init(){ 
       updateApiBadge(); 
-      setMode(mode);const o = loadOpts();
+      setMode(mode);
+      const o = loadOpts();
       
       // 옵션 복원
-      setGroup('encChips', o.enc || 'MP3'); 
-      setGroup('srChips', o.sr || '44100'); 
-      if ($('srNum')) $('srNum').value = o.srNum || ''; 
-      setGroup('sentChips', o.sent || '300'); 
-      if ($('sentNum')) $('sentNum').value = o.sentNum || ''; 
-      setGroup('switchChips', o.sw || '150'); 
-      if ($('switchNum')) $('switchNum').value = o.swNum || ''; 
+      if ($('encodingSelect')) $('encodingSelect').value = o.encoding || 'MP3';
+      if ($('sampleRateSelect')) $('sampleRateSelect').value = o.sampleRate || '44100';
+      if ($('sentenceBreakSelect')) $('sentenceBreakSelect').value = o.sentenceBreak || '300';
+      if ($('switchSelect')) $('switchSelect').value = o.switchDelay || '150';
+      if ($('retrySelect')) $('retrySelect').value = o.retry || '3';
+      if ($('effectsProfileSel')) $('effectsProfileSel').value = o.effectsProfile || '';
       
       const normTgl = $('normTgl');
       if (normTgl) {
@@ -1634,7 +1741,19 @@
         lineResetTgl.textContent = (o.lineReset === false ? 'OFF' : 'ON');
       }
       
-      setGroup('retryChips', o.retry || '3');
+      // 일반 모드 슬라이더 복원
+      if ($('plainSpeedSlider')) {
+        $('plainSpeedSlider').value = o.plainSpeed || '100';
+        $('plainSpeedValue').textContent = (o.plainSpeed || '100') + '%';
+      }
+      if ($('plainPitchSlider')) {
+        $('plainPitchSlider').value = o.plainPitch || '0';
+        $('plainPitchValue').textContent = o.plainPitch || '0';
+      }
+      if ($('plainVolumeSlider')) {
+        $('plainVolumeSlider').value = o.plainVolume || '0';
+        $('plainVolumeValue').textContent = (o.plainVolume || '0') + 'dB';
+      }
       
       // API 키 복원
       const savedKey = localStorage.getItem(LS.KEY);
@@ -1660,6 +1779,13 @@
         activeAudioUrls.forEach(url => URL.revokeObjectURL(url));
       });
     })();
+
+    // 전역 함수로 노출 (HTML에서 호출용)
+    window.setPlainSpeed = setPlainSpeed;
+    window.setPlainPitch = setPlainPitch;
+    window.setPlainVolume = setPlainVolume;
   </script>
 </body>
 </html>
+
+

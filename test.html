@@ -1,0 +1,971 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>🎤 통합 TTS - 모든 기능이 하나로</title>
+  <style>
+    :root{ 
+      --bg:#ffffff; --text:#0b1220; --muted:#475569; --border:#e5e7eb; 
+      --card:#ffffff; --accent:#2563eb; --btn-text:#ffffff; 
+      --shadow:0 6px 18px rgba(0,0,0,.06); --input:#0b1220; --input-bg:var(--card); 
+      --success:#10b981; --warning:#f59e0b; --danger:#ef4444;
+    }
+    
+    [data-theme="dark"]{ 
+      --bg:#0b1220; --text:#f1f5f9; --muted:#cbd5e1; --border:#334155; 
+      --card:#111827; --accent:#60a5fa; --btn-text:#0b1220; 
+      --shadow:0 8px 22px rgba(0,0,0,.55); --input:#e5e7eb; --input-bg:#0f172a; 
+    }
+    
+    * { box-sizing: border-box; }
+    html, body { 
+      background: var(--bg); color: var(--text); margin: 0; 
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Noto Sans KR, Arial, sans-serif;
+    }
+
+    .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+
+    /* 메인 레이아웃 - 3영역 */
+    .main-layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+    @media(min-width: 1024px) {
+      .main-layout {
+        grid-template-columns: 2fr 1fr 1fr;
+      }
+    }
+    @media(min-width: 768px) and (max-width: 1023px) {
+      .main-layout {
+        grid-template-columns: 1fr 1fr;
+      }
+      .right-section { grid-column: span 2; }
+    }
+
+    .left-section, .middle-section, .right-section {
+      display: flex; flex-direction: column; gap: 16px;
+    }
+
+    /* 패널 */
+    .panel {
+      border: 1px solid var(--border); border-radius: 12px; background: var(--card);
+      box-shadow: var(--shadow); padding: 16px;
+    }
+    .panel h2 { margin: 0 0 12px 0; font-size: 1.1rem; font-weight: 600; }
+    .panel h3 { margin: 12px 0 8px 0; font-size: 1rem; font-weight: 500; }
+
+    /* 버튼 */
+    .btn {
+      padding: 8px 16px; border: 1px solid var(--border); border-radius: 8px;
+      background: var(--card); color: var(--text); cursor: pointer; font-size: 0.9rem;
+      transition: all 0.2s; text-decoration: none; display: inline-block;
+    }
+    .btn:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-primary { background: var(--accent); border-color: var(--accent); color: var(--btn-text); }
+    .btn-secondary { background: var(--card); border-color: var(--border); }
+    .btn-success { background: var(--success); border-color: var(--success); color: white; }
+    .btn-warning { background: var(--warning); border-color: var(--warning); color: white; }
+    .btn-danger { background: var(--danger); border-color: var(--danger); color: white; }
+    .btn.small { padding: 4px 8px; font-size: 0.8rem; }
+    .btn.large { width: 100%; height: 48px; font-size: 1.1rem; font-weight: 600; }
+
+    /* 입력 요소 */
+    .text-input {
+      width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px;
+      background: var(--input-bg); color: var(--input); font-family: monospace;
+      font-size: 0.9rem; line-height: 1.5; resize: vertical;
+    }
+    .text-input.large { min-height: 400px; }
+    
+    select, input[type="text"], input[type="number"] {
+      padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px;
+      background: var(--input-bg); color: var(--input); font-size: 0.9rem;
+    }
+
+    /* 텍스트 분석 결과 */
+    .analysis-result {
+      margin-top: 12px; padding: 12px; border-radius: 8px;
+      background: color-mix(in srgb, var(--accent) 5%, var(--card));
+      border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--border));
+    }
+    .analysis-tag {
+      display: inline-block; padding: 2px 8px; margin: 2px; border-radius: 12px;
+      font-size: 0.8rem; font-weight: 500;
+    }
+    .tag-auto { background: var(--success); color: white; }
+    .tag-role { background: var(--accent); color: white; }
+    .tag-ssml { background: var(--warning); color: white; }
+
+    /* 캐릭터 관리 */
+    .character-grid {
+      display: grid; grid-template-columns: 1fr; gap: 12px;
+    }
+    @media(min-width: 768px) {
+      .character-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    .character-card {
+      border: 2px solid var(--border); border-radius: 12px; padding: 12px;
+      background: var(--card); transition: all 0.2s;
+    }
+    .character-card:hover { border-color: var(--accent); }
+    .character-card.active { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 5%, var(--card)); }
+    .character-card.default { border-color: var(--success); }
+
+    .character-header {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
+    }
+    .character-name { font-weight: 600; font-size: 1rem; }
+    .character-status { font-size: 1.2rem; }
+    .status-ok { color: var(--success); }
+    .status-warning { color: var(--warning); }
+    .status-error { color: var(--danger); }
+
+    .voice-selection, .voice-personality {
+      margin-bottom: 12px;
+    }
+    .voice-selection label, .voice-personality label {
+      display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 4px; color: var(--muted);
+    }
+    .voice-select, .preset-select { width: 100%; }
+
+    .voice-warning {
+      font-size: 0.8rem; color: var(--warning); margin-top: 4px; padding: 4px 8px;
+      background: color-mix(in srgb, var(--warning) 10%, transparent); border-radius: 4px;
+    }
+
+    .character-actions {
+      display: flex; gap: 8px; justify-content: space-between;
+    }
+
+    /* 사용자 정의 조절 */
+    .custom-controls {
+      margin-top: 12px; padding: 12px; border: 1px solid var(--border); border-radius: 8px;
+      background: color-mix(in srgb, var(--card) 95%, transparent);
+    }
+    .control-group {
+      margin-bottom: 16px;
+    }
+    .control-group:last-child { margin-bottom: 0; }
+    .control-group label {
+      display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 6px; color: var(--muted);
+    }
+    .slider-container {
+      display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+    }
+    .slider {
+      flex: 1; height: 6px; border-radius: 3px; background: var(--border); appearance: none; outline: none;
+    }
+    .slider::-webkit-slider-thumb {
+      appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); cursor: pointer;
+    }
+    .value-display {
+      min-width: 60px; text-align: center; font-family: monospace; font-size: 0.9rem;
+    }
+    .preset-buttons {
+      display: flex; gap: 4px;
+    }
+
+    /* 설정 그룹 */
+    .setting-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px;
+    }
+    .setting-row:last-child { margin-bottom: 0; }
+    .setting-row label { font-size: 0.9rem; flex: 1; }
+    .setting-row select { min-width: 120px; }
+
+    /* 토글 */
+    .toggle[aria-pressed="true"] {
+      background: var(--accent); border-color: var(--accent); color: var(--btn-text);
+    }
+
+    /* 툴바 */
+    .toolbar {
+      display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+    }
+
+    /* 진행 상태 */
+    .progress-area {
+      margin: 12px 0; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%; background: var(--accent); transition: width 0.3s; width: 0%;
+    }
+
+    /* 스크롤바 */
+    .scrollable {
+      max-height: 400px; overflow-y: auto;
+    }
+    .scrollable::-webkit-scrollbar { width: 6px; }
+    .scrollable::-webkit-scrollbar-track { background: var(--border); border-radius: 3px; }
+    .scrollable::-webkit-scrollbar-thumb { background: var(--muted); border-radius: 3px; }
+
+    /* 헤더 */
+    .header {
+      text-align: center; padding: 20px 0; border-bottom: 1px solid var(--border); margin-bottom: 20px;
+    }
+    .header h1 { margin: 0; color: var(--accent); }
+
+    /* 카운터 */
+    .text-counter {
+      margin-top: 8px; font-size: 0.85rem; color: var(--muted);
+    }
+
+    /* 상태 표시 */
+    .status-indicator {
+      display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: 500;
+    }
+    .status-ready { background: var(--success); color: white; }
+    .status-working { background: var(--warning); color: white; }
+    .status-error { background: var(--danger); color: white; }
+
+    /* 기능 모드 표시 */
+    .mode-indicator {
+      padding: 8px 12px; border-radius: 8px; margin-bottom: 12px; font-size: 0.9rem;
+    }
+    .mode-simple { background: color-mix(in srgb, var(--success) 10%, var(--card)); border: 1px solid var(--success); }
+    .mode-role { background: color-mix(in srgb, var(--accent) 10%, var(--card)); border: 1px solid var(--accent); }
+    .mode-ssml { background: color-mix(in srgb, var(--warning) 10%, var(--card)); border: 1px solid var(--warning); }
+
+    /* 추가/편집 버튼 */
+    .add-character {
+      text-align: center; padding: 20px; border: 2px dashed var(--border); border-radius: 12px;
+    }
+    .add-character:hover { border-color: var(--accent); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    
+    <!-- 헤더 -->
+    <div class="header">
+      <h1>🎤 통합 TTS</h1>
+      <p>단순 낭독부터 복잡한 역할 대화까지 - 하나의 인터페이스로 모든 것을</p>
+    </div>
+
+    <!-- 메인 레이아웃 -->
+    <div class="main-layout">
+      
+      <!-- 왼쪽: 텍스트 입력 & 분석 -->
+      <div class="left-section">
+        
+        <!-- 텍스트 입력 -->
+        <div class="panel">
+          <h2>📝 텍스트 입력</h2>
+          
+          <!-- 입력 모드 자동 감지 표시 -->
+          <div class="mode-indicator mode-role">
+            🎭 <strong>역할 대화 모드</strong> 자동 감지됨 - "이름:" 형식이 발견되었습니다
+          </div>
+          
+          <textarea class="text-input large" placeholder="단순한 텍스트 또는 대화를 입력하세요...&#10;&#10;📢 단순 낭독: 그냥 텍스트 입력&#10;🎭 역할 대화: 이름: 대화내용&#10;🔧 고급 제어: &lt;speak&gt;SSML 사용&lt;/speak&gt;">할머니: 옛날 옛적에 말이야...
+소년: 어떤 이야기예요?
+할머니: 아주 재미있는 호랑이 이야기란다.
+소년: 빨리 들려주세요!
+나레이터: 그때 갑자기 숲에서 큰 소리가 났다.</textarea>
+          
+          <div class="text-counter">126 글자 / 378 바이트</div>
+          
+          <!-- 자동 분석 결과 -->
+          <div class="analysis-result">
+            <strong>📊 자동 분석 결과:</strong><br>
+            <span class="analysis-tag tag-role">할머니</span>
+            <span class="analysis-tag tag-role">소년</span>
+            <span class="analysis-tag tag-role">나레이터</span>
+            <span class="analysis-tag tag-auto">3명의 캐릭터 발견</span>
+          </div>
+        </div>
+
+        <!-- 텍스트 처리 옵션 -->
+        <div class="panel">
+          <h2>⚙️ 텍스트 처리 옵션</h2>
+          
+          <div class="setting-row">
+            <label>🎭 역할 인식 모드</label>
+            <select>
+              <option selected>자동 감지 (추천)</option>
+              <option>항상 역할 대화로</option>
+              <option>항상 단순 낭독으로</option>
+              <option>SSML만 인식</option>
+            </select>
+          </div>
+          
+          <div class="setting-row">
+            <label>화자 전환시 쉬기</label>
+            <select>
+              <option>0ms - 바로 이어서</option>
+              <option selected>150ms - 자연스럽게</option>
+              <option>300ms - 여유롭게</option>
+              <option>500ms - 충분히</option>
+            </select>
+          </div>
+          
+          <div class="setting-row">
+            <label>줄마다 기본 캐릭터로 리셋</label>
+            <button class="btn btn-primary toggle" aria-pressed="true">ON</button>
+          </div>
+          
+          <div class="setting-row">
+            <label>긴 글 자동 나눔 (5000바이트)</label>
+            <button class="btn btn-primary toggle" aria-pressed="true">ON</button>
+          </div>
+
+          <!-- 고급 옵션 -->
+          <details style="margin-top: 16px;">
+            <summary style="cursor: pointer; font-weight: 500;">🔧 고급 텍스트 처리 옵션</summary>
+            <div style="margin-top: 12px;">
+              <div class="setting-row">
+                <label>문장 사이 기본 쉬기</label>
+                <select>
+                  <option>0ms</option>
+                  <option>150ms</option>
+                  <option selected>300ms</option>
+                  <option>500ms</option>
+                  <option>1000ms</option>
+                </select>
+              </div>
+              <div class="setting-row">
+                <label>SSML 태그 자동 제거</label>
+                <button class="btn btn-secondary toggle" aria-pressed="false">OFF</button>
+              </div>
+            </div>
+          </details>
+        </div>
+
+        <!-- 텍스트 편집 도구 -->
+        <div class="panel">
+          <h2>🛠️ 텍스트 편집 도구</h2>
+          <div class="toolbar">
+            <button class="btn btn-secondary small">🔍 캐릭터 자동 찾기</button>
+            <button class="btn btn-secondary small">➕ 선택 영역에 이름 추가</button>
+            <button class="btn btn-secondary small">🔄 A/B 번갈아 이름 붙이기</button>
+            <button class="btn btn-secondary small">📋 템플릿 삽입</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 가운데: 캐릭터 관리 -->
+      <div class="middle-section">
+        
+        <!-- 캐릭터 목소리 설정 -->
+        <div class="panel">
+          <h2>👥 캐릭터 음성 설정</h2>
+          
+          <!-- 전체 관리 도구 -->
+          <div class="toolbar" style="margin-bottom: 16px;">
+            <button class="btn btn-success small">✨ 스마트 자동 설정</button>
+            <button class="btn btn-secondary small">📂 설정 저장</button>
+            <button class="btn btn-secondary small">📁 설정 불러오기</button>
+            <button class="btn btn-danger small">🗑️ 전체 초기화</button>
+          </div>
+          
+          <!-- 캐릭터 목록 -->
+          <div class="character-grid scrollable">
+            
+            <!-- 기본 캐릭터 -->
+            <div class="character-card default active">
+              <div class="character-header">
+                <span class="character-name">🎭 기본 (나레이터)</span>
+                <span class="character-status status-ok">✓</span>
+              </div>
+              <div class="voice-selection">
+                <label>🎤 목소리</label>
+                <select class="voice-select">
+                  <option selected>ko-KR-Neural2-A (여성, Neural2, 최신)</option>
+                  <option>ko-KR-Neural2-B (남성, Neural2, 최신)</option>
+                  <option>ko-KR-Wavenet-A (여성, WaveNet, 프리미엄)</option>
+                </select>
+              </div>
+              <div class="voice-personality">
+                <label>🎚️ 개성</label>
+                <select class="preset-select">
+                  <option selected>📢 나레이터 (안정적)</option>
+                  <option>👩 성인 여성</option>
+                  <option>👨 성인 남성</option>
+                  <option>🎭 사용자 정의</option>
+                </select>
+              </div>
+              <div class="character-actions">
+                <button class="btn btn-secondary small">▶ 미리듣기</button>
+                <button class="btn btn-secondary small">📊 상세 설정</button>
+              </div>
+            </div>
+
+            <!-- 할머니 캐릭터 -->
+            <div class="character-card">
+              <div class="character-header">
+                <span class="character-name">🧓 할머니</span>
+                <span class="character-status status-warning">⚠️</span>
+              </div>
+              <div class="voice-selection">
+                <label>🎤 목소리</label>
+                <select class="voice-select">
+                  <option selected>ko-KR-Wavenet-B (남성, WaveNet, 프리미엄)</option>
+                  <option>ko-KR-Neural2-A (여성, Neural2, 최신) ⭐스마트 추천</option>
+                  <option>ko-KR-Neural2-C (여성, Neural2, 최신)</option>
+                </select>
+                <div class="voice-warning">
+                  💡 스마트 추천: 할머니 캐릭터에는 여성 목소리가 더 적합합니다
+                </div>
+              </div>
+              <div class="voice-personality">
+                <label>🎚️ 개성</label>
+                <select class="preset-select">
+                  <option selected>🧓 노인 (느리고 낮게)</option>
+                  <option>👩 성인 여성</option>
+                  <option>🎭 사용자 정의</option>
+                </select>
+                
+                <!-- 사용자 정의 조절 (숨김 상태) -->
+                <div class="custom-controls" style="display: none;">
+                  <div class="control-group">
+                    <label>속도</label>
+                    <div class="slider-container">
+                      <input type="range" min="50" max="200" value="85" class="slider">
+                      <span class="value-display">85%</span>
+                    </div>
+                    <div class="preset-buttons">
+                      <button class="btn small">느리게</button>
+                      <button class="btn small">보통</button>
+                      <button class="btn small">빠르게</button>
+                    </div>
+                  </div>
+                  <div class="control-group">
+                    <label>음높이 (반음)</label>
+                    <div class="slider-container">
+                      <input type="range" min="-10" max="10" value="-3" class="slider">
+                      <span class="value-display">-3</span>
+                    </div>
+                    <div class="preset-buttons">
+                      <button class="btn small">낮게</button>
+                      <button class="btn small">보통</button>
+                      <button class="btn small">높게</button>
+                    </div>
+                  </div>
+                  <div class="control-group">
+                    <label>볼륨 (dB)</label>
+                    <div class="slider-container">
+                      <input type="range" min="-6" max="6" value="+2" class="slider">
+                      <span class="value-display">+2dB</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="character-actions">
+                <button class="btn btn-secondary small">▶ 미리듣기</button>
+                <button class="btn btn-danger small">✕ 삭제</button>
+              </div>
+            </div>
+
+            <!-- 소년 캐릭터 -->
+            <div class="character-card">
+              <div class="character-header">
+                <span class="character-name">👦 소년</span>
+                <span class="character-status status-ok">✓</span>
+              </div>
+              <div class="voice-selection">
+                <label>🎤 목소리</label>
+                <select class="voice-select">
+                  <option selected>ko-KR-Neural2-B (남성, Neural2, 최신) ⭐스마트 추천</option>
+                  <option>ko-KR-Neural2-D (남성, Neural2, 최신)</option>
+                  <option>ko-KR-Wavenet-B (남성, WaveNet, 프리미엄)</option>
+                </select>
+              </div>
+              <div class="voice-personality">
+                <label>🎚️ 개성</label>
+                <select class="preset-select">
+                  <option selected>👶 아이 (빠르고 높게)</option>
+                  <option>👨 성인 남성</option>
+                  <option>🎭 사용자 정의</option>
+                </select>
+              </div>
+              <div class="character-actions">
+                <button class="btn btn-secondary small">▶ 미리듣기</button>
+                <button class="btn btn-danger small">✕ 삭제</button>
+              </div>
+            </div>
+
+            <!-- 나레이터 캐릭터 -->
+            <div class="character-card">
+              <div class="character-header">
+                <span class="character-name">📖 나레이터</span>
+                <span class="character-status status-ok">✓</span>
+              </div>
+              <div class="voice-selection">
+                <label>🎤 목소리</label>
+                <select class="voice-select">
+                  <option selected>ko-KR-Neural2-C (남성, Neural2, 최신) ⭐스마트 추천</option>
+                  <option>ko-KR-Neural2-A (여성, Neural2, 최신)</option>
+                  <option>ko-KR-Wavenet-C (남성, WaveNet, 프리미엄)</option>
+                </select>
+              </div>
+              <div class="voice-personality">
+                <label>🎚️ 개성</label>
+                <select class="preset-select">
+                  <option selected>📢 나레이터 (안정적)</option>
+                  <option>👨 성인 남성</option>
+                  <option>🎭 사용자 정의</option>
+                </select>
+              </div>
+              <div class="character-actions">
+                <button class="btn btn-secondary small">▶ 미리듣기</button>
+                <button class="btn btn-danger small">✕ 삭제</button>
+              </div>
+            </div>
+
+            <!-- 캐릭터 추가 -->
+            <div class="add-character">
+              <button class="btn btn-secondary">➕ 새 캐릭터 추가</button>
+            </div>
+
+          </div>
+
+          <!-- 캐릭터 충돌 감지 -->
+          <div style="margin-top: 16px; padding: 12px; background: color-mix(in srgb, var(--warning) 10%, var(--card)); border: 1px solid var(--warning); border-radius: 8px;">
+            <strong>⚠️ 목소리 충돌 감지:</strong><br>
+            <small>"할머니"와 "나레이터"가 비슷한 목소리를 사용중입니다. 구별을 위해 다른 목소리를 선택하는 것을 권장합니다.</small>
+          </div>
+
+        </div>
+
+        <!-- 전체 테스트 -->
+        <div class="panel">
+          <h2>🎬 미리보기 & 테스트</h2>
+          
+          <div class="toolbar" style="margin-bottom: 12px;">
+            <button class="btn btn-primary">🎭 전체 대화 테스트</button>
+            <button class="btn btn-secondary">🔊 일부만 테스트</button>
+          </div>
+          
+          <div class="setting-row">
+            <label>테스트 범위</label>
+            <select>
+              <option>처음 3문장</option>
+              <option selected>전체</option>
+              <option>선택 영역만</option>
+            </select>
+          </div>
+          
+          <audio controls style="width: 100%; margin-top: 8px; display: none;"></audio>
+        </div>
+
+      </div>
+
+      <!-- 오른쪽: 출력 설정 & 생성 -->
+      <div class="right-section">
+        
+        <!-- API 설정 -->
+        <div class="panel">
+          <h2>🔑 API 설정</h2>
+          <div class="setting-row">
+            <span class="status-indicator status-ready">✓ API 연결됨</span>
+          </div>
+          
+          <div style="margin-top: 12px;">
+            <label style="display: block; margin-bottom: 4px; font-size: 0.9rem;">Google TTS API 키</label>
+            <input type="password" placeholder="AIza... (당신의 키)" style="width: 100%; margin-bottom: 8px;" value="AIza***********************************">
+            <div class="toolbar">
+              <button class="btn btn-secondary small">👁️ 표시</button>
+              <button class="btn btn-primary small">💾 저장</button>
+              <button class="btn btn-danger small">🗑️ 삭제</button>
+              <button class="btn btn-secondary small">🔍 테스트</button>
+            </div>
+          </div>
+          
+          <div style="margin-top: 12px; font-size: 0.85rem; color: var(--muted);">
+            <strong>사용량:</strong> 오늘 143회 / 월 2,847회<br>
+            <strong>예상 비용:</strong> 이번 요청 약 $0.08
+          </div>
+        </div>
+
+        <!-- 출력 설정 -->
+        <div class="panel">
+          <h2>🎛️ 출력 설정</h2>
+          
+          <div class="setting-row">
+            <label>오디오 형식</label>
+            <select>
+              <option selected>MP3 (일반용, 작은 파일)</option>
+              <option>WAV (고품질, 큰 파일)</option>
+              <option>OGG (압축 효율적)</option>
+            </select>
+          </div>
+          
+          <div class="setting-row">
+            <label>샘플레이트</label>
+            <select>
+              <option>24kHz (기본)</option>
+              <option selected>44.1kHz (CD 품질)</option>
+              <option>48kHz (고품질)</option>
+            </select>
+          </div>
+          
+          <div class="setting-row">
+            <label>오디오 효과</label>
+            <select>
+              <option selected>헤드폰용</option>
+              <option>스피커용</option>
+              <option>자동차용</option>
+              <option>전화통화용</option>
+              <option>없음</option>
+            </select>
+          </div>
+          
+          <div class="setting-row">
+            <label>전체 볼륨 조절</label>
+            <select>
+              <option>-6dB (작게)</option>
+              <option selected>0dB (기본)</option>
+              <option>+3dB (크게)</option>
+              <option>+6dB (더 크게)</option>
+            </select>
+          </div>
+          
+          <div class="setting-row">
+            <label>실패시 재시도</label>
+            <select>
+              <option>0회</option>
+              <option>1회</option>
+              <option selected>3회</option>
+              <option>5회</option>
+            </select>
+          </div>
+
+          <!-- 고급 출력 옵션 -->
+          <details style="margin-top: 16px;">
+            <summary style="cursor: pointer; font-weight: 500;">🔧 고급 출력 옵션</summary>
+            <div style="margin-top: 12px;">
+              <div class="setting-row">
+                <label>음성 크기 균등화</label>
+                <button class="btn btn-primary toggle" aria-pressed="true">ON</button>
+              </div>
+              <div class="setting-row">
+                <label>무음 구간 자동 제거</label>
+                <button class="btn btn-secondary toggle" aria-pressed="false">OFF</button>
+              </div>
+              <div class="setting-row">
+                <label>파일명 형식</label>
+                <select>
+                  <option selected>날짜-시간</option>
+                  <option>제목-날짜</option>
+                  <option>사용자 정의</option>
+                </select>
+              </div>
+            </div>
+          </details>
+        </div>
+
+        <!-- 음성 생성 -->
+        <div class="panel">
+          <h2>🎬 음성 생성</h2>
+          
+          <!-- 생성 전 요약 정보 -->
+          <div style="margin-bottom: 16px; padding: 12px; background: color-mix(in srgb, var(--accent) 5%, var(--card)); border-radius: 8px; font-size: 0.9rem;">
+            <strong>📊 생성 정보:</strong><br>
+            • 총 4개 캐릭터<br>
+            • 예상 길이: 약 45초<br>
+            • 텍스트: 126글자 / 378바이트<br>
+            • 예상 비용: $0.08
+          </div>
+          
+          <button class="btn btn-primary large">🎬 음성 생성 시작</button>
+          
+          <!-- 진행 상태 (숨김) -->
+          <div class="progress-area" style="display: none;">
+            <div class="progress-fill"></div>
+          </div>
+          <div id="status-text" style="margin: 8px 0; font-size: 0.9rem; color: var(--muted); display: none;">
+            할머니 목소리 생성 중... (1/5)
+          </div>
+          
+          <!-- 생성된 오디오 플레이어 (숨김) -->
+          <audio controls style="width: 100%; margin-top: 12px; display: none;"></audio>
+          
+          <!-- 다운로드 & 공유 옵션 (숨김) -->
+          <div class="toolbar" style="margin-top: 12px; display: none;">
+            <button class="btn btn-success">💾 다운로드</button>
+            <button class="btn btn-secondary">📋 설정 복사</button>
+            <button class="btn btn-secondary">🔗 공유</button>
+          </div>
+          
+          <!-- 생성 결과 정보 (숨김) -->
+          <div style="margin-top: 12px; font-size: 0.85rem; color: var(--muted); display: none;">
+            <strong>✅ 생성 완료:</strong><br>
+            • 파일 크기: 1.2MB<br>
+            • 실제 길이: 47초<br>
+            • 생성 시간: 8초<br>
+            • 비용: $0.08
+          </div>
+        </div>
+
+        <!-- 히스토리 & 관리 -->
+        <div class="panel">
+          <h2>📂 히스토리 & 관리</h2>
+          
+          <div class="toolbar" style="margin-bottom: 12px;">
+            <button class="btn btn-secondary small">📂 최근 파일</button>
+            <button class="btn btn-secondary small">⭐ 즐겨찾기</button>
+            <button class="btn btn-secondary small">🗑️ 전체 정리</button>
+          </div>
+          
+          <!-- 최근 생성 파일들 -->
+          <div style="font-size: 0.85rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 6px;">
+              <div>
+                <strong>할머니와 소년 대화</strong><br>
+                <span style="color: var(--muted);">2분 전 • 47초 • 1.2MB</span>
+              </div>
+              <div>
+                <button class="btn btn-secondary small">▶</button>
+                <button class="btn btn-secondary small">💾</button>
+              </div>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 6px;">
+              <div>
+                <strong>단순 안내 음성</strong><br>
+                <span style="color: var(--muted);">1시간 전 • 23초 • 0.6MB</span>
+              </div>
+              <div>
+                <button class="btn btn-secondary small">▶</button>
+                <button class="btn btn-secondary small">💾</button>
+              </div>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
+              <div>
+                <strong>SSML 실험</strong><br>
+                <span style="color: var(--muted);">어제 • 1분 12초 • 2.1MB</span>
+              </div>
+              <div>
+                <button class="btn btn-secondary small">▶</button>
+                <button class="btn btn-secondary small">💾</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 도움말 & 팁 -->
+        <div class="panel">
+          <h2>💡 스마트 팁</h2>
+          
+          <div style="font-size: 0.85rem; line-height: 1.6;">
+            <div style="margin-bottom: 12px; padding: 8px; background: color-mix(in srgb, var(--success) 10%, var(--card)); border-radius: 6px;">
+              <strong>💡 자동 모드 감지:</strong><br>
+              텍스트에 "이름:"이 있으면 자동으로 역할 대화 모드로, "&lt;speak&gt;"가 있으면 SSML 모드로 처리됩니다.
+            </div>
+            
+            <div style="margin-bottom: 12px; padding: 8px; background: color-mix(in srgb, var(--accent) 10%, var(--card)); border-radius: 6px;">
+              <strong>🎭 캐릭터 구별 팁:</strong><br>
+              성별이 다른 목소리를 선택하고, 나이대별 프리셋을 활용하면 캐릭터가 더 명확하게 구별됩니다.
+            </div>
+            
+            <div style="margin-bottom: 12px; padding: 8px; background: color-mix(in srgb, var(--warning) 10%, var(--card)); border-radius: 6px;">
+              <strong>💰 비용 절약 팁:</strong><br>
+              긴 텍스트는 자동 나눔을 켜두고, 테스트는 일부분만 먼저 해보세요.
+            </div>
+          </div>
+          
+          <div class="toolbar">
+            <button class="btn btn-secondary small">📖 전체 가이드</button>
+            <button class="btn btn-secondary small">🎬 튜토리얼</button>
+            <button class="btn btn-secondary small">❓ FAQ</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 하단 요약 정보 -->
+    <div style="margin-top: 30px; padding: 20px; background: color-mix(in srgb, var(--card) 95%, transparent); border: 1px solid var(--border); border-radius: 12px; text-align: center;">
+      <h3 style="margin: 0 0 12px 0;">🎯 통합 TTS의 특징</h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 16px;">
+        <div>
+          <strong>🤖 자동 인식</strong><br>
+          <small>텍스트 형식을 보고 자동으로 최적 모드 선택</small>
+        </div>
+        <div>
+          <strong>🎭 캐릭터 구별</strong><br>
+          <small>성별, 나이, 개성별 목소리로 명확한 구분</small>
+        </div>
+        <div>
+          <strong>🔧 유연한 설정</strong><br>
+          <small>간단한 프리셋부터 세밀한 조절까지</small>
+        </div>
+        <div>
+          <strong>💡 스마트 추천</strong><br>
+          <small>캐릭터명 기반 목소리 자동 추천</small>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 기본 인터랙션 스크립트 -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      
+      // 토글 버튼들
+      document.querySelectorAll('.toggle').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const pressed = this.getAttribute('aria-pressed') === 'true';
+          this.setAttribute('aria-pressed', !pressed);
+          this.textContent = pressed ? 'OFF' : 'ON';
+          this.classList.toggle('btn-primary', !pressed);
+          this.classList.toggle('btn-secondary', pressed);
+        });
+      });
+
+      // 텍스트 카운터
+      const textarea = document.querySelector('.text-input');
+      const counter = document.querySelector('.text-counter');
+      if (textarea && counter) {
+        textarea.addEventListener('input', function() {
+          const text = this.value;
+          const chars = text.length;
+          const bytes = new TextEncoder().encode(text).length;
+          counter.textContent = `${chars} 글자 / ${bytes} 바이트`;
+          
+          // 간단한 모드 감지 시뮬레이션
+          updateModeDetection(text);
+        });
+      }
+
+      // 모드 감지 업데이트
+      function updateModeDetection(text) {
+        const modeIndicator = document.querySelector('.mode-indicator');
+        const analysisResult = document.querySelector('.analysis-result');
+        
+        if (text.includes('<speak>')) {
+          modeIndicator.className = 'mode-indicator mode-ssml';
+          modeIndicator.innerHTML = '🔧 <strong>SSML 모드</strong> 자동 감지됨 - &lt;speak&gt; 태그가 발견되었습니다';
+        } else if (text.includes(':') && text.split('\n').some(line => line.match(/^[\w가-힣]+:/))) {
+          modeIndicator.className = 'mode-indicator mode-role';
+          modeIndicator.innerHTML = '🎭 <strong>역할 대화 모드</strong> 자동 감지됨 - "이름:" 형식이 발견되었습니다';
+          
+          // 캐릭터 분석 시뮬레이션
+          const characters = [...new Set(text.split('\n')
+            .map(line => line.match(/^([\w가-힣]+):/))
+            .filter(match => match)
+            .map(match => match[1]))];
+          
+          if (characters.length > 0) {
+            analysisResult.innerHTML = `
+              <strong>📊 자동 분석 결과:</strong><br>
+              ${characters.map(char => `<span class="analysis-tag tag-role">${char}</span>`).join('')}
+              <span class="analysis-tag tag-auto">${characters.length}명의 캐릭터 발견</span>
+            `;
+          }
+        } else {
+          modeIndicator.className = 'mode-indicator mode-simple';
+          modeIndicator.innerHTML = '📢 <strong>단순 낭독 모드</strong> - 기본 캐릭터가 전체를 읽습니다';
+        }
+      }
+
+      // 프리셋 변경시 사용자 정의 조절 표시/숨김
+      document.querySelectorAll('.preset-select').forEach(select => {
+        select.addEventListener('change', function() {
+          const customControls = this.parentNode.querySelector('.custom-controls');
+          if (customControls) {
+            customControls.style.display = this.value === '🎭 사용자 정의' ? 'block' : 'none';
+          }
+        });
+      });
+
+      // 목소리 선택시 스마트 추천 및 경고
+      document.querySelectorAll('.voice-select').forEach(select => {
+        select.addEventListener('change', function() {
+          const card = this.closest('.character-card');
+          const warning = card.querySelector('.voice-warning');
+          const status = card.querySelector('.character-status');
+          const characterName = card.querySelector('.character-name').textContent;
+          
+          // 성별 불일치 감지 시뮬레이션
+          const selectedText = this.value;
+          const isFemaleVoice = selectedText.includes('여성');
+          const isMaleVoice = selectedText.includes('남성');
+          const isFemaleCharacter = characterName.includes('할머니') || characterName.includes('엄마');
+          const isMaleCharacter = characterName.includes('할아버지') || characterName.includes('아빠') || characterName.includes('소년');
+          
+          if ((isFemaleCharacter && isMaleVoice) || (isMaleCharacter && isFemaleVoice)) {
+            if (warning) {
+              warning.style.display = 'block';
+              warning.innerHTML = isFemaleCharacter ? 
+                '💡 스마트 추천: 할머니 캐릭터에는 여성 목소리가 더 적합합니다' : 
+                '💡 스마트 추천: 남성 캐릭터에는 남성 목소리가 더 적합합니다';
+            }
+            status.innerHTML = '⚠️';
+            status.className = 'character-status status-warning';
+          } else {
+            if (warning) warning.style.display = 'none';
+            status.innerHTML = '✓';
+            status.className = 'character-status status-ok';
+          }
+        });
+      });
+
+      // 슬라이더 값 업데이트
+      document.querySelectorAll('.slider').forEach(slider => {
+        slider.addEventListener('input', function() {
+          const valueDisplay = this.parentNode.querySelector('.value-display');
+          let value = this.value;
+          
+          if (this.min === '-10') { // 음높이
+            valueDisplay.textContent = value;
+          } else if (this.min === '-6') { // 볼륨
+            valueDisplay.textContent = value + 'dB';
+          } else { // 속도
+            valueDisplay.textContent = value + '%';
+          }
+        });
+      });
+
+      // 생성 버튼 클릭 시뮬레이션
+      document.querySelector('.btn.large').addEventListener('click', function() {
+        const button = this;
+        const progressArea = document.querySelector('.progress-area');
+        const progressFill = document.querySelector('.progress-fill');
+        const statusText = document.getElementById('status-text');
+        const audioPlayer = document.querySelector('audio');
+        
+        // 생성 시작
+        button.textContent = '생성 중...';
+        button.disabled = true;
+        progressArea.style.display = 'block';
+        statusText.style.display = 'block';
+        
+        // 진행 상태 시뮬레이션
+        const steps = ['할머니 목소리 생성 중...', '소년 목소리 생성 중...', '나레이터 목소리 생성 중...', '오디오 합성 중...', '완료!'];
+        let currentStep = 0;
+        
+        const updateProgress = () => {
+          if (currentStep < steps.length) {
+            statusText.textContent = `${steps[currentStep]} (${currentStep + 1}/${steps.length})`;
+            progressFill.style.width = `${((currentStep + 1) / steps.length) * 100}%`;
+            currentStep++;
+            setTimeout(updateProgress, 800);
+          } else {
+            // 완료
+            button.textContent = '🎬 음성 생성 시작';
+            button.disabled = false;
+            progressArea.style.display = 'none';
+            statusText.style.display = 'none';
+            audioPlayer.style.display = 'block';
+            document.querySelector('.toolbar').style.display = 'flex';
+            document.querySelector('.right-section .panel:last-child div:last-child').style.display = 'block';
+            alert('데모: 음성이 생성되었습니다!');
+          }
+        };
+        
+        updateProgress();
+      });
+
+      // 초기 모드 감지
+      updateModeDetection(textarea.value);
+    });
+  </script>
+</body>
+</html>
