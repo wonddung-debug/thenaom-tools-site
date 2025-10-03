@@ -363,7 +363,6 @@
                 <button class="btn btn-secondary small" onclick="setPlainVolume(-6)">작게</button>
                 <button class="btn btn-secondary small" onclick="setPlainVolume(0)">보통</button>
                 <button class="btn btn-secondary small" onclick="setPlainVolume(6)">크게</button>
-
               </div>
             </div>
           </div>
@@ -1279,11 +1278,11 @@
       }); 
     }
 
-    // 합성
-    const MAX_BYTES = 4900; // 안전 마진
+    // 수정: MAX_BYTES 값 낮춤 (안전 마진 확보)
+    const MAX_BYTES = 4750;
     
-    // 수정된 splitChunks 함수 - 청크 간 쉬기 추가
-    function splitChunks(text, sentenceBreakMs = 0){ 
+    // 수정: splitChunks 함수 - 청크 간 break 추가 로직 제거
+    function splitChunks(text){ 
       const out = []; 
       const paras = text.split(/\n{2,}/); 
       for (const para of paras) { 
@@ -1317,13 +1316,6 @@
         } 
         if (buf.trim()) out.push(buf);
       } 
-      
-      // 청크 간 쉬기 추가 (마지막 청크 제외)
-      if (sentenceBreakMs > 0 && out.length > 1) {
-        for (let i = 0; i < out.length - 1; i++) {
-          out[i] += ` <break time="${sentenceBreakMs}ms"/>`;
-        }
-      }
       
       return out; 
     }
@@ -1511,6 +1503,7 @@
       } 
     }
 
+    // 수정: buildSegments 함수 완전 재작성
     function buildSegments(){ 
       const text = editor.value; 
       const enc = $('encodingSelect') ? $('encodingSelect').value : 'MP3';
@@ -1522,63 +1515,118 @@
       const effectsProfile = $('effectsProfileSel') ? $('effectsProfileSel').value : '';
       
       const segs = []; 
-      const splitter = chunkOn ? (t) => splitChunks(t, Number(sp)) : (t) => [t];
+      
+      // 수정: splitChunks는 순수하게 분할만 수행 (break 태그 추가 안 함)
+      const splitter = chunkOn ? (t) => splitChunks(t) : (t) => [t];
       
       if (mode === 'ssml') {
         const chunks = splitter(text);
         const base = roles._ || {voice: '', speed: '100', pitch: '0', vol: '0', lang: 'ko-KR'};
-        chunks.forEach(ch => segs.push({ 
-          alias: '기본', 
-          text: ch, 
-          ssml: true, 
-          voice: base.voice, 
-          lang: base.lang, 
-          rate: Number(base.speed) / 100, 
-          pitch: Number(base.pitch), 
-          vol: Number(base.vol),
-          effectsProfile: effectsProfile
-        }));
+        chunks.forEach((ch, idx) => {
+          // 청크 간 연결 break (마지막 제외)
+          const chunkBreak = (idx < chunks.length - 1) ? ` <break time="${sp}ms"/>` : '';
+          segs.push({ 
+            alias: '기본', 
+            text: ch + chunkBreak, 
+            ssml: true, 
+            voice: base.voice, 
+            lang: base.lang, 
+            rate: Number(base.speed) / 100, 
+            pitch: Number(base.pitch), 
+            vol: Number(base.vol),
+            effectsProfile: effectsProfile
+          });
+        });
       } else if (mode === 'plain') {
         const base = roles._ || {voice: '', speed: '100', pitch: '0', vol: '0', lang: 'ko-KR'};
-        
-        // 일반 모드에서는 슬라이더 값 사용
         const plainSpeed = $('plainSpeedSlider') ? Number($('plainSpeedSlider').value) / 100 : Number(base.speed) / 100;
         const plainPitch = $('plainPitchSlider') ? Number($('plainPitchSlider').value) : Number(base.pitch);
         const plainVolume = $('plainVolumeSlider') ? Number($('plainVolumeSlider').value) : Number(base.vol);
         
         const isAdvancedVoice = base.voice && (base.voice.includes('Neural') || base.voice.includes('Wavenet') || base.voice.includes('Chirp'));
-        const inner = insertBreaks(text, sp, isAdvancedVoice);
-        splitter(inner).forEach(ch => segs.push({ 
-          alias: '기본', 
-          text: ch, 
-          ssml: isAdvancedVoice, 
-          voice: base.voice, 
-          lang: base.lang, 
-          rate: plainSpeed, 
-          pitch: plainPitch, 
-          vol: plainVolume,
-          effectsProfile: effectsProfile
-        }));
+        
+        // 수정: 먼저 청크로 나누고, 각 청크에 break 추가
+        const chunks = splitter(text);
+        chunks.forEach((ch, idx) => {
+          const inner = insertBreaks(ch, sp, isAdvancedVoice);
+          // 마지막 청크가 아니면 청크 끝에 break 추가
+          const chunkBreak = (idx < chunks.length - 1 && isAdvancedVoice) ? ` <break time="${sp}ms"/>` : '';
+          
+          segs.push({ 
+            alias: '기본', 
+            text: inner + chunkBreak, 
+            ssml: isAdvancedVoice, 
+            voice: base.voice, 
+            lang: base.lang, 
+            rate: plainSpeed, 
+            pitch: plainPitch, 
+            vol: plainVolume,
+            effectsProfile: effectsProfile
+          });
+        });
       } else { // dialog
         const parts = parseDialogByAlias(text, lineReset);
+        
+        // 수정: 먼저 역할별로 텍스트를 그룹화
+        let currentAlias = parts[0]?.alias || '_';
+        let buffer = '';
+        const roleGroups = [];
+        
         for (let i = 0; i < parts.length; i++) {
-          const cur = parts[i], next = parts[i + 1];
-          const r = roles[cur.alias] || roles._ || {voice: '', speed: '100', pitch: '0', vol: '0', lang: 'ko-KR'};
-          const isAdvancedVoice = r.voice && (r.voice.includes('Neural') || r.voice.includes('Wavenet') || r.voice.includes('Chirp'));
-          const add = (next && next.alias !== cur.alias && isAdvancedVoice) ? ` <break time="${sw}ms"/>` : '';
-          const inner = insertBreaks(cur.text, sp, isAdvancedVoice) + add;
-          splitter(inner).forEach(ch => segs.push({ 
-            alias: cur.alias, 
-            text: ch, 
-            ssml: isAdvancedVoice, 
-            voice: r.voice, 
-            lang: r.lang, 
-            rate: Number(r.speed) / 100, 
-            pitch: Number(r.pitch), 
-            vol: Number(r.vol),
-            effectsProfile: effectsProfile
-          }));
+          const cur = parts[i];
+          const next = parts[i + 1];
+          
+          if (cur.alias !== currentAlias) {
+            // 역할이 바뀌면 이전 버퍼 저장
+            if (buffer) {
+              roleGroups.push({alias: currentAlias, text: buffer, isLast: false});
+              buffer = '';
+            }
+            currentAlias = cur.alias;
+          }
+          
+          buffer += (buffer ? ' ' : '') + cur.text;
+          
+          // 다음 역할이 다르거나 마지막이면 저장
+          if (!next || next.alias !== currentAlias) {
+            roleGroups.push({alias: currentAlias, text: buffer, isLast: !next});
+            buffer = '';
+            if (next) currentAlias = next.alias;
+          }
         }
+        
+        // 각 역할 그룹을 청크로 분할하고 세그먼트 생성
+        roleGroups.forEach((group, groupIdx) => {
+          const r = roles[group.alias] || roles._ || {voice: '', speed: '100', pitch: '0', vol: '0', lang: 'ko-KR'};
+          const isAdvancedVoice = r.voice && (r.voice.includes('Neural') || r.voice.includes('Wavenet') || r.voice.includes('Chirp'));
+          
+          const chunks = splitter(group.text);
+          chunks.forEach((ch, chunkIdx) => {
+            const inner = insertBreaks(ch, sp, isAdvancedVoice);
+            
+            // break 태그 결정
+            let endBreak = '';
+            if (chunkIdx < chunks.length - 1) {
+              // 같은 역할 내 청크 간
+              endBreak = isAdvancedVoice ? ` <break time="${sp}ms"/>` : '';
+            } else if (!group.isLast) {
+              // 역할 전환
+              endBreak = isAdvancedVoice ? ` <break time="${sw}ms"/>` : '';
+            }
+            
+            segs.push({ 
+              alias: group.alias, 
+              text: inner + endBreak, 
+              ssml: isAdvancedVoice, 
+              voice: r.voice, 
+              lang: r.lang, 
+              rate: Number(r.speed) / 100, 
+              pitch: Number(r.pitch), 
+              vol: Number(r.vol),
+              effectsProfile: effectsProfile
+            });
+          });
+        });
       }
       
       return {segs, enc, sr};
@@ -1787,5 +1835,3 @@
   </script>
 </body>
 </html>
-
-
