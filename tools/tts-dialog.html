@@ -1279,7 +1279,7 @@
     }
 
     // 수정: MAX_BYTES 값 낮춤 (안전 마진 확보)
-    const MAX_BYTES = 4750;
+    const MAX_BYTES = 4000;
     
     // 수정: splitChunks 함수 - 청크 간 break 추가 로직 제거
     function splitChunks(text){ 
@@ -1698,7 +1698,7 @@
           });
           const u8 = b64ToU8(b64); 
           parts.push(u8);
-          await sleep(8);
+          await sleep(150);
         }
         
         const bytes = concatU8(parts, enc, sr); 
