@@ -829,10 +829,18 @@ $("delPresetBtn").onclick = ()=>{
 };
 
 /* ---------- 파일명 ---------- */
-function fname(i, total){
+/* 저장 시각 문자열 (예: 20261015_153042) — 기기 현지 시각, 초 단위 */
+function makeStamp(){
+  const d = new Date();
+  const p = n => String(n).padStart(2,"0");
+  return `${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
+}
+
+/* stamp를 넘기면 묶음 전체가 같은 시각을 쓰고, 안 넘기면 호출 시점 시각을 씀 (개별 저장용) */
+function fname(i, total, stamp){
   const w = Math.max(2, String(total).length);
   const ch = ($("wmText").value.trim() || "카드뉴스").replace(/[\\/:*?"<>|\s]+/g, "_");
-  return `${ch}_${String(i+1).padStart(w,"0")}.png`;
+  return `${ch}_${stamp || makeStamp()}_${String(i+1).padStart(w,"0")}.png`;
 }
 
 /* ---------- 숫자 선택지(1. 2. 3.) 파싱 헬퍼 ---------- */
@@ -1678,6 +1686,7 @@ async function render(){
     dlBtn.type = "button";
     dlBtn.className = "ghost";
     dlBtn.textContent = `${i+1}번만 저장`;
+    /* 개별 저장: 누르는 순간의 시각이 파일명에 붙음 */
     dlBtn.onclick = () => download(localBlobs[i], fname(i, n));
 
     head.appendChild(leftBox);
@@ -1716,13 +1725,15 @@ $("saveAll").onclick = async ()=>{
 
   const snapBlobs = [...blobs];
   const n = snapBlobs.length;
+  /* 첫 이미지 저장 시각을 한 번만 정해서 전체 장에 똑같이 사용 */
+  const stamp = makeStamp();
   const delayMs = Math.max(500, Math.round((Number($("saveDelay").value) || 1.4) * 1000));
   const btn = $("saveAll");
   btn.disabled = true;
 
   for(let i = 0; i < n; i++){
     btn.textContent = `저장 중 (${i+1}/${n}) · ${i+1}번 장...`;
-    download(snapBlobs[i], fname(i, n));
+    download(snapBlobs[i], fname(i, n, stamp));
     
     // 크롬 팝업 "허용"을 누를 수 있도록 1번 이미지 직후에만 1.5초를 더 기다려줍니다.
     if(i === 0) await new Promise(r=>setTimeout(r, delayMs + 1500));
@@ -1742,10 +1753,12 @@ $("shareAll").onclick = async ()=>{
   if(!blobs.length) return;
   const snapBlobs = [...blobs];
   const n = snapBlobs.length;
+  /* 공유도 한 묶음은 같은 시각을 사용 */
+  const stamp = makeStamp();
   const baseTime = Date.now() - (n * 2000);
   const files = snapBlobs.map((b, i) => new File(
     [b],
-    fname(i, n),
+    fname(i, n, stamp),
     {type:"image/png", lastModified: baseTime + (i * 2000)}
   ));
 
