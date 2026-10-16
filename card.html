@@ -1743,8 +1743,8 @@ $("saveAll").onclick = async ()=>{
     btn.textContent = `저장 중 (${i+1}/${n}) · ${i+1}번 장...`;
     download(snapBlobs[i], fname(i, n, stamp));
 
-    // 크롬 팝업 "허용"을 누를 수 있도록 1번 이미지 직후에만 1.5초를 더 기다려줍니다.
-    if(i < n - 1) await new Promise(r=>setTimeout(r, delayMs + (i === 0 ? 1500 : 0)));
+    // 모든 장 사이 간격을 설정값(delayMs) 하나로 동일하게 적용합니다.
+    if(i < n - 1) await new Promise(r=>setTimeout(r, delayMs));
   }
 
   btn.textContent = `총 ${n}장 저장 완료!`;
