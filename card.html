@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>카드 이미지 메이커</title>
-<script type="text/javascript" nonce="c6b75da2f7cf4fcba4cde6189a4" src="//local.adguard.org?ts=1792127102911&amp;type=content-script&amp;dmn=chatgpt.com&amp;url=https%3A%2F%2Fchatgpt.com%2Fbackend-api%2Festuary%2Fcontent%3Fid%3Dfile_000000006b2482099470606e5097670e%26fn%3Dcard_maker_sequential_save.html%26cd%3Dattachment%26ts%3D497813%26p%3Dfs%26cid%3D1%26sig%3De9e08634f16ea04fc9832f1fa991f7dd7cceffe3b38ed70a9e223618f5e08721%26v%3D0&amp;app=chrome.exe&amp;css=2&amp;js=1&amp;rel=1&amp;rji=1&amp;sbe=1&amp;stealth=1&amp;st-dnt"></script><script type="text/javascript" nonce="c6b75da2f7cf4fcba4cde6189a4" src="//local.adguard.org?ts=1792127102911&amp;name=AdGuard%20Extra&amp;name=AdGuard%20Popup%20Blocker&amp;type=user-script"></script><link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Do+Hyeon&family=Gothic+A1:wght@400;500;700&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=IBM+Plex+Sans+KR:wght@400;500;700&family=Jua&family=Maru+Buri:wght@400;700&family=Nanum+Gothic:wght@400;700&family=Nanum+Myeongjo:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
@@ -609,6 +609,8 @@ function setThemeChipActive(themeKey){
 
 /* ---------- 채널 통합 프리셋 관리 (localStorage) ---------- */
 const STORAGE_KEY = "yt_card_maker_presets_v4";
+const LAST_KEY = "yt_card_maker_last_preset";
+function saveLastPreset(i){ try{ localStorage.setItem(LAST_KEY, String(i)); }catch(e){} }
 let presets = [
   {
     name:"사랑추구권",
@@ -634,8 +636,11 @@ function loadPresets(){
       if(Array.isArray(parsed) && parsed.length) presets = parsed;
     }
   }catch(e){}
-  refreshPresetSelect(0);
-  applyPreset(0);
+  let last = 0;
+  try{ last = Number(localStorage.getItem(LAST_KEY)) || 0; }catch(e){}
+  if(last < 0 || last >= presets.length) last = 0;
+  refreshPresetSelect(last);
+  applyPreset(last);
 }
 
 function refreshPresetSelect(selectedIndex = 0){
@@ -648,6 +653,7 @@ function refreshPresetSelect(selectedIndex = 0){
     sel.appendChild(opt);
   });
   sel.value = Math.min(selectedIndex, presets.length - 1);
+  saveLastPreset(sel.value);
 }
 
 function collectCurrentSettings(name){
@@ -793,6 +799,7 @@ $("clearLogoBtn").onclick = ()=>{
 };
 
 $("presetSel").onchange = e => {
+  saveLastPreset(e.target.value);
   applyPreset(Number(e.target.value));
   if(pages.length) scheduleRender(true);
 };
@@ -1719,25 +1726,6 @@ function download(blob, name){
   setTimeout(()=>URL.revokeObjectURL(url), 10000);
 }
 
-/*
- * File System Access API를 통한 직접 저장.
- * writable.close()가 완료된 뒤에야 다음 파일을 저장하므로
- * 고정된 대기 시간에 의존하지 않습니다.
- */
-async function saveBlobToFolder(dirHandle, blob, name){
-  const fileHandle = await dirHandle.getFileHandle(name, {create:true});
-  const writable = await fileHandle.createWritable();
-  try{
-    await writable.write(blob);
-    await writable.close();
-  }catch(error){
-    try{ await writable.abort(); }catch(_ignored){}
-    throw error;
-  }
-}
-
-const waitMs = ms => new Promise(resolve => setTimeout(resolve, ms));
-
 let saving = false;
 $("saveAll").onclick = async ()=>{
   if(saving || !blobs.length) return;
@@ -1745,76 +1733,27 @@ $("saveAll").onclick = async ()=>{
 
   const snapBlobs = [...blobs];
   const n = snapBlobs.length;
+  /* 첫 이미지 저장 시각을 한 번만 정해서 전체 장에 똑같이 사용 */
   const stamp = makeStamp();
+  const delayMs = Math.max(500, Math.round((Number($("saveDelay").value) || 1.4) * 1000));
   const btn = $("saveAll");
-  let completed = 0;
-  let showSuccessReset = false;
   btn.disabled = true;
 
-  try{
-    const canSaveToFolder = window.isSecureContext &&
-      typeof window.showDirectoryPicker === "function";
+  for(let i = 0; i < n; i++){
+    btn.textContent = `저장 중 (${i+1}/${n}) · ${i+1}번 장...`;
+    download(snapBlobs[i], fname(i, n, stamp));
 
-    if(canSaveToFolder){
-      let dirHandle;
-      try{
-        // 버튼 클릭 직후 호출해야 브라우저의 사용자 동작 권한이 유지됩니다.
-        dirHandle = await window.showDirectoryPicker({
-          id: "card-maker-output",
-          mode: "readwrite"
-        });
-      }catch(error){
-        if(error && error.name === "AbortError"){
-          btn.textContent = "저장이 취소되었습니다.";
-          return;
-        }
-        throw error;
-      }
-
-      for(let i = 0; i < n; i++){
-        btn.textContent = `저장 중 (${i+1}/${n}) · ${i+1}번 장...`;
-        // 현재 파일의 쓰기/닫기 작업이 완료된 다음에만 다음 파일로 이동합니다.
-        await saveBlobToFolder(dirHandle, snapBlobs[i], fname(i, n, stamp));
-        completed++;
-      }
-    }else{
-      const proceed = confirm(
-        "이 브라우저에서는 폴더에 파일을 직접 저장하고 완료 여부를 확인하는 기능을 지원하지 않습니다.\n\n" +
-        "기존 다운로드 방식으로 계속할까요? 이 방식은 파일 저장 완료를 직접 확인하지 못합니다."
-      );
-      if(!proceed) return;
-
-      const delayMs = Math.max(500, Math.round((Number($("saveDelay").value) || 1.4) * 1000));
-      for(let i = 0; i < n; i++){
-        btn.textContent = `호환 모드 저장 중 (${i+1}/${n}) · ${i+1}번 장...`;
-        download(snapBlobs[i], fname(i, n, stamp));
-        completed++;
-        // 호환 모드에서는 실제 저장 완료 확인이 불가능하므로 브라우저가 처리할 시간을 둡니다.
-        if(i < n - 1){
-          await waitMs(delayMs + (i === 0 ? 1500 : 0));
-        }
-      }
-    }
-
-    btn.textContent = `총 ${completed}장 저장 완료!`;
-    showSuccessReset = true;
-  }catch(error){
-    btn.textContent = `${completed}장 저장됨 (오류 발생)`;
-    alert(
-      `${completed + 1}번 이미지 저장 중 오류가 발생했습니다.\n` +
-      (error && error.message ? error.message : String(error))
-    );
-  }finally{
-    btn.disabled = false;
-    saving = false;
-    if(showSuccessReset){
-      setTimeout(()=>{
-        btn.textContent = `모두 저장 (${blobs.length}장)`;
-      }, 2500);
-    }else if(completed === 0){
-      btn.textContent = `모두 저장 (${blobs.length}장)`;
-    }
+    // 크롬 팝업 "허용"을 누를 수 있도록 1번 이미지 직후에만 1.5초를 더 기다려줍니다.
+    if(i < n - 1) await new Promise(r=>setTimeout(r, delayMs + (i === 0 ? 1500 : 0)));
   }
+
+  btn.textContent = `총 ${n}장 저장 완료!`;
+  setTimeout(()=>{
+    btn.textContent = `모두 저장 (${blobs.length}장)`;
+  }, 2500);
+
+  btn.disabled = false;
+  saving = false;
 };
 
 $("shareAll").onclick = async ()=>{
