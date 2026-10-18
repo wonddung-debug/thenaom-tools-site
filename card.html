@@ -234,6 +234,7 @@
       <option value="4:5">4:5 (인스타 세로)</option>
     </select>
     <button type="button" id="openSettingsBtn">⚙️ 설정</button>
+    <button type="button" id="openArchiveBtn" title="저장한 콘텐츠 관리">보관함</button>
   </div>
 
   <!-- 원고 나누기 방식 & 마지막 장 모양 분리 -->
@@ -279,6 +280,7 @@
   <div class="bottom-actions" id="bottomActions" hidden>
     <!-- 버튼 하나로 통합 (역순 제거) -->
     <button type="button" class="primary" id="saveAll">모두 저장</button>
+    <button type="button" class="primary" id="archiveCurrent" style="background:#2f6fed;color:#fff;border-color:#2f6fed;">콘텐츠 보관</button>
     <button type="button" class="primary accent" id="shareAll">한 번에 공유 (인스타·유튜브)</button>
   </div>
 </div>
@@ -1846,6 +1848,153 @@ $("lastPageType").onchange = ()=>{ updateSplitUI(); scheduleRender(true); };
 $("splitDelim").oninput = ()=>{ updateSplitUI(); scheduleRender(true); };
 $("src").oninput = ()=>{ updateNumHint(); };
 $("numHintBtn").onclick = ()=>{ $("splitMode").value = "number"; updateSplitUI(); runMake(); };
+
+
+/* ---------- 클라우드 콘텐츠 보관 (Google Apps Script + Drive/Sheets) ---------- */
+const CARD_DB_ENDPOINT_KEY = "card_content_db_endpoint_v1";
+const CARD_DB_API_KEY_KEY = "card_content_db_api_key_v1";
+let archivingCurrent = false;
+
+function openContentManager(){
+  const url = new URL("content-manager.html", window.location.href);
+  window.open(url.href, "_blank", "noopener");
+}
+$("openArchiveBtn").onclick = openContentManager;
+
+function getCardDbConfig(){
+  let endpoint = "";
+  let apiKey = "";
+  try{
+    endpoint = localStorage.getItem(CARD_DB_ENDPOINT_KEY) || "";
+    apiKey = localStorage.getItem(CARD_DB_API_KEY_KEY) || "";
+  }catch(e){}
+  if(!endpoint){
+    endpoint = (prompt("처음 한 번만 입력하세요. Google Apps Script 웹 앱 URL을 붙여넣으세요:") || "").trim();
+    if(!endpoint) return null;
+    if(!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec(?:\?.*)?$/.test(endpoint)){
+      alert("웹 앱 URL 형식이 올바르지 않습니다. https://script.google.com/macros/s/.../exec 주소를 입력하세요.");
+      return null;
+    }
+    try{ localStorage.setItem(CARD_DB_ENDPOINT_KEY, endpoint); }catch(e){}
+  }
+  if(!apiKey){
+    apiKey = (prompt("Google Apps Script에 설정한 콘텐츠 DB 접근 키를 입력하세요:") || "").trim();
+    if(!apiKey) return null;
+    try{ localStorage.setItem(CARD_DB_API_KEY_KEY, apiKey); }catch(e){}
+  }
+  return {endpoint, apiKey};
+}
+
+function postToCardDb(payload, config){
+  return new Promise((resolve, reject)=>{
+    const requestId = "carddb_" + Date.now() + "_" + Math.random().toString(36).slice(2);
+    payload.requestId = requestId;
+    const frameName = "cardDbFrame_" + requestId.replace(/[^a-zA-Z0-9_]/g, "");
+    const iframe = document.createElement("iframe");
+    iframe.name = frameName;
+    iframe.setAttribute("aria-hidden", "true");
+    iframe.style.cssText = "position:absolute;width:1px;height:1px;left:-9999px;border:0;";
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = config.endpoint;
+    form.target = frameName;
+    form.style.display = "none";
+    const fields = {apiKey: config.apiKey, payload: JSON.stringify(payload)};
+    Object.entries(fields).forEach(([name,value])=>{
+      const input = document.createElement("input");
+      input.type = "hidden"; input.name = name; input.value = value;
+      form.appendChild(input);
+    });
+    let done = false;
+    const cleanup = ()=>{
+      window.removeEventListener("message", onMessage);
+      form.remove(); iframe.remove();
+      clearTimeout(timer);
+    };
+    const finish = (fn, value)=>{
+      if(done) return;
+      done = true; cleanup(); fn(value);
+    };
+    const onMessage = event=>{
+      const data = event.data;
+      if(!data || data.type !== "CARD_DB_RESPONSE" || data.requestId !== requestId) return;
+      finish(resolve, data.result);
+    };
+    window.addEventListener("message", onMessage);
+    const timer = setTimeout(()=>finish(reject, new Error("응답 시간이 초과되었습니다. Apps Script 배포 URL과 권한을 확인하세요.")), 120000);
+    document.body.appendChild(iframe);
+    document.body.appendChild(form);
+    try{ form.submit(); }
+    catch(err){ finish(reject, err); }
+  });
+}
+
+function blobToDataUrl(blob){
+  return new Promise((resolve,reject)=>{
+    const reader = new FileReader();
+    reader.onload = ()=>resolve(String(reader.result || ""));
+    reader.onerror = ()=>reject(new Error("이미지 데이터를 읽지 못했습니다."));
+    reader.readAsDataURL(blob);
+  });
+}
+
+$("archiveCurrent").onclick = async ()=>{
+  if(archivingCurrent || !blobs.length){
+    if(!blobs.length) alert("먼저 원고를 입력하고 이미지를 만들어 주세요.");
+    return;
+  }
+  const rawText = $("src").value;
+  const firstLine = rawText.split(/\r?\n/).map(s=>s.trim()).find(Boolean) || "새 콘텐츠";
+  const suggestedTitle = firstLine.replace(/^#+\s*/, "").replace(/\*+/g, "").slice(0,60);
+  const title = prompt("보관할 콘텐츠 제목을 입력하세요:", suggestedTitle);
+  if(title === null) return;
+  const finalTitle = title.trim() || suggestedTitle || "새 콘텐츠";
+  const config = getCardDbConfig();
+  if(!config) return;
+
+  archivingCurrent = true;
+  const btn = $("archiveCurrent");
+  btn.disabled = true;
+  const originalText = btn.textContent;
+  try{
+    const snapBlobs = [...blobs];
+    const stamp = makeStamp();
+    const channel = (presets[Number($("presetSel").value)]?.name || $("wmText").value || "미지정 채널").trim();
+    $("msg").textContent = "콘텐츠와 이미지 파일을 준비하는 중…";
+    const images = await Promise.all(snapBlobs.map(async (blob, i)=>({
+      name: fname(i, snapBlobs.length, stamp),
+      dataUrl: await blobToDataUrl(blob)
+    })));
+    const payload = {
+      action: "save",
+      content: {
+        title: finalTitle,
+        channel,
+        rawText,
+        aspectRatio: $("aspectRatio").value,
+        splitMode: $("splitMode").value,
+        lastPageType: $("lastPageType").value,
+        maxPages: Number($("maxPages").value) || 10,
+        images,
+        posts: []
+      }
+    };
+    btn.textContent = `보관 중 (${images.length}장)…`;
+    const result = await postToCardDb(payload, config);
+    if(!result || !result.ok) throw new Error(result?.error || "저장에 실패했습니다.");
+    $("msg").textContent = `콘텐츠 보관 완료: ${finalTitle} (${images.length}장)`;
+    alert(`보관이 완료되었습니다.\n제목: ${finalTitle}\n이미지: ${images.length}장\n\n상세 설명글과 쿠팡 링크는 상단의 '보관함'에서 관리할 수 있습니다.`);
+  }catch(err){
+    console.error(err);
+    $("msg").textContent = "콘텐츠 보관 실패";
+    alert("콘텐츠 보관에 실패했습니다.\n" + (err?.message || err) + "\n\nApps Script 웹 앱이 배포되었는지, URL과 접근 키가 정확한지 확인하세요.");
+  }finally{
+    archivingCurrent = false;
+    btn.disabled = false;
+    btn.textContent = originalText;
+  }
+};
+
 
 loadPresets();
 </script>

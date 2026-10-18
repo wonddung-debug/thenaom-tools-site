@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>콘텐츠 보관함</title>
+<style>
+:root{--bg:#f4f4f2;--panel:#fff;--ink:#1a1a1a;--sub:#666;--line:#dcdcd6;--accent:#2f6fed;--accentbg:#eef4ff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Pretendard,"Noto Sans KR",Arial,sans-serif;line-height:1.5}
+main{max-width:1120px;margin:0 auto;padding:18px 14px 50px}h1{font-size:22px;margin:0 0 4px}h2{font-size:17px;margin:0 0 12px}.muted{font-size:13px;color:var(--sub)}button,input,select,textarea{font:inherit}button{border:1px solid var(--line);border-radius:9px;background:var(--panel);color:var(--ink);padding:9px 12px;cursor:pointer;font-weight:650}button.primary{background:var(--accent);border-color:var(--accent);color:white}button.danger{color:#b42318}button:disabled{opacity:.5;cursor:not-allowed}
+.head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}.layout{display:grid;grid-template-columns:minmax(250px,340px) minmax(0,1fr);gap:14px;align-items:start}.panel{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:14px;min-width:0}.search{width:100%;padding:10px;border:1px solid var(--line);border-radius:9px;margin-bottom:10px;background:var(--bg);color:var(--ink)}.item{display:block;text-align:left;width:100%;margin:7px 0;padding:11px;background:var(--panel);font-weight:500}.item.active{border-color:var(--accent);background:var(--accentbg)}.item strong{display:block;font-size:14px;margin-bottom:3px}.item small{display:block;font-size:12px;color:var(--sub)}.empty{padding:20px 6px;color:var(--sub);font-size:13px}.field{margin:10px 0}.field label{display:block;font-size:12px;color:var(--sub);font-weight:700;margin-bottom:5px}input[type=text],select,textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:9px;background:var(--bg);color:var(--ink)}textarea{min-height:140px;resize:vertical;line-height:1.55}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.row>*{min-width:0}.detail-head{display:flex;justify-content:space-between;align-items:start;gap:10px;flex-wrap:wrap}.image-list{display:flex;gap:8px;flex-wrap:wrap}.image-link{border:1px solid var(--line);border-radius:8px;padding:8px;font-size:12px;max-width:100%;overflow-wrap:anywhere}.post{border:1px solid var(--line);border-radius:10px;padding:11px;margin:10px 0}.post-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.post textarea{min-height:110px}.post-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:5px;font-size:13px;font-weight:700}.hint{font-size:12px;color:var(--sub);margin:6px 0}.status{margin:10px 0;color:var(--accent);font-size:13px;font-weight:700;white-space:pre-wrap}.hidden{display:none!important}.text-actions{display:flex;gap:8px;align-items:center;justify-content:space-between;margin:6px 0}.section{border-top:1px solid var(--line);padding-top:15px;margin-top:18px}
+@media(max-width:760px){.layout{grid-template-columns:1fr}.post-grid{grid-template-columns:1fr 1fr}main{padding:13px 10px 40px}}
+@media(max-width:430px){.post-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main>
+  <div class="head">
+    <div><h1>콘텐츠 보관함</h1><div class="muted">원문과 카드 이미지는 보관하고, 플랫폼별 게시글·설명글·제휴 링크는 별도로 관리합니다.</div></div>
+    <div class="row"><button id="refreshBtn">새로고침</button><button onclick="window.location.href='card.html'">이미지 메이커로 돌아가기</button></div>
+  </div>
+  <div id="status" class="status"></div>
+  <div class="layout">
+    <section class="panel">
+      <h2>저장된 콘텐츠</h2>
+      <input class="search" id="search" type="text" placeholder="제목 또는 채널 검색">
+      <div id="contentList" class="empty">저장 목록을 불러오는 중입니다.</div>
+    </section>
+    <section class="panel">
+      <div id="noSelection" class="empty">왼쪽에서 콘텐츠를 선택하세요.</div>
+      <div id="detail" class="hidden">
+        <div class="detail-head">
+          <div><h2 id="detailTitle"></h2><div id="detailMeta" class="muted"></div></div>
+          <div class="row"><button id="copyRawBtn">원문 복사</button><button id="deleteBtn" class="danger">콘텐츠 삭제</button></div>
+        </div>
+        <div class="section">
+          <h2>저장된 원문</h2>
+          <textarea id="rawText" readonly></textarea>
+        </div>
+        <div class="section">
+          <h2>카드 이미지</h2>
+          <div id="imageList" class="image-list"></div>
+          <div class="hint">이미지 링크는 Google Drive에 저장된 파일을 엽니다. 드라이브에 로그인한 계정에 파일 접근 권한이 있어야 합니다.</div>
+        </div>
+        <div class="section">
+          <div class="detail-head"><div><h2>플랫폼별 글 관리</h2><div class="muted">채널별 유튜브 설명글, 인스타그램 문구, 스레드 글, 쿠팡 링크 등을 각각 저장합니다.</div></div><div class="row"><button id="addChannelBtn">+ 채널 추가</button><button id="addPostBtn">+ 항목 추가</button></div></div>
+          <div id="posts"></div>
+          <div class="row"><button id="savePostsBtn" class="primary">게시글 항목 저장</button></div>
+          <div class="hint">각 항목은 채널과 플랫폼을 선택하고 문구 및 링크를 입력한 뒤 저장하세요. 한 콘텐츠에 여러 채널·플랫폼 항목을 연결할 수 있습니다.</div>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+<script>
+const ENDPOINT_KEY = "card_content_db_endpoint_v1";
+const API_KEY_KEY = "card_content_db_api_key_v1";
+const CUSTOM_CHANNELS_KEY = "card_db_custom_channels_v1";
+const PLATFORM_TYPES = [
+  ["youtube_description","유튜브 설명글"],
+  ["youtube_comment","유튜브 고정 댓글"],
+  ["instagram_caption","인스타그램 설명글"],
+  ["threads_post","스레드 게시글"],
+  ["coupang_link","쿠팡 상품 링크"],
+  ["coupang_comment","쿠팡 댓글 문구"],
+  ["other","기타"]
+];
+let allContents = [];
+let selected = null;
+let postDrafts = [];
+let channels = [];
+const $ = id => document.getElementById(id);
+
+function getConfig(){
+  let endpoint = "", apiKey = "";
+  try { endpoint = localStorage.getItem(ENDPOINT_KEY) || ""; apiKey = localStorage.getItem(API_KEY_KEY) || ""; } catch(e){}
+  if(!endpoint){ endpoint = (prompt("Google Apps Script 웹 앱 URL을 입력하세요:") || "").trim(); if(!endpoint) return null; try{localStorage.setItem(ENDPOINT_KEY,endpoint)}catch(e){} }
+  if(!apiKey){ apiKey = (prompt("Google Apps Script에 설정한 콘텐츠 DB 접근 키를 입력하세요:") || "").trim(); if(!apiKey) return null; try{localStorage.setItem(API_KEY_KEY,apiKey)}catch(e){} }
+  return {endpoint,apiKey};
+}
+function callDb(payload){
+  const config = getConfig(); if(!config) return Promise.reject(new Error("접근 키 또는 웹 앱 URL 입력이 취소되었습니다."));
+  return new Promise((resolve,reject)=>{
+    const requestId = "manager_" + Date.now() + "_" + Math.random().toString(36).slice(2); payload.requestId=requestId;
+    const frameName = "cardDbManagerFrame_" + requestId.replace(/[^a-zA-Z0-9_]/g, "");
+    const iframe=document.createElement("iframe"); iframe.name=frameName; iframe.style.cssText="position:absolute;width:1px;height:1px;left:-9999px;border:0"; iframe.setAttribute("aria-hidden","true");
+    const form=document.createElement("form"); form.method="POST"; form.action=config.endpoint; form.target=frameName; form.style.display="none";
+    for(const [name,value] of Object.entries({apiKey:config.apiKey,payload:JSON.stringify(payload)})){const input=document.createElement("input");input.type="hidden";input.name=name;input.value=value;form.appendChild(input)}
+    let done=false; const cleanup=()=>{window.removeEventListener("message",onMessage);form.remove();iframe.remove();clearTimeout(timer)};
+    const finish=(fn,val)=>{if(done)return;done=true;cleanup();fn(val)};
+    const onMessage=e=>{const d=e.data;if(d&&d.type==="CARD_DB_RESPONSE"&&d.requestId===requestId)finish(resolve,d.result)};
+    window.addEventListener("message",onMessage); const timer=setTimeout(()=>finish(reject,new Error("응답 시간이 초과되었습니다. 웹 앱 배포와 URL을 확인하세요.")),120000);
+    document.body.append(iframe,form); try{form.submit()}catch(err){finish(reject,err)}
+  });
+}
+function setStatus(text){$("status").textContent=text||""}
+function parseJson(value,fallback){try{return JSON.parse(value||"")}catch(e){return fallback}}
+function buildChannels(){
+  const set=new Set(["사랑추구권","굿리뷰"]);
+  try{const p=parseJson(localStorage.getItem("yt_card_maker_presets_v4")||localStorage.getItem("yt_card_maker_presets_v3")||"[]",[]);if(Array.isArray(p))p.forEach(x=>x?.name&&set.add(String(x.name)))}catch(e){}
+  try{const c=parseJson(localStorage.getItem(CUSTOM_CHANNELS_KEY)||"[]",[]);if(Array.isArray(c))c.forEach(x=>x&&set.add(String(x)))}catch(e){}
+  allContents.forEach(x=>{if(x.channel)set.add(String(x.channel));(x.posts||[]).forEach(p=>p.channel&&set.add(String(p.channel))) });
+  channels=[...set];
+}
+function renderList(){
+  buildChannels(); const q=$("search").value.trim().toLowerCase(); const host=$("contentList");host.textContent="";
+  const filtered=allContents.filter(x=>`${x.title} ${x.channel} ${x.rawText}`.toLowerCase().includes(q));
+  if(!filtered.length){host.className="empty";host.textContent=allContents.length?"검색 결과가 없습니다.":"아직 보관된 콘텐츠가 없습니다. 이미지 메이커에서 '콘텐츠 보관'을 눌러 주세요.";return}
+  host.className="";
+  filtered.forEach(item=>{
+    const b=document.createElement("button");b.type="button";b.className="item"+(selected&&selected.id===item.id?" active":"");
+    const strong=document.createElement("strong");strong.textContent=item.title||"제목 없음";
+    const small=document.createElement("small");small.textContent=`${item.channel||"채널 미지정"} · ${(item.images||[]).length}장 · ${formatDate(item.createdAt)}`;
+    b.append(strong,small);b.onclick=()=>openContent(item.id);host.appendChild(b);
+  });
+}
+function formatDate(value){if(!value)return"날짜 미상";const d=new Date(value);return Number.isNaN(d.getTime())?String(value):d.toLocaleString("ko-KR")}
+function openContent(id){
+  selected=allContents.find(x=>x.id===id)||null;
+  if(!selected){$("detail").classList.add("hidden");$("noSelection").classList.remove("hidden");renderList();return}
+  $("noSelection").classList.add("hidden");$("detail").classList.remove("hidden");
+  $("detailTitle").textContent=selected.title||"제목 없음";
+  $("detailMeta").textContent=`${selected.channel||"채널 미지정"} · 저장 ${formatDate(selected.createdAt)} · 비율 ${selected.aspectRatio||"미상"}`;
+  $("rawText").value=selected.rawText||"";
+  const imageHost=$("imageList");imageHost.textContent="";
+  (selected.images||[]).forEach((img,i)=>{const a=document.createElement("a");a.className="image-link";a.href=img.url;a.target="_blank";a.rel="noopener";a.textContent=`${String(i+1).padStart(2,"0")} · ${img.name||"카드 이미지"} ↗`;imageHost.appendChild(a)});
+  postDrafts=(selected.posts||[]).map(p=>({...p}));renderPosts();renderList();
+}
+function makeSelect(options, value, onChange){const s=document.createElement("select");options.forEach(([v,t])=>{const o=document.createElement("option");o.value=v;o.textContent=t;s.appendChild(o)});s.value=value||options[0]?.[0]||"";s.onchange=()=>onChange(s.value);return s}
+function renderPosts(){
+  const host=$("posts");host.textContent="";
+  if(!postDrafts.length){const p=document.createElement("div");p.className="empty";p.textContent="아직 추가된 항목이 없습니다. '+ 항목 추가'를 눌러 게시글 문구를 만드세요.";host.appendChild(p);return}
+  postDrafts.forEach((post,index)=>{
+    const box=document.createElement("div");box.className="post";
+    const top=document.createElement("div");top.className="post-top";const title=document.createElement("span");title.textContent=`항목 ${index+1}`;const remove=document.createElement("button");remove.type="button";remove.className="danger";remove.textContent="항목 제거";remove.onclick=()=>{postDrafts.splice(index,1);renderPosts()};top.append(title,remove);box.appendChild(top);
+    const grid=document.createElement("div");grid.className="post-grid";
+    const channelField=document.createElement("div");const channelLabel=document.createElement("label");channelLabel.textContent="유튜브 채널 / 계정";const chSel=makeSelect(channels.map(x=>[x,x]),post.channel||selected?.channel||channels[0],v=>post.channel=v);chSel.onchange=()=>post.channel=chSel.value;channelField.append(channelLabel,chSel);
+    const typeField=document.createElement("div");const typeLabel=document.createElement("label");typeLabel.textContent="관리 항목";const typeSel=makeSelect(PLATFORM_TYPES,post.kind||"youtube_description",v=>post.kind=v);typeSel.onchange=()=>post.kind=typeSel.value;typeField.append(typeLabel,typeSel);
+    grid.append(channelField,typeField);box.appendChild(grid);
+    const contentField=document.createElement("div");contentField.className="field";const contentLabel=document.createElement("label");contentLabel.textContent="게시글 / 설명글 / 댓글 문구";const area=document.createElement("textarea");area.placeholder="이 플랫폼에 올릴 문구를 입력하세요.";area.value=post.content||"";area.oninput=()=>post.content=area.value;contentField.append(contentLabel,area);box.appendChild(contentField);
+    const linkField=document.createElement("div");linkField.className="field";const linkLabel=document.createElement("label");linkLabel.textContent="관련 링크 (선택 사항)";const link=document.createElement("input");link.type="text";link.placeholder="https://...";link.value=post.link||"";link.oninput=()=>post.link=link.value;linkField.append(linkLabel,link);box.appendChild(linkField);
+    const actions=document.createElement("div");actions.className="row";const copy=document.createElement("button");copy.type="button";copy.textContent="문구 복사";copy.onclick=()=>copyText(post.content||"");actions.appendChild(copy);box.appendChild(actions);host.appendChild(box);
+  });
+}
+async function copyText(text){try{await navigator.clipboard.writeText(text);setStatus("클립보드에 복사했습니다.")}catch(e){const t=document.createElement("textarea");t.value=text;document.body.appendChild(t);t.select();document.execCommand("copy");t.remove();setStatus("클립보드에 복사했습니다.")}}
+async function loadContents(keepId){
+  setStatus("보관 목록을 불러오는 중입니다…");$("refreshBtn").disabled=true;
+  try{const result=await callDb({action:"list"});if(!result?.ok)throw new Error(result?.error||"목록을 읽을 수 없습니다.");allContents=Array.isArray(result.contents)?result.contents:[];renderList();
+    if(keepId&&allContents.some(x=>x.id===keepId))openContent(keepId);else if(selected&&allContents.some(x=>x.id===selected.id))openContent(selected.id);else{selected=null;$("detail").classList.add("hidden");$("noSelection").classList.remove("hidden")}
+    setStatus(`총 ${allContents.length}개 콘텐츠를 불러왔습니다.`);
+  }catch(e){setStatus("불러오기 실패: "+(e.message||e));$("contentList").textContent="불러오지 못했습니다. 웹 앱 URL과 접근 키를 확인하고 새로고침하세요."}
+  finally{$("refreshBtn").disabled=false}
+}
+$("refreshBtn").onclick=()=>loadContents(selected?.id);
+$("search").oninput=renderList;
+$("addPostBtn").onclick=()=>{if(!selected)return;postDrafts.push({channel:selected.channel||channels[0]||"",kind:"youtube_description",content:"",link:""});renderPosts()};
+$("addChannelBtn").onclick=()=>{const name=(prompt("추가할 유튜브 채널 또는 계정 이름:")||"").trim();if(!name)return;if(!channels.includes(name)){channels.push(name);try{const old=parseJson(localStorage.getItem(CUSTOM_CHANNELS_KEY)||"[]",[]);old.push(name);localStorage.setItem(CUSTOM_CHANNELS_KEY,JSON.stringify([...new Set(old)]))}catch(e){}}renderPosts()};
+$("savePostsBtn").onclick=async()=>{
+  if(!selected)return;const btn=$("savePostsBtn");btn.disabled=true;
+  try{const result=await callDb({action:"update",id:selected.id,posts:postDrafts});if(!result?.ok)throw new Error(result?.error||"저장하지 못했습니다.");selected.posts=postDrafts.map(p=>({...p}));const idx=allContents.findIndex(x=>x.id===selected.id);if(idx>=0)allContents[idx]=selected;renderList();setStatus("게시글 항목을 저장했습니다.")}
+  catch(e){setStatus("저장 실패: "+(e.message||e))}finally{btn.disabled=false}
+};
+$("copyRawBtn").onclick=()=>copyText($("rawText").value);
+$("deleteBtn").onclick=async()=>{
+  if(!selected||!confirm(`'${selected.title}' 콘텐츠와 연결된 드라이브 이미지 파일을 휴지통으로 이동할까요?`))return;
+  const btn=$("deleteBtn");btn.disabled=true;
+  try{const result=await callDb({action:"delete",id:selected.id});if(!result?.ok)throw new Error(result?.error||"삭제하지 못했습니다.");const deletedId=selected.id;selected=null;setStatus("콘텐츠를 삭제했습니다.");await loadContents();}
+  catch(e){setStatus("삭제 실패: "+(e.message||e))}finally{btn.disabled=false}
+};
+loadContents();
+</script>
+</body>
+</html>
