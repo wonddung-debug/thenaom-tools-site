@@ -652,7 +652,8 @@ const FONTS = [
 function getActiveFont(){
   const base = FONTS[fontSel.value] || FONTS[0];
   if(!$("bodyBold").checked || base.heavy) return base;
-  return {...base, weight: Math.max(base.weight, base.cover, 700), wmWeight: base.weight};
+  /* 표지(cover)도 함께 올려서, 표지가 본문보다 얇아지는 일이 없게 함 */
+  return {...base, weight: Math.max(base.weight, base.cover, 700), cover: Math.max(base.cover, 700), wmWeight: base.weight};
 }
 
 /* 12종 가독성 테마 템플릿 */
@@ -1255,20 +1256,41 @@ function getOpt(k){
   const n = parseFloat(v); return isFinite(n) ? n : EXTRA[k];
 }
 let CHARLIM = 0, BREAKCHAR = false, FX = {shadow:"none", strokeW:0, strokeColor:"#000"};
-let keepArchiveSettings = false, archiveNote = "";
+let keepArchiveSettings = false, archiveNote = "", archiveChannel = "";
 
 /* 구글 폰트는 고를 때만 불러옵니다 (폰트마다 따로 요청 → 하나가 실패해도 다른 폰트는 정상) */
 const gfLoaded = {};
 function ensureFont(f){
-  if(!f.gf) return Promise.resolve();
+  if(!f.gf) return Promise.resolve(true);
   if(gfLoaded[f.gf]) return gfLoaded[f.gf];
   return gfLoaded[f.gf] = new Promise(res=>{
     const l = document.createElement("link");
     l.rel = "stylesheet"; l.href = "https://fonts.googleapis.com/css2?family=" + f.gf + "&display=swap";
-    l.onload = l.onerror = ()=>res();
+    let done = false;
+    const finish = ok => {
+      if(done) return; done = true;
+      if(!ok){ delete gfLoaded[f.gf]; l.remove(); }   /* 실패하면 기록을 지워 다음에 다시 시도 */
+      res(ok);
+    };
+    l.onload = ()=>finish(true);
+    l.onerror = ()=>finish(false);
     document.head.appendChild(l);
-    setTimeout(res, 5000);
+    setTimeout(()=>finish(true), 5000);
   });
+}
+
+/* 이미지를 그리기 전에 쓸 글꼴(본문 두께 + 표지 두께)을 확실히 준비합니다.
+   - 구글 폰트 스타일시트를 먼저 불러온 뒤(ensureFont) 두께별 글꼴 파일을 받을 때까지 기다림
+   - 하나가 실패해도 나머지는 계속 기다림(allSettled) / 실패하면 false 를 돌려줌 */
+async function prepareFonts(f, sample){
+  let ok = true;
+  try{ if(!(await ensureFont(f))) ok = false; }catch(e){ ok = false; }
+  const weights = [...new Set([f.weight, f.cover])];
+  const results = await Promise.allSettled(
+    weights.map(w => document.fonts.load(`${w} 40px "${f.family}"`, sample))
+  );
+  if(results.some(r => r.status !== "fulfilled" || !r.value || !r.value.length)) ok = false;
+  return ok;
 }
 async function updateFontPrev(){
   const f = getActiveFont(); await ensureFont(f);
@@ -1893,12 +1915,8 @@ async function render(){
 
   const wmSample = $("wmText").value || "사랑추구권";
   const sample = snapPages.map(pageToRawString).join("") + wmSample + "VS0123456789/.";
-  try{
-    await Promise.all([
-      document.fonts.load(`${f.weight} 40px "${f.family}"`, sample),
-      document.fonts.load(`${f.cover} 40px "${f.family}"`, sample),
-    ]);
-  }catch(e){}
+  let fontsOk = true;
+  try{ fontsOk = await prepareFonts(f, sample); }catch(e){ fontsOk = false; }
 
   if(myJob !== renderJobId) return;
 
@@ -1962,7 +1980,8 @@ async function render(){
   $("saveAll").textContent = `모두 저장 (${n}장)`;
   $("shareAll").textContent = `한 번에 공유 (${n}장 · 인스타/유튜브)`;
   $("bottomActions").hidden = (n === 0);
-  $("msg").textContent = `총 ${n}장 제작 완료!${archiveNote}`;
+  $("msg").textContent = `총 ${n}장 제작 완료!${archiveNote}`
+    + (fontsOk ? "" : " ⚠ 폰트를 완전히 불러오지 못해 굵기가 다르게 보일 수 있어요. ‘이미지 만들기’를 다시 누르거나 새로고침해 주세요.");
 }
 
 function download(blob, name){
@@ -2239,6 +2258,17 @@ function postToCardDb(payload, config){
   });
 }
 
+/* 보관함에서 열었을 때: 로고는 콘텐츠가 아니라 ‘채널 설정’에 저장돼 있습니다.
+   이 브라우저에 채널 설정이 아직 없었다면(다른 기기·처음 접속) DB에서 받아온 뒤에 해당 채널의 로고를 입히고 다시 그립니다. */
+function applyArchiveChannelLogo(){
+  if(!keepArchiveSettings || !archiveChannel) return;
+  const idx = presets.findIndex(p => p.name === archiveChannel);
+  if(idx < 0) return;
+  $("presetSel").value = idx; saveLastPreset(idx);
+  const logo = presets[idx].logoDataUrl || "";
+  if(logo && logo !== logoDataUrl) setLogoFromDataUrl(logo);   /* 로고를 바꾸면 자동으로 다시 그려집니다 */
+}
+
 /* ---------- 채널 설정(프리셋)을 아이디별로 DB에 저장/불러오기 ---------- */
 let settingsQueue = Promise.resolve();
 function pushSettingsToDb(){
@@ -2287,6 +2317,7 @@ async function syncSettingsFromDb(){
         if(last < 0 || last >= presets.length) last = 0;
         refreshPresetSelect(last);
         if(!keepArchiveSettings){ applyPreset(last); if(pages.length) scheduleRender(true); }
+        else applyArchiveChannelLogo();
       }
       savePresetsLocal();
     }else{
@@ -2300,22 +2331,13 @@ async function syncSettingsFromDb(){
   }
 }
 
-function blobToDataUrl(blob){
-  return new Promise((resolve,reject)=>{
-    const reader = new FileReader();
-    reader.onload = ()=>resolve(String(reader.result || ""));
-    reader.onerror = ()=>reject(new Error("이미지 데이터를 읽지 못했습니다."));
-    reader.readAsDataURL(blob);
-  });
-}
-
-/* 이미지 업로드 설정: 한 요청에 3장(서버 최대), 동시에 최대 4개 요청 */
-const IMAGE_BATCH_SIZE = 3;
-const IMAGE_UPLOAD_CONCURRENCY = 4;
-
+/* 콘텐츠 보관: 이미지는 저장하지 않고 원문 + 설정만 시트에 기록합니다.
+   (이미지는 보관함의 ‘이미지 메이커에서 열기’로 보관 당시 설정 그대로 언제든 다시 만들 수 있어요) */
 $("archiveCurrent").onclick = async ()=>{
-  if(archivingCurrent || !blobs.length){
-    if(!blobs.length) alert("먼저 원고를 입력하고 이미지를 만들어 주세요.");
+  if(archivingCurrent) return;
+  const rawText = $("src").value;
+  if(!rawText.trim()){
+    alert("먼저 원고를 입력해 주세요.");
     return;
   }
   if(!getUserId()){
@@ -2323,7 +2345,6 @@ $("archiveCurrent").onclick = async ()=>{
     alert("맨 아래에 아이디를 먼저 입력해 주세요.");
     return;
   }
-  const rawText = $("src").value;
   const firstLine = rawText.split(/\r?\n/).map(s=>s.trim()).find(Boolean) || "새 콘텐츠";
   const suggestedTitle = firstLine.replace(/^#+\s*/, "").replace(/\*+/g, "").slice(0,60);
   const title = prompt("보관할 콘텐츠 제목을 입력하세요:", suggestedTitle);
@@ -2336,54 +2357,10 @@ $("archiveCurrent").onclick = async ()=>{
   const btn = $("archiveCurrent");
   btn.disabled = true;
   const originalText = btn.textContent;
-  const uploaded = [];          // 서버가 돌려준 {fileId, name, url} — 장 순서대로
-  let cleanupFileIds = null;    // 저장이 확실히 실패했을 때 지울 이미지 파일 ID
   try{
-    const snapBlobs = [...blobs];
-    const total = snapBlobs.length;
-    const stamp = makeStamp();
     const channel = (presets[Number($("presetSel").value)]?.name || $("wmText").value || "미지정 채널").trim();
-
-    const batches = [];
-    for(let s=0; s<total; s+=IMAGE_BATCH_SIZE) batches.push([s, Math.min(s+IMAGE_BATCH_SIZE, total)]);
-
-    let doneCount = 0, nextBatch = 0, firstError = null;
-    const showProgress = ()=>{
-      $("msg").textContent = `구글 드라이브에 이미지 저장 중 (${doneCount}/${total}장)…`;
-      btn.textContent = `보관 중 (${doneCount}/${total}장)…`;
-    };
-    showProgress();
-
-    /* 1단계: 이미지를 여러 묶음 동시에 업로드. 업로드는 시트를 건드리지 않으므로 서로 충돌하지 않습니다. */
-    const worker = async ()=>{
-      while(!firstError && nextBatch < batches.length){
-        const [start, end] = batches[nextBatch++];
-        try{
-          const images = await Promise.all(snapBlobs.slice(start, end).map(async (blob, off)=>({
-            name: fname(start + off, total, stamp),
-            dataUrl: await blobToDataUrl(blob)
-          })));
-          const result = await postToCardDb({action:"uploadImages", images}, config);
-          if(!result || !result.ok || !Array.isArray(result.images) || result.images.length !== images.length){
-            throw new Error(result?.error || `${start+1}~${end}번 이미지 저장에 실패했습니다.`);
-          }
-          result.images.forEach((im, k)=>{ uploaded[start + k] = im; });
-          doneCount += images.length;
-          showProgress();
-        }catch(err){
-          if(!firstError) firstError = err;
-        }
-      }
-    };
-    await Promise.all(Array.from({length: Math.min(IMAGE_UPLOAD_CONCURRENCY, batches.length)}, worker));
-    if(firstError){
-      cleanupFileIds = uploaded.filter(Boolean).map(x=>x.fileId);
-      throw firstError;
-    }
-
-    /* 2단계: 본문과 이미지 정보를 시트에 한 번에 기록 */
-    $("msg").textContent = "콘텐츠 정보를 저장하는 중…";
-    btn.textContent = "마무리 중…";
+    $("msg").textContent = "원문과 설정을 저장하는 중…";
+    btn.textContent = "보관 중…";
     const finished = await postToCardDb({
       action: "commitSave",
       content: {
@@ -2395,23 +2372,18 @@ $("archiveCurrent").onclick = async ()=>{
         lastPageType: $("lastPageType").value,
         maxPages: Number($("maxPages").value) || 10,
         settings: (()=>{ const s = collectCurrentSettings(channel); s.logoDataUrl = ""; return s; })(),
-        images: uploaded.map(x=>({fileId: x.fileId, name: x.name}))
+        images: []   /* 이미지는 저장하지 않음 */
       }
     }, config);
     if(!finished || !finished.ok){
-      /* 서버가 명확히 거절한 경우에만 정리합니다. (응답 시간 초과 등 예외는 저장됐을 수 있어 지우지 않음) */
-      cleanupFileIds = uploaded.map(x=>x.fileId);
       throw new Error(finished?.error || "저장 완료 처리가 실패했습니다.");
     }
     // 저장 성공은 페이지 안에서만 표시합니다. 완료 팝업은 띄우지 않습니다.
     $("msg").textContent = "";
   }catch(err){
     console.error(err);
-    if(cleanupFileIds && cleanupFileIds.length){
-      postToCardDb({action:"discardImages", fileIds: cleanupFileIds}, config).catch(()=>{});
-    }
     $("msg").textContent = "콘텐츠 보관 실패";
-    alert("콘텐츠 보관에 실패했습니다.\n" + (err?.message || err) + "\n\n이제 무한정 기다리지 않고 오류를 표시합니다. 원고는 지우지 말고, 오류 문구를 확인해 주세요.");
+    alert("콘텐츠 보관에 실패했습니다.\n" + (err?.message || err) + "\n\n원고는 지우지 말고, 오류 문구를 확인해 주세요.");
   }finally{
     archivingCurrent = false;
     btn.disabled = false;
@@ -2435,6 +2407,7 @@ function openFromArchive(){
   s.logoDataUrl = (idx >= 0 && presets[idx].logoDataUrl) || logoDataUrl || "";
   if(!h.settings) ["aspectRatio","splitMode","lastPageType","maxPages"].forEach(k=>{ if(h[k]) s[k] = h[k]; });
   keepArchiveSettings = true;
+  archiveChannel = h.channel || "";
   applySettings(s);
   if(idx >= 0){ $("presetSel").value = idx; saveLastPreset(idx); }
   $("src").value = h.rawText;
