@@ -33,20 +33,14 @@ main{max-width:1120px;margin:0 auto;padding:18px 14px 50px}h1{font-size:22px;mar
           <div class="row"><button id="deleteBtn" class="danger">콘텐츠 삭제</button></div>
         </div>
         <div class="section">
-          <div class="field-head"><label for="rawText">원텍스트 글</label><button type="button" id="copyRawBtn">원문 복사</button></div>
-          <textarea id="rawText" readonly></textarea>
-        </div>
-        <div class="section">
           <h2>이미지</h2>
           <div id="imageList" class="image-list" style="margin-top:10px"></div>
-          <div class="hint">‘이미지 열기’를 누르면 구글 드라이브 파일이 열립니다. ‘링크 복사’는 이미지 파일 주소를 복사합니다.</div>
         </div>
         <div class="section">
-          <h2>게시글 문구</h2>
-          <div class="muted" style="margin-top:4px">아래 네 항목은 고정되어 있습니다. 각 항목의 복사 버튼을 누르면 해당 내용만 복사됩니다.</div>
-          <div id="fixedFields"></div>
-          <div class="row" style="margin-top:12px"><button id="saveFieldsBtn" class="primary">게시글 문구 저장</button></div>
+          <div class="field-head"><label for="rawText">원문</label><button type="button" id="copyRawBtn">복사</button></div>
+          <textarea id="rawText" readonly></textarea>
         </div>
+        <div id="fixedFields"></div>
       </div>
     </section>
   </div>
@@ -61,6 +55,10 @@ const FIXED_FIELDS = [
   {kind:"coupang_link", label:"쿠파스 링크", multi:false}
 ];
 let allContents = [], selected = null, fieldValues = {}, legacyPosts = [];
+let autoSaveTimer = null;
+let pendingAutoSaveSnapshot = null;
+let autoSaveQueue = Promise.resolve();
+let autoSaveVersion = 0;
 const $ = id => document.getElementById(id);
 function getConfig(){
   let endpoint="", apiKey="";
@@ -101,6 +99,8 @@ function extractField(posts,kind){
  return [...new Set(vals)].join("\n\n");
 }
 function openContent(id){
+ // 다른 콘텐츠로 이동하기 전에 입력 중인 내용이 있으면 자동 저장 큐에 넣습니다.
+ flushPendingAutoSave();
  selected=allContents.find(x=>x.id===id)||null;
  if(!selected){$("detail").classList.add("hidden");$("noSelection").classList.remove("hidden");renderList();return}
  $("noSelection").classList.add("hidden");$("detail").classList.remove("hidden");
@@ -126,16 +126,50 @@ function renderImages(){
 function renderFixedFields(){
  const host=$("fixedFields");host.textContent="";
  FIXED_FIELDS.forEach(f=>{
-  const wrap=document.createElement("div");wrap.className="field";
+  const wrap=document.createElement("div");wrap.className="field section";
   const head=document.createElement("div");head.className="field-head";
   const label=document.createElement("label");label.textContent=f.label;label.htmlFor="field_"+f.kind;
   const copy=document.createElement("button");copy.type="button";copy.textContent="복사";copy.onclick=()=>copyText(fieldValues[f.kind]||"");
   head.append(label,copy);wrap.appendChild(head);
   let input;
-  if(f.multi){input=document.createElement("textarea");input.placeholder=f.label+"을 입력하세요.";}
-  else{input=document.createElement("input");input.type="text";input.placeholder="https://...";}
-  input.id="field_"+f.kind;input.value=fieldValues[f.kind]||"";input.oninput=()=>fieldValues[f.kind]=input.value;wrap.appendChild(input);host.appendChild(wrap);
+  if(f.multi){input=document.createElement("textarea");input.placeholder=f.label+" 입력";}
+  else{input=document.createElement("input");input.type="text";input.placeholder="쿠파스 링크";}
+  input.id="field_"+f.kind;input.value=fieldValues[f.kind]||"";
+  input.oninput=()=>{fieldValues[f.kind]=input.value;scheduleAutoSave();};
+  wrap.appendChild(input);host.appendChild(wrap);
  });
+}
+function makeAutoSaveSnapshot(){
+ if(!selected)return null;
+ const id=selected.id, channel=selected.channel||"";
+ const fixedPosts=FIXED_FIELDS.map(f=>({channel,kind:f.kind,content:String(fieldValues[f.kind]||""),link:""}));
+ return {id,channel,posts:[...legacyPosts.map(p=>({...p})),...fixedPosts],version:++autoSaveVersion};
+}
+function scheduleAutoSave(){
+ if(!selected)return;
+ pendingAutoSaveSnapshot=makeAutoSaveSnapshot();
+ clearTimeout(autoSaveTimer);
+ setStatus("자동 저장 대기 중…");
+ autoSaveTimer=setTimeout(()=>flushPendingAutoSave(),700);
+}
+function flushPendingAutoSave(){
+ clearTimeout(autoSaveTimer);autoSaveTimer=null;
+ const snapshot=pendingAutoSaveSnapshot;
+ if(!snapshot)return;
+ pendingAutoSaveSnapshot=null;
+ autoSaveQueue=autoSaveQueue.catch(()=>{}).then(()=>persistAutoSave(snapshot));
+}
+async function persistAutoSave(snapshot){
+ if(selected&&selected.id===snapshot.id)setStatus("자동 저장 중…");
+ try{
+  const result=await callDb({action:"update",id:snapshot.id,posts:snapshot.posts});
+  if(!result||!result.ok)throw new Error(result&&result.error||"자동 저장에 실패했습니다.");
+  const saved=allContents.find(x=>x.id===snapshot.id);
+  if(saved)saved.posts=snapshot.posts;
+  if(selected&&selected.id===snapshot.id){selected.posts=snapshot.posts;
+   if(snapshot.version===autoSaveVersion)setStatus("자동 저장됨");
+  }
+ }catch(e){if(selected&&selected.id===snapshot.id)setStatus("자동 저장 실패: "+(e.message||e));}
 }
 async function copyText(text){
  if(!text){setStatus("복사할 내용이 없습니다.");return}
@@ -153,12 +187,7 @@ async function loadContents(keepId){
 $("refreshBtn").onclick=()=>loadContents(selected&&selected.id);
 $("search").oninput=renderList;
 $("copyRawBtn").onclick=()=>copyText($("rawText").value);
-$("saveFieldsBtn").onclick=async()=>{
- if(!selected)return;const btn=$("saveFieldsBtn");btn.disabled=true;setStatus("게시글 문구를 저장하는 중입니다…");
- const fixedPosts=FIXED_FIELDS.map(f=>({channel:selected.channel||"",kind:f.kind,content:String(fieldValues[f.kind]||""),link:""}));
- try{const result=await callDb({action:"update",id:selected.id,posts:[...legacyPosts,...fixedPosts]});if(!result||!result.ok)throw new Error(result&&result.error||"저장하지 못했습니다.");selected.posts=[...legacyPosts,...fixedPosts];const i=allContents.findIndex(x=>x.id===selected.id);if(i>=0)allContents[i]=selected;renderList();setStatus("유튜브·인스타그램·쿠파스 문구를 저장했습니다.")}
- catch(e){setStatus("저장 실패: "+(e.message||e))}finally{btn.disabled=false}
-};
+window.addEventListener("beforeunload",()=>{flushPendingAutoSave();});
 $("deleteBtn").onclick=async()=>{
  if(!selected||!confirm(`‘${selected.title}’ 콘텐츠와 연결된 드라이브 이미지 파일을 휴지통으로 이동할까요?`))return;
  const btn=$("deleteBtn");btn.disabled=true;

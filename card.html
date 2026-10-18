@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>카드 이미지 메이커</title>
-<script type="text/javascript" nonce="1aa01868fbee463f810939b4d62" src="//local.adguard.org?ts=1792314965874&amp;type=content-script&amp;dmn=chatgpt.com&amp;url=https%3A%2F%2Fchatgpt.com%2Fbackend-api%2Festuary%2Fcontent%3Fid%3Dfile_00000000eb108209870da04428b808f5%26fn%3Dcard_with_content_db_fixed.html%26cd%3Dattachment%26ts%3D497865%26p%3Dfs%26cid%3D1%26sig%3Dd3ae3261d74757968db81293cfa03a90e71200e20a5f775b07a76cbe01b2610a%26v%3D0&amp;app=chrome.exe&amp;css=2&amp;js=1&amp;rel=1&amp;rji=1&amp;sbe=1&amp;stealth=1&amp;st-dnt"></script><script type="text/javascript" nonce="1aa01868fbee463f810939b4d62" src="//local.adguard.org?ts=1792314965874&amp;name=AdGuard%20Extra&amp;name=AdGuard%20Popup%20Blocker&amp;type=user-script"></script><link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Do+Hyeon&family=Gothic+A1:wght@400;500;700&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=IBM+Plex+Sans+KR:wght@400;500;700&family=Jua&family=Maru+Buri:wght@400;700&family=Nanum+Gothic:wght@400;700&family=Nanum+Myeongjo:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
@@ -1981,17 +1981,23 @@ $("archiveCurrent").onclick = async ()=>{
     if(!started || !started.ok || !started.id) throw new Error(started?.error || "보관 작업을 시작하지 못했습니다.");
     saveId = started.id;
 
-    // 이미지 파일을 한 장씩 보내 서버 요청이 지나치게 커지는 것을 방지합니다.
-    for(let i=0; i<snapBlobs.length; i++){
-      $("msg").textContent = `구글 드라이브에 이미지 저장 중 (${i+1}/${snapBlobs.length})…`;
-      btn.textContent = `보관 중 (${i+1}/${snapBlobs.length}장)…`;
-      const dataUrl = await blobToDataUrl(snapBlobs[i]);
+    // 이미지 3장씩 묶어 전송해 구글 서버 왕복 횟수를 줄입니다.
+    // 예: 10장은 이미지 전송 10회 대신 4회로 처리합니다.
+    const imageBatchSize = 3;
+    for(let start=0; start<snapBlobs.length; start+=imageBatchSize){
+      const end = Math.min(start + imageBatchSize, snapBlobs.length);
+      $("msg").textContent = `구글 드라이브에 이미지 저장 중 (${start+1}~${end}/${snapBlobs.length})…`;
+      btn.textContent = `보관 중 (${end}/${snapBlobs.length}장)…`;
+      const batch = await Promise.all(snapBlobs.slice(start, end).map(async (blob, offset)=>({
+        name: fname(start + offset, snapBlobs.length, stamp),
+        dataUrl: await blobToDataUrl(blob)
+      })));
       const result = await postToCardDb({
-        action: "saveImage",
+        action: "saveImages",
         id: saveId,
-        image: { name: fname(i, snapBlobs.length, stamp), dataUrl }
+        images: batch
       }, config);
-      if(!result || !result.ok) throw new Error(result?.error || `${i+1}번 이미지 저장에 실패했습니다.`);
+      if(!result || !result.ok) throw new Error(result?.error || `${start+1}~${end}번 이미지 저장에 실패했습니다.`);
     }
 
     $("msg").textContent = "저장 완료를 확인하는 중…";
@@ -1999,8 +2005,8 @@ $("archiveCurrent").onclick = async ()=>{
     const finished = await postToCardDb({action:"finishSave", id:saveId}, config);
     if(!finished || !finished.ok) throw new Error(finished?.error || "저장 완료 처리가 실패했습니다.");
     saveId = "";
-    $("msg").textContent = `콘텐츠 보관 완료: ${finalTitle} (${snapBlobs.length}장)`;
-    alert(`보관이 완료되었습니다.\n제목: ${finalTitle}\n이미지: ${snapBlobs.length}장\n\n상세 설명글과 쿠팡 링크는 상단의 '보관함'에서 관리할 수 있습니다.`);
+    // 저장 성공은 페이지 안에서만 표시합니다. 완료 팝업은 띄우지 않습니다.
+    $("msg").textContent = `보관 완료 (${snapBlobs.length}장)`;
   }catch(err){
     console.error(err);
     $("msg").textContent = "콘텐츠 보관 실패";
