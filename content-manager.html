@@ -9,6 +9,7 @@
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Pretendard,"Noto Sans KR",Arial,sans-serif;line-height:1.5}
 main{max-width:1120px;margin:0 auto;padding:18px 14px 50px}h1{font-size:22px;margin:0 0 4px}h2{font-size:17px;margin:0}h3{font-size:14px;margin:0;font-weight:750}.muted{font-size:13px;color:var(--sub)}button,input,select,textarea{font:inherit}button{border:1px solid var(--line);border-radius:9px;background:var(--panel);color:var(--ink);padding:8px 12px;cursor:pointer;font-weight:650}button.primary{background:var(--accent);border-color:var(--accent);color:white}button.danger{color:#b42318}button:disabled{opacity:.5;cursor:not-allowed}
 .head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}.layout{display:block}.content-entry{display:block;margin:0 0 9px}.detail-panel{margin:2px 0 18px;padding:14px;background:var(--bg);border:1px solid var(--line);border-radius:11px}.content-list{display:block}.panel{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:14px;min-width:0}.search{width:100%;padding:10px;border:1px solid var(--line);border-radius:9px;margin:10px 0;background:var(--bg);color:var(--ink)}.item{display:block;text-align:left;width:100%;margin:7px 0;padding:11px 34px 11px 11px;background:var(--panel);font-weight:500}.item{position:relative}.item::after{content:"▾";position:absolute;right:13px;top:50%;transform:translateY(-50%) rotate(-90deg);color:var(--sub);transition:transform .15s}.item.active{border-color:var(--accent);background:var(--accentbg)}.item.active::after{transform:translateY(-50%) rotate(0);color:var(--accent)}.item strong{display:block;font-size:14px;margin-bottom:3px}.item small{display:block;font-size:12px;color:var(--sub)}.empty{padding:20px 6px;color:var(--sub);font-size:13px}.field{margin:10px 0 16px}.field-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}.field-head label{font-size:13px;font-weight:750}.field-head button{flex-shrink:0;padding:6px 11px;font-size:12px}.field input,.field textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:10px;background:var(--bg);color:var(--ink)}textarea{min-height:140px;resize:vertical;line-height:1.55}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.row>*{min-width:0}.detail-head{display:flex;justify-content:space-between;align-items:start;gap:10px;flex-wrap:wrap}.section{border-top:1px solid var(--line);padding-top:15px;margin-top:18px}.status{margin:10px 0;color:var(--accent);font-size:13px;font-weight:700;white-space:pre-wrap}.hidden{display:none!important}.image-list{display:flex;flex-direction:column;gap:8px}.image-item{display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid var(--line);border-radius:9px;padding:8px 10px;min-width:0}.image-item a{color:var(--accent);font-size:13px;overflow-wrap:anywhere}.image-item button{flex-shrink:0;font-size:12px;padding:6px 9px}.hint{font-size:12px;color:var(--sub);margin:8px 0 0}.project-label{display:inline-block;margin:5px 0 8px;padding:4px 8px;border-radius:6px;background:var(--accentbg);color:var(--accent);font-size:12px;font-weight:750}
+.uid-bar{margin:34px auto 6px;text-align:center}.uid-bar.need{padding:10px;border:1px dashed var(--accent);border-radius:10px;background:var(--accentbg)}.uid-bar .uid-tag{background:none;border:0;padding:6px 10px;font-size:11px;font-weight:500;color:var(--sub);opacity:.2;cursor:pointer}.uid-bar .uid-tag:hover{opacity:.7}.uid-form{display:flex;gap:6px;align-items:center;justify-content:center;flex-wrap:wrap}.uid-form span{font-size:12.5px;color:var(--sub);font-weight:650}.uid-form input{width:150px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}.owner-tag{color:var(--accent)}
 @media(max-width:760px){main{padding:13px 10px 40px}.detail-panel{padding:10px}}@media(max-width:430px){.image-item{align-items:flex-start}.image-item button{white-space:nowrap}}
 </style>
 </head>
@@ -42,10 +43,14 @@ main{max-width:1120px;margin:0 auto;padding:18px 14px 50px}h1{font-size:22px;mar
       <div id="imageList" class="image-list" style="margin-top:10px"></div>
     </div>
   </div>
+  <!-- 내 아이디 (하단): 입력하면 이후에는 아주 작게만 표시됩니다 -->
+  <div class="uid-bar" id="uidBar"></div>
 </main>
 <script>
+/* ★ 웹 앱 URL(…/exec)을 여기에 붙여 넣고 올리면, 다른 사람들은 URL을 따로 입력하지 않아도 됩니다. */
+const DEFAULT_ENDPOINT = "https://script.google.com/macros/s/AKfycbwQtPzfIsBXg35L73JXeZtmOBG8BIEr4p8eY3YNBIPpMm4InReoFifpLu3-i8mHECreFg/exec";
 const ENDPOINT_KEY = "card_content_db_endpoint_v1";
-const API_KEY_KEY = "card_content_db_api_key_v1";
+const USER_ID_KEY = "card_user_id_v1";
 const CACHE_KEY = "card_content_list_cache_v1";
 const FIXED_FIELDS = [
   {kind:"youtube_description", label:"유튜브 설명", multi:true},
@@ -53,7 +58,7 @@ const FIXED_FIELDS = [
   {kind:"coupang_description", label:"쿠파스 설명", multi:true},
   {kind:"coupang_link", label:"쿠파스 링크", multi:false}
 ];
-let allContents = [], selected = null, fieldValues = {}, legacyPosts = [];
+let allContents = [], selected = null, fieldValues = {}, legacyPosts = [], isAdmin = false;
 let autoSaveTimer = null;
 let pendingAutoSaveSnapshot = null;
 let autoSaveQueue = Promise.resolve();
@@ -66,36 +71,30 @@ const mainEl = document.querySelector("main");
 const detailEl = $("detail");
 const listHost = $("contentList");
 let entryMap = new Map();
-function getConfig(){
-  let endpoint="", apiKey="";
-  try { endpoint=localStorage.getItem(ENDPOINT_KEY)||""; apiKey=localStorage.getItem(API_KEY_KEY)||""; } catch(e){}
-  if(!endpoint){endpoint=(prompt("Google Apps Script 웹 앱 URL을 입력하세요:")||"").trim();if(!endpoint)return null;try{localStorage.setItem(ENDPOINT_KEY,endpoint)}catch(e){}}
-  if(!apiKey){apiKey=(prompt("Google Apps Script에 설정한 콘텐츠 DB 접근 키를 입력하세요:")||"").trim();if(!apiKey)return null;try{localStorage.setItem(API_KEY_KEY,apiKey)}catch(e){}}
-  return {endpoint,apiKey};
+function getUserId(){
+  try{return (localStorage.getItem(USER_ID_KEY)||"").trim()}catch(e){return ""}
 }
-function callDb(payload,keyRetry=false){
- const config=getConfig();if(!config)return Promise.reject(new Error("접근 키 또는 웹 앱 URL 입력이 취소되었습니다."));
+function getConfig(){
+  let endpoint=(DEFAULT_ENDPOINT||"").trim();
+  if(!endpoint){try{endpoint=localStorage.getItem(ENDPOINT_KEY)||""}catch(e){}}
+  if(!endpoint){endpoint=(prompt("Google Apps Script 웹 앱 URL을 입력하세요:")||"").trim();if(!endpoint)return null;try{localStorage.setItem(ENDPOINT_KEY,endpoint)}catch(e){}}
+  return {endpoint,userId:getUserId()};
+}
+function callDb(payload){
+ const config=getConfig();if(!config)return Promise.reject(new Error("웹 앱 URL 입력이 취소되었습니다."));
+ if(!config.userId)return Promise.reject(new Error("아이디가 없습니다. 페이지 맨 아래에 아이디를 입력하세요."));
+ payload.userId=config.userId;
  return new Promise((resolve,reject)=>{
   const requestId="manager_"+Date.now()+"_"+Math.random().toString(36).slice(2);payload.requestId=requestId;
   const frameName="cardDbManagerFrame_"+requestId.replace(/[^a-zA-Z0-9_]/g,"");
   const iframe=document.createElement("iframe");iframe.name=frameName;iframe.style.cssText="position:absolute;width:1px;height:1px;left:-9999px;border:0";iframe.setAttribute("aria-hidden","true");
   const form=document.createElement("form");form.method="POST";form.action=config.endpoint;form.target=frameName;form.style.display="none";
-  for(const [name,value] of Object.entries({apiKey:config.apiKey,payload:JSON.stringify(payload)})){const input=document.createElement("input");input.type="hidden";input.name=name;input.value=value;form.appendChild(input)}
+  const input=document.createElement("input");input.type="hidden";input.name="payload";input.value=JSON.stringify(payload);form.appendChild(input);
   let done=false;const cleanup=()=>{window.removeEventListener("message",onMessage);form.remove();iframe.remove();clearTimeout(timer)};
   const finish=(fn,val)=>{if(done)return;done=true;cleanup();fn(val)};
   const onMessage=e=>{
    const d=e.data;if(!d||d.type!=="CARD_DB_RESPONSE"||d.requestId!==requestId)return;
-   const result=d.result||{};
-   if(!result.ok&&/접근 키가 일치하지 않습니다/.test(String(result.error||""))&&!keyRetry){
-    const replacement=(prompt("저장된 접근 키와 구글 프로젝트의 키가 다릅니다. Apps Script에 설정된 현재 DB 접근 키를 입력하세요:")||"").trim();
-    if(replacement){
-     try{localStorage.setItem(API_KEY_KEY,replacement)}catch(e){}
-     done=true;cleanup();
-     callDb(payload,true).then(resolve,reject);
-     return;
-    }
-   }
-   finish(resolve,result);
+   finish(resolve,d.result||{});
   };
   window.addEventListener("message",onMessage);const timer=setTimeout(()=>finish(reject,new Error("응답 시간이 초과되었습니다. Apps Script 배포 권한과 웹 앱 URL을 확인하세요.")),45000);
   document.body.append(iframe,form);try{form.submit()}catch(err){finish(reject,err)}
@@ -104,15 +103,18 @@ function callDb(payload,keyRetry=false){
 function setStatus(t){$("status").textContent=t||""}
 
 /* ---------- 목록 캐시: 열자마자 지난번 목록을 보여 주고 뒤에서 최신 목록을 확인합니다 ---------- */
+function cacheKey(){return CACHE_KEY+"_"+getUserId().toLowerCase()}
 function readCache(){
-  try{const v=JSON.parse(localStorage.getItem(CACHE_KEY)||"null");return v&&Array.isArray(v.contents)?v:null}catch(e){return null}
+  if(!getUserId())return null;
+  try{const v=JSON.parse(localStorage.getItem(cacheKey())||"null");return v&&Array.isArray(v.contents)?v:null}catch(e){return null}
 }
 function writeCache(){
-  try{localStorage.setItem(CACHE_KEY,JSON.stringify({savedAt:Date.now(),contents:allContents}))}catch(e){/* 용량 초과 등은 무시 */}
+  if(!getUserId())return;
+  try{localStorage.setItem(cacheKey(),JSON.stringify({savedAt:Date.now(),isAdmin:isAdmin,contents:allContents}))}catch(e){/* 용량 초과 등은 무시 */}
 }
 // 검색용 문자열을 한 번만 만들어 둡니다(저장되는 데이터에는 포함되지 않게 비열거 속성으로).
 function prepContents(list){
-  list.forEach(x=>{Object.defineProperty(x,"_q",{value:`${x.title||""} ${x.channel||""} ${x.rawText||""}`.toLowerCase(),writable:true,enumerable:false,configurable:true})});
+  list.forEach(x=>{Object.defineProperty(x,"_q",{value:`${x.title||""} ${x.channel||""} ${x.rawText||""} ${x.ownerId||""}`.toLowerCase(),writable:true,enumerable:false,configurable:true})});
   return list;
 }
 
@@ -135,7 +137,7 @@ function renderList(){
   const entry=document.createElement("div");entry.className="content-entry";
   const b=document.createElement("button");b.type="button";b.className="item";b.setAttribute("aria-expanded","false");
   const s=document.createElement("strong");s.textContent=item.title||"제목 없음";
-  const sm=document.createElement("small");sm.textContent=`프로젝트: ${item.channel||"미지정"} · ${(item.images||[]).length}장 · ${formatDate(item.createdAt)}`;
+  const sm=document.createElement("small");sm.textContent=`프로젝트: ${item.channel||"미지정"} · ${(item.images||[]).length}장 · ${formatDate(item.createdAt)}`+(isAdmin?` · 아이디: ${item.ownerId||"(주인 없음)"}`:"");
   b.append(s,sm);b.onclick=()=>toggleContent(item.id);
   entry.appendChild(b);frag.appendChild(entry);entryMap.set(item.id,entry);
  });
@@ -171,7 +173,7 @@ function closeContent(){
 function fillDetail(){
  $("detailTitle").textContent=selected.title||"제목 없음";
  $("projectLabel").textContent="프로젝트: "+(selected.channel||"미지정");
- $("detailMeta").textContent=`저장 ${formatDate(selected.createdAt)} · 비율 ${selected.aspectRatio||"미상"}`;
+ $("detailMeta").textContent=`저장 ${formatDate(selected.createdAt)} · 비율 ${selected.aspectRatio||"미상"}`+(isAdmin?` · 아이디 ${selected.ownerId||"(주인 없음)"}`:"");
  $("rawText").value=selected.rawText||"";
  const allPosts=Array.isArray(selected.posts)?selected.posts:[];
  const managedKinds=new Set(FIXED_FIELDS.map(x=>x.kind).concat(["coupang_comment"]));
@@ -261,12 +263,16 @@ async function copyText(text){
 
 /* ---------- 목록 불러오기 ---------- */
 async function loadContents(){
+ if(!getUserId()){showNeedId();return}
+ const uidAtStart=getUserId();
  setStatus(allContents.length?"최신 목록을 확인하는 중…":"저장 목록을 불러오는 중입니다…");$("refreshBtn").disabled=true;
  try{
   // 저장 중인 수정 내용이 있으면 먼저 서버에 반영시킨 뒤 목록을 받아 옛 내용으로 덮어쓰지 않게 합니다.
   flushPendingAutoSave();await autoSaveQueue.catch(()=>{});
   const result=await callDb({action:"list"});
+  if(uidAtStart!==getUserId())return;   // 응답을 기다리는 사이 아이디가 바뀐 경우
   if(!result||!result.ok)throw new Error(result&&result.error||"목록을 읽을 수 없습니다.");
+  isAdmin=!!result.isAdmin;
   const fresh=prepContents(Array.isArray(result.contents)?result.contents:[]);
   const prev=selected, prevPostsJson=prev?JSON.stringify(prev.posts||[]):"";
   allContents=fresh;
@@ -280,10 +286,10 @@ async function loadContents(){
   writeCache();
   renderList();
   if(selected&&refill)fillDetail();
-  setStatus(`총 ${allContents.length}개 콘텐츠를 불러왔습니다.`);
+  setStatus(`총 ${allContents.length}개 콘텐츠를 불러왔습니다.`+(isAdmin?" (관리자: 모든 아이디의 콘텐츠)":""));
  }catch(e){
   setStatus("불러오기 실패: "+(e.message||e)+(allContents.length?" (이전에 불러온 목록을 표시 중입니다)":""));
-  if(!allContents.length){parkDetail();listHost.className="empty";listHost.textContent="목록을 불러오지 못했습니다. 웹 앱 URL, 접근 키, 배포 권한을 확인하세요."}
+  if(!allContents.length){parkDetail();listHost.className="empty";listHost.textContent="목록을 불러오지 못했습니다. 웹 앱 URL, 아이디, 배포 권한을 확인하세요."}
  }
  finally{$("refreshBtn").disabled=false}
 }
@@ -308,9 +314,47 @@ $("deleteBtn").onclick=async()=>{
  }
  catch(e){setStatus("삭제 실패: "+(e.message||e))}finally{btn.disabled=false}
 };
-const cached=readCache();
-if(cached){allContents=prepContents(cached.contents);renderList();}
-loadContents();
+
+/* ---------- 내 아이디 (페이지 맨 아래) ---------- */
+function showNeedId(){
+ parkDetail();detailEl.classList.add("hidden");
+ listHost.className="empty";listHost.textContent="맨 아래에 아이디를 입력하면 내 콘텐츠가 보입니다.";
+ setStatus("");renderUidBar(true,true);
+}
+function renderUidBar(forceOpen,needHint){
+ const bar=$("uidBar");bar.textContent="";bar.classList.toggle("need",!!needHint);
+ const uid=getUserId();
+ if(uid&&!forceOpen){
+  const tag=document.createElement("button");tag.type="button";tag.className="uid-tag";tag.textContent="id · "+uid;tag.title="아이디 변경";
+  tag.onclick=()=>renderUidBar(true);bar.appendChild(tag);return;
+ }
+ const form=document.createElement("div");form.className="uid-form";
+ const lbl=document.createElement("span");lbl.textContent="내 아이디";
+ const input=document.createElement("input");input.type="text";input.id="uidInput";input.maxLength=40;input.value=uid;input.placeholder="아이디 입력";input.autocomplete="off";input.autocapitalize="off";
+ const ok=document.createElement("button");ok.type="button";ok.textContent="확인";
+ const submit=()=>{if(input.value.trim())submitUserId(input.value);else if(uid)submitUserId("")};
+ ok.onclick=submit;input.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();submit()}};
+ form.append(lbl,input,ok);
+ if(uid){const cancel=document.createElement("button");cancel.type="button";cancel.textContent="취소";cancel.onclick=()=>renderUidBar(false);form.appendChild(cancel)}
+ bar.appendChild(form);
+}
+async function submitUserId(raw){
+ const id=String(raw||"").replace(/\s+/g," ").trim().slice(0,40);
+ // 이전 아이디로 입력 중이던 내용은 먼저 저장을 끝내고 바꿉니다.
+ flushPendingAutoSave();await autoSaveQueue.catch(()=>{});
+ try{if(id)localStorage.setItem(USER_ID_KEY,id);else localStorage.removeItem(USER_ID_KEY)}catch(e){}
+ switchUser();
+}
+function switchUser(){
+ selected=null;allContents=[];isAdmin=false;fieldValues={};legacyPosts=[];
+ renderUidBar(false);
+ if(!getUserId()){showNeedId();return}
+ const c=readCache();
+ if(c){allContents=prepContents(c.contents);isAdmin=!!c.isAdmin;renderList()}
+ else{parkDetail();detailEl.classList.add("hidden");listHost.className="empty";listHost.textContent="저장 목록을 불러오는 중입니다."}
+ loadContents();
+}
+switchUser();
 </script>
 </body>
 </html>

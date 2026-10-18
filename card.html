@@ -221,6 +221,18 @@
     width:42px; height:42px; border-radius:50%; object-fit:cover;
     border:1px solid var(--line); background:#fff; display:none;
   }
+
+  /* 하단 아이디 바: 입력 후에는 거의 보이지 않는 작은 표시만 남김 */
+  .uid-bar{margin:34px auto 6px; text-align:center;}
+  .uid-bar .uid-tag{
+    background:none; border:0; padding:6px 10px; font-size:11px; font-weight:500;
+    color:var(--sub); opacity:.2; cursor:pointer; font-family:inherit;
+  }
+  .uid-bar .uid-tag:hover{opacity:.7;}
+  .uid-bar .uid-form{display:flex; gap:6px; align-items:center; justify-content:center; flex-wrap:wrap;}
+  .uid-bar .uid-form span{font-size:12.5px; color:var(--sub); font-weight:600;}
+  .uid-bar .uid-form input[type="text"]{width:150px; padding:8px 10px; font-size:14px;}
+  .uid-bar.need{padding:10px; border:1px dashed var(--accent); border-radius:10px; background:var(--accent-bg);}
 </style>
 </head>
 <body>
@@ -283,6 +295,9 @@
     <button type="button" class="primary" id="archiveCurrent" style="background:#2f6fed;color:#fff;border-color:#2f6fed;">콘텐츠 보관</button>
     <button type="button" class="primary accent" id="shareAll">한 번에 공유 (인스타·유튜브)</button>
   </div>
+
+  <!-- 내 아이디 (하단): 입력하면 이후에는 아주 작게만 표시됩니다 -->
+  <div class="uid-bar" id="uidBar"></div>
 </div>
 
 <!-- ⚙️ 설정 모달창 -->
@@ -427,6 +442,7 @@
 
         <label class="lbl">글꼴 (폰트 18종)</label>
         <select id="font"></select>
+        <label class="chk"><input type="checkbox" id="bodyBold"> 본문 글씨 굵게 (폰트가 지원하는 굵은 두께로)</label>
 
         <div class="grid2" style="margin-top:6px;">
           <div>
@@ -543,10 +559,18 @@ const FONTS = [
   {name:"13. 고딕 A1",                  family:"Gothic A1",        weight:500, cover:700},
   {name:"14. 나눔고딕",                 family:"Nanum Gothic",     weight:400, cover:700},
   {name:"15. IBM 플렉스 산스",          family:"IBM Plex Sans KR", weight:500, cover:700},
-  {name:"16. 카페24 써라운드 (둥근강조)",family:"Cafe24Ssurround", weight:700, cover:700},
-  {name:"17. 도현체 (굵은 제목용)",     family:"Do Hyeon",         weight:400, cover:400},
-  {name:"18. 검은고딕 (임팩트 강조)",   family:"Black Han Sans",   weight:400, cover:400}
+  {name:"16. 카페24 써라운드 (둥근강조)",family:"Cafe24Ssurround", weight:700, cover:700, heavy:true},
+  {name:"17. 도현체 (굵은 제목용)",     family:"Do Hyeon",         weight:400, cover:400, heavy:true},
+  {name:"18. 검은고딕 (임팩트 강조)",   family:"Black Han Sans",   weight:400, cover:400, heavy:true}
 ];
+
+/* '본문 굵게'가 켜져 있으면 본문 두께를 굵은 쪽(700)으로 올린 폰트 정보를 돌려줌.
+   이미 굵은 폰트(heavy)는 그대로 두고, 워터마크 두께는 기존 값을 유지함 */
+function getActiveFont(){
+  const base = FONTS[fontSel.value] || FONTS[0];
+  if(!$("bodyBold").checked || base.heavy) return base;
+  return {...base, weight: Math.max(base.weight, base.cover, 700), wmWeight: base.weight};
+}
 
 /* 12종 가독성 테마 템플릿 */
 const THEMES = {
@@ -609,30 +633,47 @@ function setThemeChipActive(themeKey){
   });
 }
 
-/* ---------- 채널 통합 프리셋 관리 (localStorage) ---------- */
+/* ---------- 채널 통합 프리셋 관리 (이 브라우저 + 아이디별 DB) ---------- */
 const STORAGE_KEY = "yt_card_maker_presets_v4";
 const LAST_KEY = "yt_card_maker_last_preset";
+const PRESETS_OWNER_KEY = "yt_card_maker_presets_owner"; /* 이 브라우저의 저장본이 어느 아이디 것인지 */
 function saveLastPreset(i){ try{ localStorage.setItem(LAST_KEY, String(i)); }catch(e){} }
-let presets = [
-  {
-    name:"사랑추구권",
-    aspectRatio:"1:1",
-    wmType:"text", wmText:"사랑추구권", wmPos:"br",
-    logoDataUrl:"", logoShape:"circle", wmSize:30, wmAlpha:45, wmMargin:44,
-    fontIdx:0, textAlign:"left", wrapMode:"auto",
-    lineHeight:1.6, padX:110, padY:110, maxFont:66, coverCenter:true,
-    pageNumStyle:"slash", pageNumX:540, pageNumY:58, pageNumSize:32,
-    theme:"white", bgColor:"#ffffff", inkColor:"#111111", hlColor:"#ffe066", hlStyle:"marker",
-    frameStyle:"none", topDeco:"none", maxPages:10, saveDelay:1.4,
-    splitMode:"blank", splitDelim:"---", lastPageType:"auto"
-  }
-];
+function defaultPresets(){
+  return [
+    {
+      name:"사랑추구권",
+      aspectRatio:"1:1",
+      wmType:"text", wmText:"사랑추구권", wmPos:"br",
+      logoDataUrl:"", logoShape:"circle", wmSize:30, wmAlpha:45, wmMargin:44,
+      fontIdx:0, bodyBold:false, textAlign:"left", wrapMode:"auto",
+      lineHeight:1.6, padX:110, padY:110, maxFont:66, coverCenter:true,
+      pageNumStyle:"slash", pageNumX:540, pageNumY:58, pageNumSize:32,
+      theme:"white", bgColor:"#ffffff", inkColor:"#111111", hlColor:"#ffe066", hlStyle:"marker",
+      frameStyle:"none", topDeco:"none", maxPages:10, saveDelay:1.4,
+      splitMode:"blank", splitDelim:"---", lastPageType:"auto"
+    }
+  ];
+}
+let presets = defaultPresets();
+
+function savePresetsLocal(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(presets));
+    const uid = getUserId();
+    if(uid) localStorage.setItem(PRESETS_OWNER_KEY, uid);
+  }catch(e){}
+}
 
 function loadPresets(){
+  /* 다른 아이디가 쓰던 브라우저라면 그 사람의 저장본은 이어받지 않음 */
+  const uid = getUserId();
+  let owner = "";
+  try{ owner = localStorage.getItem(PRESETS_OWNER_KEY) || ""; }catch(e){}
+  const foreignCache = !!(uid && owner && owner !== uid);
   try{
-    const saved = localStorage.getItem(STORAGE_KEY)
+    const saved = foreignCache ? null : (localStorage.getItem(STORAGE_KEY)
                || localStorage.getItem("yt_card_maker_presets_v3")
-               || localStorage.getItem("yt_card_maker_presets_v2");
+               || localStorage.getItem("yt_card_maker_presets_v2"));
     if(saved){
       const parsed = JSON.parse(saved);
       if(Array.isArray(parsed) && parsed.length) presets = parsed;
@@ -671,6 +712,7 @@ function collectCurrentSettings(name){
     wmAlpha: Number($("wmAlpha").value) || 45,
     wmMargin: Number($("wmMargin").value) || 44,
     fontIdx: Number(fontSel.value) || 0,
+    bodyBold: $("bodyBold").checked,
     textAlign,
     wrapMode,
     lineHeight: Number($("lineHeight").value) || 1.6,
@@ -710,6 +752,7 @@ function applyPreset(idx){
   $("wmMargin").value = p.wmMargin ?? 44;
 
   fontSel.value = p.fontIdx ?? 0;
+  $("bodyBold").checked = !!p.bodyBold;
   textAlign = p.textAlign ?? "left";
   setSegActive("alignSeg", textAlign);
   wrapMode = p.wrapMode ?? "auto";
@@ -810,10 +853,9 @@ $("savePresetBtn").onclick = ()=>{
   const idx = Number($("presetSel").value) || 0;
   const name = $("wmText").value.trim() || presets[idx]?.name || "내 채널";
   presets[idx] = collectCurrentSettings(name);
-  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(presets)); }catch(e){}
   refreshPresetSelect(idx);
   $("settingsModal").classList.remove("open");
-  $("msg").textContent = `'${name}' 채널 설정이 저장되었습니다.`;
+  persistPresets(`'${name}' 채널 설정이 저장되었습니다.`);
 };
 
 $("addPresetBtn").onclick = ()=>{
@@ -822,19 +864,19 @@ $("addPresetBtn").onclick = ()=>{
   if(!name) return;
   presets.push(collectCurrentSettings(name.trim()));
   const newIdx = presets.length - 1;
-  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(presets)); }catch(e){}
   refreshPresetSelect(newIdx);
-  $("msg").textContent = `'${name.trim()}' 프리셋이 추가되었습니다.`;
+  persistPresets(`'${name.trim()}' 프리셋이 추가되었습니다.`);
 };
 
 $("delPresetBtn").onclick = ()=>{
   if(presets.length <= 1){ alert("최소 1개의 채널은 남겨두어야 합니다."); return; }
   const idx = Number($("presetSel").value);
   if(!confirm(`'${presets[idx].name}' 채널 프리셋을 삭제할까요?`)) return;
+  const delName = presets[idx].name;
   presets.splice(idx, 1);
-  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(presets)); }catch(e){}
   refreshPresetSelect(0);
   applyPreset(0);
+  persistPresets(`'${delName}' 프리셋을 삭제했습니다.`);
 };
 
 /* ---------- 파일명 ---------- */
@@ -1587,7 +1629,7 @@ function draw(page, idx, total, f){
       ctx.save();
       ctx.globalAlpha = wmAlpha;
       ctx.fillStyle = inkCol;
-      ctx.font = `${f.weight} ${wmSize}px "${f.family}", "Pretendard", sans-serif`;
+      ctx.font = `${f.wmWeight ?? f.weight} ${wmSize}px "${f.family}", "Pretendard", sans-serif`;
       ctx.textBaseline = "middle";
 
       const textW = showText ? ctx.measureText(wmText).width : 0;
@@ -1646,7 +1688,7 @@ async function render(){
     return;
   }
 
-  const f = FONTS[fontSel.value] || FONTS[0];
+  const f = getActiveFont();
   $("msg").textContent = `총 ${snapPages.length}장 이미지 생성 중…`;
 
   const wmSample = $("wmText").value || "사랑추구권";
@@ -1836,7 +1878,7 @@ document.querySelectorAll("#themeList .theme-btn").forEach(btn=>{
 
 [
   "font","aspectRatio","wmType","wmPos","logoShape",
-  "coverCenter","pageNumStyle","hlStyle","frameStyle","topDeco"
+  "coverCenter","pageNumStyle","hlStyle","frameStyle","topDeco","bodyBold"
 ].forEach(id=>{
   $(id).onchange = ()=> scheduleRender(false);
 });
@@ -1858,8 +1900,10 @@ $("numHintBtn").onclick = ()=>{ $("splitMode").value = "number"; updateSplitUI()
 
 
 /* ---------- 클라우드 콘텐츠 보관 (Google Apps Script + Drive/Sheets) ---------- */
+/* ★ 웹 앱 URL(…/exec)을 여기에 붙여 넣고 올리면, 다른 사람들은 URL을 따로 입력하지 않아도 됩니다. */
+const DEFAULT_ENDPOINT = "https://script.google.com/macros/s/AKfycbwQtPzfIsBXg35L73JXeZtmOBG8BIEr4p8eY3YNBIPpMm4InReoFifpLu3-i8mHECreFg/exec";
 const CARD_DB_ENDPOINT_KEY = "card_content_db_endpoint_v1";
-const CARD_DB_API_KEY_KEY = "card_content_db_api_key_v1";
+const USER_ID_KEY = "card_user_id_v1";
 let archivingCurrent = false;
 
 function openContentManager(){
@@ -1868,14 +1912,79 @@ function openContentManager(){
 }
 $("openArchiveBtn").onclick = openContentManager;
 
-function getCardDbConfig(){
-  let endpoint = "";
-  let apiKey = "";
+/* ---------- 내 아이디 (페이지 맨 아래) ---------- */
+function getUserId(){
+  try{ return (localStorage.getItem(USER_ID_KEY) || "").trim(); }catch(e){ return ""; }
+}
+function renderUidBar(forceOpen, needHint){
+  const bar = $("uidBar");
+  bar.textContent = "";
+  bar.classList.toggle("need", !!needHint);
+  const uid = getUserId();
+  if(uid && !forceOpen){
+    const tag = document.createElement("button");
+    tag.type = "button"; tag.className = "uid-tag";
+    tag.textContent = "id · " + uid; tag.title = "아이디 변경";
+    tag.onclick = ()=>renderUidBar(true);
+    bar.appendChild(tag);
+    return;
+  }
+  const form = document.createElement("div");
+  form.className = "uid-form";
+  const lbl = document.createElement("span"); lbl.textContent = "내 아이디";
+  const input = document.createElement("input");
+  input.type = "text"; input.id = "uidInput"; input.maxLength = 40; input.value = uid;
+  input.placeholder = "아이디 입력"; input.autocomplete = "off"; input.autocapitalize = "off";
+  const ok = document.createElement("button");
+  ok.type = "button"; ok.className = "ghost"; ok.textContent = "확인";
+  const submit = ()=>{ if(input.value.trim()) submitUserId(input.value); else if(uid) submitUserId(""); };
+  ok.onclick = submit;
+  input.onkeydown = e=>{ if(e.key === "Enter"){ e.preventDefault(); submit(); } };
+  form.append(lbl, input, ok);
+  if(uid){
+    const cancel = document.createElement("button");
+    cancel.type = "button"; cancel.className = "ghost"; cancel.textContent = "취소";
+    cancel.onclick = ()=>renderUidBar(false);
+    form.appendChild(cancel);
+  }
+  bar.appendChild(form);
+}
+function focusUidBar(){
+  renderUidBar(true, true);
+  const bar = $("uidBar");
+  bar.scrollIntoView({block:"center", behavior:"smooth"});
+  const inp = $("uidInput"); if(inp) setTimeout(()=>inp.focus(), 300);
+}
+function submitUserId(raw){
+  const id = String(raw || "").replace(/\s+/g, " ").trim().slice(0, 40);
   try{
-    endpoint = localStorage.getItem(CARD_DB_ENDPOINT_KEY) || "";
-    apiKey = localStorage.getItem(CARD_DB_API_KEY_KEY) || "";
+    if(id) localStorage.setItem(USER_ID_KEY, id); else localStorage.removeItem(USER_ID_KEY);
   }catch(e){}
+  renderUidBar(false);
+  onUserIdChanged(id);
+}
+function onUserIdChanged(newId){
+  if(!newId) return;
+  /* 다른 아이디의 설정이 남아 있으면 이어받지 않고 기본값에서 시작 */
+  let owner = "";
+  try{ owner = localStorage.getItem(PRESETS_OWNER_KEY) || ""; }catch(e){}
+  if(owner && owner.toLowerCase() !== newId.toLowerCase()){
+    presets = defaultPresets();
+    refreshPresetSelect(0);
+    applyPreset(0);
+    if(pages.length) scheduleRender(true);
+  }
+  syncSettingsFromDb();
+}
+
+/* ---------- 웹 앱 연결 ---------- */
+function getCardDbConfig(opts){
+  const allowPrompt = !(opts && opts.silent);
+  let endpoint = (DEFAULT_ENDPOINT || "").trim();
   if(!endpoint){
+    try{ endpoint = localStorage.getItem(CARD_DB_ENDPOINT_KEY) || ""; }catch(e){}
+  }
+  if(!endpoint && allowPrompt){
     endpoint = (prompt("처음 한 번만 입력하세요. Google Apps Script 웹 앱 URL을 붙여넣으세요:") || "").trim();
     if(!endpoint) return null;
     if(!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec(?:\?.*)?$/.test(endpoint)){
@@ -1884,19 +1993,15 @@ function getCardDbConfig(){
     }
     try{ localStorage.setItem(CARD_DB_ENDPOINT_KEY, endpoint); }catch(e){}
   }
-  if(!apiKey){
-    apiKey = (prompt("Google Apps Script에 설정한 콘텐츠 DB 접근 키를 입력하세요:") || "").trim();
-    if(!apiKey) return null;
-    try{ localStorage.setItem(CARD_DB_API_KEY_KEY, apiKey); }catch(e){}
-  }
-  return {endpoint, apiKey};
+  if(!endpoint) return null;
+  return {endpoint, userId: getUserId()};
 }
 
 function postToCardDb(payload, config){
-  const usedKey = config.apiKey;
   return new Promise((resolve, reject)=>{
     const requestId = "carddb_" + Date.now() + "_" + Math.random().toString(36).slice(2);
     payload.requestId = requestId;
+    payload.userId = config.userId;
     const frameName = "cardDbFrame_" + requestId.replace(/[^a-zA-Z0-9_]/g, "");
     const iframe = document.createElement("iframe");
     iframe.name = frameName;
@@ -1907,12 +2012,9 @@ function postToCardDb(payload, config){
     form.action = config.endpoint;
     form.target = frameName;
     form.style.display = "none";
-    const fields = {apiKey: config.apiKey, payload: JSON.stringify(payload)};
-    Object.entries(fields).forEach(([name,value])=>{
-      const input = document.createElement("input");
-      input.type = "hidden"; input.name = name; input.value = value;
-      form.appendChild(input);
-    });
+    const input = document.createElement("input");
+    input.type = "hidden"; input.name = "payload"; input.value = JSON.stringify(payload);
+    form.appendChild(input);
     let done = false;
     const cleanup = ()=>{
       window.removeEventListener("message", onMessage);
@@ -1926,22 +2028,7 @@ function postToCardDb(payload, config){
     const onMessage = event=>{
       const data = event.data;
       if(!data || data.type !== "CARD_DB_RESPONSE" || data.requestId !== requestId) return;
-      const result = data.result || {};
-      if(!result.ok && /접근 키가 일치하지 않습니다/.test(String(result.error || "")) && !config._keyRetry){
-        /* 동시에 보낸 다른 요청이 이미 새 키를 받았다면 다시 묻지 않고 그 키를 씁니다 */
-        let replacement = (config.apiKey !== usedKey) ? config.apiKey : "";
-        if(!replacement){
-          replacement = (prompt("저장된 접근 키와 구글 프로젝트의 키가 다릅니다. Apps Script에 설정된 현재 DB 접근 키를 입력하세요:") || "").trim();
-          if(replacement) config.apiKey = replacement; /* 이후 요청(마무리 단계 포함)도 새 키 사용 */
-        }
-        if(replacement){
-          try{ localStorage.setItem(CARD_DB_API_KEY_KEY, replacement); }catch(e){}
-          done = true; cleanup();
-          postToCardDb(payload, {...config, apiKey: replacement, _keyRetry: true}).then(resolve, reject);
-          return;
-        }
-      }
-      finish(resolve, result);
+      finish(resolve, data.result || {});
     };
     window.addEventListener("message", onMessage);
     const timer = setTimeout(()=>finish(reject, new Error("45초 동안 구글 서버의 응답이 없습니다. 웹 앱 배포 URL·접근 권한을 확인하세요.")), 45000);
@@ -1950,6 +2037,68 @@ function postToCardDb(payload, config){
     try{ form.submit(); }
     catch(err){ finish(reject, err); }
   });
+}
+
+/* ---------- 채널 설정(프리셋)을 아이디별로 DB에 저장/불러오기 ---------- */
+let settingsQueue = Promise.resolve();
+function pushSettingsToDb(){
+  const cfg = getCardDbConfig({silent:true});
+  const snapshot = JSON.parse(JSON.stringify(presets));
+  settingsQueue = settingsQueue.catch(()=>{}).then(async ()=>{
+    if(!cfg || !cfg.userId) return {ok:false, error:"아이디 또는 웹 앱 URL이 없습니다."};
+    try{
+      const res = await postToCardDb({action:"saveSettings", presets:snapshot}, cfg);
+      return res && res.ok ? {ok:true} : {ok:false, error:(res && res.error) || "알 수 없는 오류"};
+    }catch(e){ return {ok:false, error:e.message || String(e)}; }
+  });
+  return settingsQueue;
+}
+
+/* 프리셋을 바꾼 뒤 호출: 이 브라우저에 저장하고, 아이디가 있으면 DB에도 저장 */
+async function persistPresets(doneMsg){
+  savePresetsLocal();
+  $("msg").textContent = doneMsg;
+  if(!getUserId()){
+    $("msg").textContent = doneMsg + " (이 브라우저에만 저장됨 — 맨 아래에 아이디를 입력하면 DB에도 저장돼요)";
+    return;
+  }
+  if(!getCardDbConfig()) return;   /* 웹 앱 URL을 아직 안 넣은 경우 한 번 물어봄 */
+  $("msg").textContent = doneMsg + " DB에 저장하는 중…";
+  const r = await pushSettingsToDb();
+  $("msg").textContent = r.ok
+    ? doneMsg + " (DB 저장 완료)"
+    : doneMsg + " (DB 저장 실패: " + r.error + " — 이 브라우저에는 저장됨)";
+}
+
+async function syncSettingsFromDb(){
+  const cfg = getCardDbConfig({silent:true});
+  if(!cfg || !cfg.userId) return;
+  const uid = cfg.userId;
+  try{
+    const res = await postToCardDb({action:"getSettings"}, cfg);
+    if(uid !== getUserId()) return;   /* 응답을 기다리는 사이 아이디가 바뀜 */
+    if(!res || !res.ok) throw new Error((res && res.error) || "불러오기 실패");
+    const s = res.settings;
+    if(s && Array.isArray(s.presets) && s.presets.length){
+      if(JSON.stringify(s.presets) !== JSON.stringify(presets)){
+        presets = s.presets;
+        let last = 0;
+        try{ last = Number(localStorage.getItem(LAST_KEY)) || 0; }catch(e){}
+        if(last < 0 || last >= presets.length) last = 0;
+        refreshPresetSelect(last);
+        applyPreset(last);
+        if(pages.length) scheduleRender(true);
+      }
+      savePresetsLocal();
+    }else{
+      /* 이 아이디의 DB 설정이 아직 없으면, 지금 쓰는 설정을 처음으로 올려 둠 */
+      savePresetsLocal();
+      await pushSettingsToDb();
+    }
+  }catch(e){
+    console.warn(e);
+    $("msg").textContent = "채널 설정을 DB에서 불러오지 못했습니다. (이 브라우저에 저장된 설정을 사용합니다)";
+  }
 }
 
 function blobToDataUrl(blob){
@@ -1968,6 +2117,11 @@ const IMAGE_UPLOAD_CONCURRENCY = 4;
 $("archiveCurrent").onclick = async ()=>{
   if(archivingCurrent || !blobs.length){
     if(!blobs.length) alert("먼저 원고를 입력하고 이미지를 만들어 주세요.");
+    return;
+  }
+  if(!getUserId()){
+    focusUidBar();
+    alert("맨 아래에 아이디를 먼저 입력해 주세요.");
     return;
   }
   const rawText = $("src").value;
@@ -2067,6 +2221,8 @@ $("archiveCurrent").onclick = async ()=>{
 
 
 loadPresets();
+renderUidBar(false);
+syncSettingsFromDb();
 </script>
 </body>
 </html>
