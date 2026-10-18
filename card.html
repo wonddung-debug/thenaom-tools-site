@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>카드 이미지 메이커</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
+<script type="text/javascript" nonce="1aa01868fbee463f810939b4d62" src="//local.adguard.org?ts=1792314965874&amp;type=content-script&amp;dmn=chatgpt.com&amp;url=https%3A%2F%2Fchatgpt.com%2Fbackend-api%2Festuary%2Fcontent%3Fid%3Dfile_00000000eb108209870da04428b808f5%26fn%3Dcard_with_content_db_fixed.html%26cd%3Dattachment%26ts%3D497865%26p%3Dfs%26cid%3D1%26sig%3Dd3ae3261d74757968db81293cfa03a90e71200e20a5f775b07a76cbe01b2610a%26v%3D0&amp;app=chrome.exe&amp;css=2&amp;js=1&amp;rel=1&amp;rji=1&amp;sbe=1&amp;stealth=1&amp;st-dnt"></script><script type="text/javascript" nonce="1aa01868fbee463f810939b4d62" src="//local.adguard.org?ts=1792314965874&amp;name=AdGuard%20Extra&amp;name=AdGuard%20Popup%20Blocker&amp;type=user-script"></script><link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Do+Hyeon&family=Gothic+A1:wght@400;500;700&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=IBM+Plex+Sans+KR:wght@400;500;700&family=Jua&family=Maru+Buri:wght@400;700&family=Nanum+Gothic:wght@400;700&family=Nanum+Myeongjo:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
@@ -1921,7 +1921,7 @@ function postToCardDb(payload, config){
       finish(resolve, data.result);
     };
     window.addEventListener("message", onMessage);
-    const timer = setTimeout(()=>finish(reject, new Error("응답 시간이 초과되었습니다. Apps Script 배포 URL과 권한을 확인하세요.")), 120000);
+    const timer = setTimeout(()=>finish(reject, new Error("45초 동안 구글 서버의 응답이 없습니다. 웹 앱 배포 URL·접근 권한을 확인하세요.")), 45000);
     document.body.appendChild(iframe);
     document.body.appendChild(form);
     try{ form.submit(); }
@@ -1956,17 +1956,17 @@ $("archiveCurrent").onclick = async ()=>{
   const btn = $("archiveCurrent");
   btn.disabled = true;
   const originalText = btn.textContent;
+  let saveId = "";
   try{
     const snapBlobs = [...blobs];
     const stamp = makeStamp();
     const channel = (presets[Number($("presetSel").value)]?.name || $("wmText").value || "미지정 채널").trim();
-    $("msg").textContent = "콘텐츠와 이미지 파일을 준비하는 중…";
-    const images = await Promise.all(snapBlobs.map(async (blob, i)=>({
-      name: fname(i, snapBlobs.length, stamp),
-      dataUrl: await blobToDataUrl(blob)
-    })));
-    const payload = {
-      action: "save",
+    $("msg").textContent = "콘텐츠 정보를 구글에 저장하는 중…";
+    btn.textContent = "보관 준비 중…";
+
+    // 먼저 텍스트·기본 정보를 저장합니다. 이미지 전체를 한 요청에 담지 않습니다.
+    const started = await postToCardDb({
+      action: "startSave",
       content: {
         title: finalTitle,
         channel,
@@ -1975,19 +1975,36 @@ $("archiveCurrent").onclick = async ()=>{
         splitMode: $("splitMode").value,
         lastPageType: $("lastPageType").value,
         maxPages: Number($("maxPages").value) || 10,
-        images,
-        posts: []
+        expectedImageCount: snapBlobs.length
       }
-    };
-    btn.textContent = `보관 중 (${images.length}장)…`;
-    const result = await postToCardDb(payload, config);
-    if(!result || !result.ok) throw new Error(result?.error || "저장에 실패했습니다.");
-    $("msg").textContent = `콘텐츠 보관 완료: ${finalTitle} (${images.length}장)`;
-    alert(`보관이 완료되었습니다.\n제목: ${finalTitle}\n이미지: ${images.length}장\n\n상세 설명글과 쿠팡 링크는 상단의 '보관함'에서 관리할 수 있습니다.`);
+    }, config);
+    if(!started || !started.ok || !started.id) throw new Error(started?.error || "보관 작업을 시작하지 못했습니다.");
+    saveId = started.id;
+
+    // 이미지 파일을 한 장씩 보내 서버 요청이 지나치게 커지는 것을 방지합니다.
+    for(let i=0; i<snapBlobs.length; i++){
+      $("msg").textContent = `구글 드라이브에 이미지 저장 중 (${i+1}/${snapBlobs.length})…`;
+      btn.textContent = `보관 중 (${i+1}/${snapBlobs.length}장)…`;
+      const dataUrl = await blobToDataUrl(snapBlobs[i]);
+      const result = await postToCardDb({
+        action: "saveImage",
+        id: saveId,
+        image: { name: fname(i, snapBlobs.length, stamp), dataUrl }
+      }, config);
+      if(!result || !result.ok) throw new Error(result?.error || `${i+1}번 이미지 저장에 실패했습니다.`);
+    }
+
+    $("msg").textContent = "저장 완료를 확인하는 중…";
+    btn.textContent = "마무리 중…";
+    const finished = await postToCardDb({action:"finishSave", id:saveId}, config);
+    if(!finished || !finished.ok) throw new Error(finished?.error || "저장 완료 처리가 실패했습니다.");
+    saveId = "";
+    $("msg").textContent = `콘텐츠 보관 완료: ${finalTitle} (${snapBlobs.length}장)`;
+    alert(`보관이 완료되었습니다.\n제목: ${finalTitle}\n이미지: ${snapBlobs.length}장\n\n상세 설명글과 쿠팡 링크는 상단의 '보관함'에서 관리할 수 있습니다.`);
   }catch(err){
     console.error(err);
     $("msg").textContent = "콘텐츠 보관 실패";
-    alert("콘텐츠 보관에 실패했습니다.\n" + (err?.message || err) + "\n\nApps Script 웹 앱이 배포되었는지, URL과 접근 키가 정확한지 확인하세요.");
+    alert("콘텐츠 보관에 실패했습니다.\n" + (err?.message || err) + "\n\n이제 무한정 기다리지 않고 오류를 표시합니다. 원고는 지우지 말고, 오류 문구를 확인해 주세요.");
   }finally{
     archivingCurrent = false;
     btn.disabled = false;
