@@ -8,10 +8,10 @@
 :root{--bg:#f4f4f2;--panel:#fff;--ink:#1a1a1a;--sub:#666;--line:#dcdcd6;--accent:#2f6fed;--accentbg:#eef4ff}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Pretendard,"Noto Sans KR",Arial,sans-serif;line-height:1.5}
 main{max-width:1120px;margin:0 auto;padding:18px 14px 50px}h1{font-size:22px;margin:0 0 4px}h2{font-size:17px;margin:0}h3{font-size:14px;margin:0;font-weight:750}.muted{font-size:13px;color:var(--sub)}button,input,select,textarea{font:inherit}button{border:1px solid var(--line);border-radius:9px;background:var(--panel);color:var(--ink);padding:8px 12px;cursor:pointer;font-weight:650}button.primary{background:var(--accent);border-color:var(--accent);color:white}button.danger{color:#b42318}button:disabled{opacity:.5;cursor:not-allowed}
-.head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}.layout{display:block}.content-entry{display:block;margin:0 0 9px}.detail-panel{margin:2px 0 18px;padding:14px;background:var(--bg);border:1px solid var(--line);border-radius:11px}.content-list{display:block}.panel{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:14px;min-width:0}.search{width:100%;padding:10px;border:1px solid var(--line);border-radius:9px;margin:10px 0;background:var(--bg);color:var(--ink)}.item{display:block;text-align:left;width:100%;margin:7px 0;padding:11px;background:var(--panel);font-weight:500}.item.active{border-color:var(--accent);background:var(--accentbg)}.item strong{display:block;font-size:14px;margin-bottom:3px}.item small{display:block;font-size:12px;color:var(--sub)}.empty{padding:20px 6px;color:var(--sub);font-size:13px}.field{margin:10px 0 16px}.field-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}.field-head label{font-size:13px;font-weight:750}.field-head button{flex-shrink:0;padding:6px 11px;font-size:12px}.field input,.field textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:10px;background:var(--bg);color:var(--ink)}textarea{min-height:140px;resize:vertical;line-height:1.55}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.row>*{min-width:0}.detail-head{display:flex;justify-content:space-between;align-items:start;gap:10px;flex-wrap:wrap}.section{border-top:1px solid var(--line);padding-top:15px;margin-top:18px}.status{margin:10px 0;color:var(--accent);font-size:13px;font-weight:700;white-space:pre-wrap}.hidden{display:none!important}.image-list{display:flex;flex-direction:column;gap:8px}.image-item{display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid var(--line);border-radius:9px;padding:8px 10px;min-width:0}.image-item a{color:var(--accent);font-size:13px;overflow-wrap:anywhere}.image-item button{flex-shrink:0;font-size:12px;padding:6px 9px}.hint{font-size:12px;color:var(--sub);margin:8px 0 0}.project-label{display:inline-block;margin:5px 0 8px;padding:4px 8px;border-radius:6px;background:var(--accentbg);color:var(--accent);font-size:12px;font-weight:750}
+.head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}.layout{display:block}.content-entry{display:block;margin:0 0 9px}.detail-panel{margin:2px 0 18px;padding:14px;background:var(--bg);border:1px solid var(--line);border-radius:11px}.content-list{display:block}.panel{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:14px;min-width:0}.search{width:100%;padding:10px;border:1px solid var(--line);border-radius:9px;margin:10px 0;background:var(--bg);color:var(--ink)}.item{display:block;text-align:left;width:100%;margin:7px 0;padding:11px 34px 11px 11px;background:var(--panel);font-weight:500}.item{position:relative}.item::after{content:"▾";position:absolute;right:13px;top:50%;transform:translateY(-50%) rotate(-90deg);color:var(--sub);transition:transform .15s}.item.active{border-color:var(--accent);background:var(--accentbg)}.item.active::after{transform:translateY(-50%) rotate(0);color:var(--accent)}.item strong{display:block;font-size:14px;margin-bottom:3px}.item small{display:block;font-size:12px;color:var(--sub)}.empty{padding:20px 6px;color:var(--sub);font-size:13px}.field{margin:10px 0 16px}.field-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}.field-head label{font-size:13px;font-weight:750}.field-head button{flex-shrink:0;padding:6px 11px;font-size:12px}.field input,.field textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:10px;background:var(--bg);color:var(--ink)}textarea{min-height:140px;resize:vertical;line-height:1.55}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.row>*{min-width:0}.detail-head{display:flex;justify-content:space-between;align-items:start;gap:10px;flex-wrap:wrap}.section{border-top:1px solid var(--line);padding-top:15px;margin-top:18px}.status{margin:10px 0;color:var(--accent);font-size:13px;font-weight:700;white-space:pre-wrap}.hidden{display:none!important}.image-list{display:flex;flex-direction:column;gap:8px}.image-item{display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid var(--line);border-radius:9px;padding:8px 10px;min-width:0}.image-item a{color:var(--accent);font-size:13px;overflow-wrap:anywhere}.image-item button{flex-shrink:0;font-size:12px;padding:6px 9px}.hint{font-size:12px;color:var(--sub);margin:8px 0 0}.project-label{display:inline-block;margin:5px 0 8px;padding:4px 8px;border-radius:6px;background:var(--accentbg);color:var(--accent);font-size:12px;font-weight:750}
 @media(max-width:760px){main{padding:13px 10px 40px}.detail-panel{padding:10px}}@media(max-width:430px){.image-item{align-items:flex-start}.image-item button{white-space:nowrap}}
 </style>
-<script type="text/javascript" nonce="1aa01868fbee463f810939b4d62" src="//local.adguard.org?ts=1792318564871&amp;type=content-script&amp;dmn=chatgpt.com&amp;url=https%3A%2F%2Fchatgpt.com%2Fbackend-api%2Festuary%2Fcontent%3Fid%3Dfile_00000000aee08209a4e860bc41be81e7%26fn%3Dcontent-manager.html%26cd%3Dattachment%26ts%3D497866%26p%3Dfs%26cid%3D1%26sig%3D9e5dcc0fc3b4a3a7555c5aab7ba25965a6a5c0a59284f48bd48b8b3492527d4f%26v%3D0&amp;app=chrome.exe&amp;css=2&amp;js=1&amp;rel=1&amp;rji=1&amp;sbe=1&amp;stealth=1&amp;st-dnt"></script><script type="text/javascript" nonce="1aa01868fbee463f810939b4d62" src="//local.adguard.org?ts=1792318564871&amp;name=AdGuard%20Extra&amp;name=AdGuard%20Popup%20Blocker&amp;type=user-script"></script></head>
+</head>
 <body>
 <main>
   <div class="head">
@@ -46,6 +46,7 @@ main{max-width:1120px;margin:0 auto;padding:18px 14px 50px}h1{font-size:22px;mar
 <script>
 const ENDPOINT_KEY = "card_content_db_endpoint_v1";
 const API_KEY_KEY = "card_content_db_api_key_v1";
+const CACHE_KEY = "card_content_list_cache_v1";
 const FIXED_FIELDS = [
   {kind:"youtube_description", label:"유튜브 설명", multi:true},
   {kind:"instagram_caption", label:"인스타그램 설명", multi:true},
@@ -57,7 +58,14 @@ let autoSaveTimer = null;
 let pendingAutoSaveSnapshot = null;
 let autoSaveQueue = Promise.resolve();
 let autoSaveVersion = 0;
+let autoSaveInFlight = 0;
 const $ = id => document.getElementById(id);
+const mainEl = document.querySelector("main");
+// 상세 화면 요소는 처음에 한 번만 잡아 둡니다.
+// (목록을 다시 그릴 때 이 요소가 목록 안에 들어 있으면 같이 지워져 버리는 것이 "목록이 사라지는" 원인이었습니다.)
+const detailEl = $("detail");
+const listHost = $("contentList");
+let entryMap = new Map();
 function getConfig(){
   let endpoint="", apiKey="";
   try { endpoint=localStorage.getItem(ENDPOINT_KEY)||""; apiKey=localStorage.getItem(API_KEY_KEY)||""; } catch(e){}
@@ -94,22 +102,55 @@ function callDb(payload,keyRetry=false){
  });
 }
 function setStatus(t){$("status").textContent=t||""}
-function parseJson(v,fallback){try{return JSON.parse(v||"")}catch(e){return fallback}}
+
+/* ---------- 목록 캐시: 열자마자 지난번 목록을 보여 주고 뒤에서 최신 목록을 확인합니다 ---------- */
+function readCache(){
+  try{const v=JSON.parse(localStorage.getItem(CACHE_KEY)||"null");return v&&Array.isArray(v.contents)?v:null}catch(e){return null}
+}
+function writeCache(){
+  try{localStorage.setItem(CACHE_KEY,JSON.stringify({savedAt:Date.now(),contents:allContents}))}catch(e){/* 용량 초과 등은 무시 */}
+}
+// 검색용 문자열을 한 번만 만들어 둡니다(저장되는 데이터에는 포함되지 않게 비열거 속성으로).
+function prepContents(list){
+  list.forEach(x=>{Object.defineProperty(x,"_q",{value:`${x.title||""} ${x.channel||""} ${x.rawText||""}`.toLowerCase(),writable:true,enumerable:false,configurable:true})});
+  return list;
+}
+
+/* ---------- 목록 / 상세 펼침 ---------- */
+function parkDetail(){ if(detailEl.parentNode!==mainEl) mainEl.appendChild(detailEl); }
+
 function renderList(){
- const q=$("search").value.trim().toLowerCase(),host=$("contentList");host.textContent="";
- const filtered=allContents.filter(x=>`${x.title||""} ${x.channel||""} ${x.rawText||""}`.toLowerCase().includes(q));
- if(!filtered.length){host.className="empty";host.textContent=allContents.length?"검색 결과가 없습니다.":"아직 보관된 콘텐츠가 없습니다. 이미지 메이커에서 ‘콘텐츠 보관’을 눌러 주세요.";return}
- host.className="content-list";
+ parkDetail(); // 목록을 비우기 전에 상세 화면을 안전한 곳으로 옮깁니다.
+ const q=$("search").value.trim().toLowerCase();
+ listHost.textContent="";entryMap=new Map();
+ const filtered=q?allContents.filter(x=>(x._q||"").includes(q)):allContents;
+ if(!filtered.length){
+  listHost.className="empty";
+  listHost.textContent=allContents.length?"검색 결과가 없습니다.":"아직 보관된 콘텐츠가 없습니다. 이미지 메이커에서 ‘콘텐츠 보관’을 눌러 주세요.";
+  syncSelection();return;
+ }
+ listHost.className="content-list";
+ const frag=document.createDocumentFragment();
  filtered.forEach(item=>{
   const entry=document.createElement("div");entry.className="content-entry";
-  const b=document.createElement("button");b.type="button";b.className="item"+(selected&&selected.id===item.id?" active":"");
+  const b=document.createElement("button");b.type="button";b.className="item";b.setAttribute("aria-expanded","false");
   const s=document.createElement("strong");s.textContent=item.title||"제목 없음";
   const sm=document.createElement("small");sm.textContent=`프로젝트: ${item.channel||"미지정"} · ${(item.images||[]).length}장 · ${formatDate(item.createdAt)}`;
-  b.append(s,sm);b.onclick=()=>openContent(item.id);entry.appendChild(b);
-  // 선택한 콘텐츠의 상세 내용은 목록 전체 맨 아래가 아니라 해당 항목 바로 밑에 표시합니다.
-  if(selected&&selected.id===item.id){entry.appendChild($("detail"));}
-  host.appendChild(entry);
+  b.append(s,sm);b.onclick=()=>toggleContent(item.id);
+  entry.appendChild(b);frag.appendChild(entry);entryMap.set(item.id,entry);
  });
+ listHost.appendChild(frag);
+ syncSelection();
+}
+// 목록을 다시 그리지 않고 선택 표시와 상세 화면 위치만 맞춥니다.
+function syncSelection(){
+ entryMap.forEach((entry,id)=>{
+  const on=!!selected&&selected.id===id,b=entry.firstElementChild;
+  b.classList.toggle("active",on);b.setAttribute("aria-expanded",on?"true":"false");
+ });
+ const entry=selected?entryMap.get(selected.id):null;
+ if(entry){entry.appendChild(detailEl);detailEl.classList.remove("hidden")}
+ else{parkDetail();detailEl.classList.add("hidden")}
 }
 function formatDate(v){if(!v)return"날짜 미상";const d=new Date(v);return Number.isNaN(d.getTime())?String(v):d.toLocaleString("ko-KR")}
 function extractField(posts,kind){
@@ -118,12 +159,16 @@ function extractField(posts,kind){
  const vals=entries.map(p=>kind==="coupang_link"?(p.content||p.link||""):(p.content||"")).map(s=>String(s).trim()).filter(Boolean);
  return [...new Set(vals)].join("\n\n");
 }
-function openContent(id){
- // 다른 콘텐츠로 이동하기 전에 입력 중인 내용이 있으면 자동 저장 큐에 넣습니다.
+function toggleContent(id){
+ // 열려 있는 항목을 다시 누르면 닫습니다.
+ if(selected&&selected.id===id)closeContent();else openContent(id);
+}
+function closeContent(){
  flushPendingAutoSave();
- selected=allContents.find(x=>x.id===id)||null;
- if(!selected){$("detail").classList.add("hidden");$("noSelection").classList.remove("hidden");renderList();return}
- $("noSelection").classList.add("hidden");$("detail").classList.remove("hidden");
+ selected=null;
+ syncSelection();
+}
+function fillDetail(){
  $("detailTitle").textContent=selected.title||"제목 없음";
  $("projectLabel").textContent="프로젝트: "+(selected.channel||"미지정");
  $("detailMeta").textContent=`저장 ${formatDate(selected.createdAt)} · 비율 ${selected.aspectRatio||"미상"}`;
@@ -132,7 +177,18 @@ function openContent(id){
  const managedKinds=new Set(FIXED_FIELDS.map(x=>x.kind).concat(["coupang_comment"]));
  legacyPosts=allPosts.filter(p=>p&&!managedKinds.has(p.kind)).map(p=>({...p}));
  fieldValues={};FIXED_FIELDS.forEach(f=>fieldValues[f.kind]=extractField(allPosts,f.kind));
- renderImages();renderFixedFields();renderList();
+ renderImages();renderFixedFields();
+}
+function openContent(id){
+ // 다른 콘텐츠로 이동하기 전에 입력 중인 내용이 있으면 자동 저장 큐에 넣습니다.
+ flushPendingAutoSave();
+ const item=allContents.find(x=>x.id===id);
+ if(!item){selected=null;syncSelection();return}
+ selected=item;
+ fillDetail();
+ syncSelection();
+ const entry=entryMap.get(id);
+ if(entry&&entry.scrollIntoView)entry.scrollIntoView({block:"nearest",behavior:"smooth"});
 }
 function renderImages(){
  const host=$("imageList");host.textContent="";const images=selected&&Array.isArray(selected.images)?selected.images:[];
@@ -156,15 +212,19 @@ function renderFixedFields(){
   else{input=document.createElement("input");input.type="text";input.placeholder="쿠파스 링크";}
   input.id="field_"+f.kind;input.value=fieldValues[f.kind]||"";
   input.oninput=()=>{fieldValues[f.kind]=input.value;scheduleAutoSave();};
+  input.onblur=()=>flushPendingAutoSave(); // 입력칸을 벗어나면 기다리지 않고 바로 저장
   wrap.appendChild(input);host.appendChild(wrap);
  });
 }
+
+/* ---------- 자동 저장 ---------- */
 function makeAutoSaveSnapshot(){
  if(!selected)return null;
  const id=selected.id, channel=selected.channel||"";
  const fixedPosts=FIXED_FIELDS.map(f=>({channel,kind:f.kind,content:String(fieldValues[f.kind]||""),link:""}));
  return {id,channel,posts:[...legacyPosts.map(p=>({...p})),...fixedPosts],version:++autoSaveVersion};
 }
+function hasUnsavedEdits(){return !!(autoSaveTimer||pendingAutoSaveSnapshot||autoSaveInFlight>0)}
 function scheduleAutoSave(){
  if(!selected)return;
  pendingAutoSaveSnapshot=makeAutoSaveSnapshot();
@@ -177,7 +237,8 @@ function flushPendingAutoSave(){
  const snapshot=pendingAutoSaveSnapshot;
  if(!snapshot)return;
  pendingAutoSaveSnapshot=null;
- autoSaveQueue=autoSaveQueue.catch(()=>{}).then(()=>persistAutoSave(snapshot));
+ autoSaveInFlight++;
+ autoSaveQueue=autoSaveQueue.catch(()=>{}).then(()=>persistAutoSave(snapshot)).finally(()=>{autoSaveInFlight--});
 }
 async function persistAutoSave(snapshot){
  if(selected&&selected.id===snapshot.id)setStatus("자동 저장 중…");
@@ -189,6 +250,7 @@ async function persistAutoSave(snapshot){
   if(selected&&selected.id===snapshot.id){selected.posts=snapshot.posts;
    if(snapshot.version===autoSaveVersion)setStatus("자동 저장됨");
   }
+  writeCache();
  }catch(e){if(selected&&selected.id===snapshot.id)setStatus("자동 저장 실패: "+(e.message||e));}
 }
 async function copyText(text){
@@ -196,24 +258,58 @@ async function copyText(text){
  try{await navigator.clipboard.writeText(text)}catch(e){const t=document.createElement("textarea");t.value=text;t.style.position="fixed";t.style.opacity="0";document.body.appendChild(t);t.select();const ok=document.execCommand("copy");t.remove();if(!ok){setStatus("복사하지 못했습니다. 텍스트를 직접 선택해 복사해 주세요.");return}}
  setStatus("복사했습니다.");
 }
-async function loadContents(keepId){
- setStatus("저장 목록을 불러오는 중입니다…");$("refreshBtn").disabled=true;
- try{const result=await callDb({action:"list"});if(!result||!result.ok)throw new Error(result&&result.error||"목록을 읽을 수 없습니다.");allContents=Array.isArray(result.contents)?result.contents:[];renderList();
-  if(keepId&&allContents.some(x=>x.id===keepId))openContent(keepId);else if(selected&&allContents.some(x=>x.id===selected.id))openContent(selected.id);else{selected=null;$("detail").classList.add("hidden");$("noSelection").classList.remove("hidden")}
+
+/* ---------- 목록 불러오기 ---------- */
+async function loadContents(){
+ setStatus(allContents.length?"최신 목록을 확인하는 중…":"저장 목록을 불러오는 중입니다…");$("refreshBtn").disabled=true;
+ try{
+  // 저장 중인 수정 내용이 있으면 먼저 서버에 반영시킨 뒤 목록을 받아 옛 내용으로 덮어쓰지 않게 합니다.
+  flushPendingAutoSave();await autoSaveQueue.catch(()=>{});
+  const result=await callDb({action:"list"});
+  if(!result||!result.ok)throw new Error(result&&result.error||"목록을 읽을 수 없습니다.");
+  const fresh=prepContents(Array.isArray(result.contents)?result.contents:[]);
+  const prev=selected, prevPostsJson=prev?JSON.stringify(prev.posts||[]):"";
+  allContents=fresh;
+  let refill=false;
+  if(prev){
+   const idx=fresh.findIndex(x=>x.id===prev.id);
+   if(idx<0){selected=null}                                   // 다른 곳에서 삭제된 경우
+   else if(hasUnsavedEdits()){fresh[idx]=prev}                // 지금 입력 중인 내용은 그대로 보호
+   else{selected=fresh[idx];refill=JSON.stringify(selected.posts||[])!==prevPostsJson}
+  }
+  writeCache();
+  renderList();
+  if(selected&&refill)fillDetail();
   setStatus(`총 ${allContents.length}개 콘텐츠를 불러왔습니다.`);
- }catch(e){setStatus("불러오기 실패: "+(e.message||e));$("contentList").textContent="목록을 불러오지 못했습니다. 웹 앱 URL, 접근 키, 배포 권한을 확인하세요."}
+ }catch(e){
+  setStatus("불러오기 실패: "+(e.message||e)+(allContents.length?" (이전에 불러온 목록을 표시 중입니다)":""));
+  if(!allContents.length){parkDetail();listHost.className="empty";listHost.textContent="목록을 불러오지 못했습니다. 웹 앱 URL, 접근 키, 배포 권한을 확인하세요."}
+ }
  finally{$("refreshBtn").disabled=false}
 }
-$("refreshBtn").onclick=()=>loadContents(selected&&selected.id);
-$("search").oninput=renderList;
+$("refreshBtn").onclick=()=>loadContents();
+let searchTimer=null;
+$("search").oninput=()=>{clearTimeout(searchTimer);searchTimer=setTimeout(renderList,120)};
 $("copyRawBtn").onclick=()=>copyText($("rawText").value);
 window.addEventListener("beforeunload",()=>{flushPendingAutoSave();});
 $("deleteBtn").onclick=async()=>{
  if(!selected||!confirm(`‘${selected.title}’ 콘텐츠와 연결된 드라이브 이미지 파일을 휴지통으로 이동할까요?`))return;
- const btn=$("deleteBtn");btn.disabled=true;
- try{const result=await callDb({action:"delete",id:selected.id});if(!result||!result.ok)throw new Error(result&&result.error||"삭제하지 못했습니다.");selected=null;setStatus("콘텐츠를 삭제했습니다.");await loadContents()}
+ const btn=$("deleteBtn"),id=selected.id;btn.disabled=true;
+ // 삭제할 항목에 대한 대기 중 자동 저장은 취소합니다.
+ if(pendingAutoSaveSnapshot&&pendingAutoSaveSnapshot.id===id){pendingAutoSaveSnapshot=null;clearTimeout(autoSaveTimer);autoSaveTimer=null}
+ try{
+  await autoSaveQueue.catch(()=>{});
+  const result=await callDb({action:"delete",id});
+  if(!result||!result.ok)throw new Error(result&&result.error||"삭제하지 못했습니다.");
+  // 서버가 삭제를 확인했으므로 목록 전체를 다시 불러오지 않고 화면에서 바로 지웁니다.
+  allContents=allContents.filter(x=>x.id!==id);selected=null;
+  writeCache();renderList();
+  setStatus("콘텐츠를 삭제했습니다.");
+ }
  catch(e){setStatus("삭제 실패: "+(e.message||e))}finally{btn.disabled=false}
 };
+const cached=readCache();
+if(cached){allContents=prepContents(cached.contents);renderList();}
 loadContents();
 </script>
 </body>

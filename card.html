@@ -1632,6 +1632,7 @@ function draw(page, idx, total, f){
 }
 
 const toBlob = c => new Promise(res=>c.toBlob(res, "image/png"));
+let previewUrls = [];
 
 async function render(){
   const myJob = ++renderJobId;
@@ -1668,6 +1669,9 @@ async function render(){
   blobs = localBlobs;
 
   const list = $("list");
+  /* 이전 미리보기용 주소 해제 */
+  previewUrls.forEach(u => URL.revokeObjectURL(u));
+  previewUrls = [];
   list.innerHTML = "";
   const n = localCanvases.length;
 
@@ -1702,7 +1706,10 @@ async function render(){
     head.appendChild(dlBtn);
 
     const img = document.createElement("img");
-    img.src = c.toDataURL("image/png");
+    /* 이미 toBlob 으로 만든 PNG 를 그대로 사용 (장마다 PNG 를 한 번 더 인코딩하지 않아 미리보기가 빨라집니다) */
+    const previewUrl = URL.createObjectURL(localBlobs[i]);
+    previewUrls.push(previewUrl);
+    img.src = previewUrl;
     img.alt = `${i+1}번 이미지`;
 
     card.appendChild(head);
@@ -1886,6 +1893,7 @@ function getCardDbConfig(){
 }
 
 function postToCardDb(payload, config){
+  const usedKey = config.apiKey;
   return new Promise((resolve, reject)=>{
     const requestId = "carddb_" + Date.now() + "_" + Math.random().toString(36).slice(2);
     payload.requestId = requestId;
@@ -1920,7 +1928,12 @@ function postToCardDb(payload, config){
       if(!data || data.type !== "CARD_DB_RESPONSE" || data.requestId !== requestId) return;
       const result = data.result || {};
       if(!result.ok && /접근 키가 일치하지 않습니다/.test(String(result.error || "")) && !config._keyRetry){
-        const replacement = (prompt("저장된 접근 키와 구글 프로젝트의 키가 다릅니다. Apps Script에 설정된 현재 DB 접근 키를 입력하세요:") || "").trim();
+        /* 동시에 보낸 다른 요청이 이미 새 키를 받았다면 다시 묻지 않고 그 키를 씁니다 */
+        let replacement = (config.apiKey !== usedKey) ? config.apiKey : "";
+        if(!replacement){
+          replacement = (prompt("저장된 접근 키와 구글 프로젝트의 키가 다릅니다. Apps Script에 설정된 현재 DB 접근 키를 입력하세요:") || "").trim();
+          if(replacement) config.apiKey = replacement; /* 이후 요청(마무리 단계 포함)도 새 키 사용 */
+        }
         if(replacement){
           try{ localStorage.setItem(CARD_DB_API_KEY_KEY, replacement); }catch(e){}
           done = true; cleanup();
@@ -1948,6 +1961,10 @@ function blobToDataUrl(blob){
   });
 }
 
+/* 이미지 업로드 설정: 한 요청에 3장(서버 최대), 동시에 최대 4개 요청 */
+const IMAGE_BATCH_SIZE = 3;
+const IMAGE_UPLOAD_CONCURRENCY = 4;
+
 $("archiveCurrent").onclick = async ()=>{
   if(archivingCurrent || !blobs.length){
     if(!blobs.length) alert("먼저 원고를 입력하고 이미지를 만들어 주세요.");
@@ -1966,17 +1983,56 @@ $("archiveCurrent").onclick = async ()=>{
   const btn = $("archiveCurrent");
   btn.disabled = true;
   const originalText = btn.textContent;
-  let saveId = "";
+  const uploaded = [];          // 서버가 돌려준 {fileId, name, url} — 장 순서대로
+  let cleanupFileIds = null;    // 저장이 확실히 실패했을 때 지울 이미지 파일 ID
   try{
     const snapBlobs = [...blobs];
+    const total = snapBlobs.length;
     const stamp = makeStamp();
     const channel = (presets[Number($("presetSel").value)]?.name || $("wmText").value || "미지정 채널").trim();
-    $("msg").textContent = "콘텐츠 정보를 구글에 저장하는 중…";
-    btn.textContent = "보관 준비 중…";
 
-    // 먼저 텍스트·기본 정보를 저장합니다. 이미지 전체를 한 요청에 담지 않습니다.
-    const started = await postToCardDb({
-      action: "startSave",
+    const batches = [];
+    for(let s=0; s<total; s+=IMAGE_BATCH_SIZE) batches.push([s, Math.min(s+IMAGE_BATCH_SIZE, total)]);
+
+    let doneCount = 0, nextBatch = 0, firstError = null;
+    const showProgress = ()=>{
+      $("msg").textContent = `구글 드라이브에 이미지 저장 중 (${doneCount}/${total}장)…`;
+      btn.textContent = `보관 중 (${doneCount}/${total}장)…`;
+    };
+    showProgress();
+
+    /* 1단계: 이미지를 여러 묶음 동시에 업로드. 업로드는 시트를 건드리지 않으므로 서로 충돌하지 않습니다. */
+    const worker = async ()=>{
+      while(!firstError && nextBatch < batches.length){
+        const [start, end] = batches[nextBatch++];
+        try{
+          const images = await Promise.all(snapBlobs.slice(start, end).map(async (blob, off)=>({
+            name: fname(start + off, total, stamp),
+            dataUrl: await blobToDataUrl(blob)
+          })));
+          const result = await postToCardDb({action:"uploadImages", images}, config);
+          if(!result || !result.ok || !Array.isArray(result.images) || result.images.length !== images.length){
+            throw new Error(result?.error || `${start+1}~${end}번 이미지 저장에 실패했습니다.`);
+          }
+          result.images.forEach((im, k)=>{ uploaded[start + k] = im; });
+          doneCount += images.length;
+          showProgress();
+        }catch(err){
+          if(!firstError) firstError = err;
+        }
+      }
+    };
+    await Promise.all(Array.from({length: Math.min(IMAGE_UPLOAD_CONCURRENCY, batches.length)}, worker));
+    if(firstError){
+      cleanupFileIds = uploaded.filter(Boolean).map(x=>x.fileId);
+      throw firstError;
+    }
+
+    /* 2단계: 본문과 이미지 정보를 시트에 한 번에 기록 */
+    $("msg").textContent = "콘텐츠 정보를 저장하는 중…";
+    btn.textContent = "마무리 중…";
+    const finished = await postToCardDb({
+      action: "commitSave",
       content: {
         title: finalTitle,
         channel,
@@ -1985,40 +2041,21 @@ $("archiveCurrent").onclick = async ()=>{
         splitMode: $("splitMode").value,
         lastPageType: $("lastPageType").value,
         maxPages: Number($("maxPages").value) || 10,
-        expectedImageCount: snapBlobs.length
+        images: uploaded.map(x=>({fileId: x.fileId, name: x.name}))
       }
     }, config);
-    if(!started || !started.ok || !started.id) throw new Error(started?.error || "보관 작업을 시작하지 못했습니다.");
-    saveId = started.id;
-
-    // 이미지 3장씩 묶어 전송해 구글 서버 왕복 횟수를 줄입니다.
-    // 예: 10장은 이미지 전송 10회 대신 4회로 처리합니다.
-    const imageBatchSize = 3;
-    for(let start=0; start<snapBlobs.length; start+=imageBatchSize){
-      const end = Math.min(start + imageBatchSize, snapBlobs.length);
-      $("msg").textContent = `구글 드라이브에 이미지 저장 중 (${start+1}~${end}/${snapBlobs.length})…`;
-      btn.textContent = `보관 중 (${end}/${snapBlobs.length}장)…`;
-      const batch = await Promise.all(snapBlobs.slice(start, end).map(async (blob, offset)=>({
-        name: fname(start + offset, snapBlobs.length, stamp),
-        dataUrl: await blobToDataUrl(blob)
-      })));
-      const result = await postToCardDb({
-        action: "saveImages",
-        id: saveId,
-        images: batch
-      }, config);
-      if(!result || !result.ok) throw new Error(result?.error || `${start+1}~${end}번 이미지 저장에 실패했습니다.`);
+    if(!finished || !finished.ok){
+      /* 서버가 명확히 거절한 경우에만 정리합니다. (응답 시간 초과 등 예외는 저장됐을 수 있어 지우지 않음) */
+      cleanupFileIds = uploaded.map(x=>x.fileId);
+      throw new Error(finished?.error || "저장 완료 처리가 실패했습니다.");
     }
-
-    $("msg").textContent = "저장 완료를 확인하는 중…";
-    btn.textContent = "마무리 중…";
-    const finished = await postToCardDb({action:"finishSave", id:saveId}, config);
-    if(!finished || !finished.ok) throw new Error(finished?.error || "저장 완료 처리가 실패했습니다.");
-    saveId = "";
     // 저장 성공은 페이지 안에서만 표시합니다. 완료 팝업은 띄우지 않습니다.
-    $("msg").textContent = `보관 완료 (${snapBlobs.length}장)`;
+    $("msg").textContent = "";
   }catch(err){
     console.error(err);
+    if(cleanupFileIds && cleanupFileIds.length){
+      postToCardDb({action:"discardImages", fileIds: cleanupFileIds}, config).catch(()=>{});
+    }
     $("msg").textContent = "콘텐츠 보관 실패";
     alert("콘텐츠 보관에 실패했습니다.\n" + (err?.message || err) + "\n\n이제 무한정 기다리지 않고 오류를 표시합니다. 원고는 지우지 말고, 오류 문구를 확인해 주세요.");
   }finally{
