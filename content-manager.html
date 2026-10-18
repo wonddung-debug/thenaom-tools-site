@@ -11,6 +11,7 @@ main{max-width:1120px;margin:0 auto;padding:18px 14px 50px}h1{font-size:22px;mar
 .head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}.layout{display:block}.content-entry{display:block;margin:0 0 9px}.detail-panel{margin:2px 0 18px;padding:14px;background:var(--bg);border:1px solid var(--line);border-radius:11px}.content-list{display:block}.panel{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:14px;min-width:0}.search{width:100%;padding:10px;border:1px solid var(--line);border-radius:9px;margin:10px 0;background:var(--bg);color:var(--ink)}.item{display:block;text-align:left;width:100%;margin:7px 0;padding:11px 34px 11px 11px;background:var(--panel);font-weight:500}.item{position:relative}.item::after{content:"▾";position:absolute;right:13px;top:50%;transform:translateY(-50%) rotate(-90deg);color:var(--sub);transition:transform .15s}.item.active{border-color:var(--accent);background:var(--accentbg)}.item.active::after{transform:translateY(-50%) rotate(0);color:var(--accent)}.item strong{display:block;font-size:14px;margin-bottom:3px}.item small{display:block;font-size:12px;color:var(--sub)}.empty{padding:20px 6px;color:var(--sub);font-size:13px}.field{margin:10px 0 16px}.field-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}.field-head label{font-size:13px;font-weight:750}.field-head button{flex-shrink:0;padding:6px 11px;font-size:12px}.field input,.field textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:10px;background:var(--bg);color:var(--ink)}textarea{min-height:140px;resize:vertical;line-height:1.55}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.row>*{min-width:0}.detail-head{display:flex;justify-content:space-between;align-items:start;gap:10px;flex-wrap:wrap}.section{border-top:1px solid var(--line);padding-top:15px;margin-top:18px}.status{margin:10px 0;color:var(--accent);font-size:13px;font-weight:700;white-space:pre-wrap}.hidden{display:none!important}.image-list{display:flex;flex-direction:column;gap:8px}.image-item{display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid var(--line);border-radius:9px;padding:8px 10px;min-width:0}.image-item a{color:var(--accent);font-size:13px;overflow-wrap:anywhere}.image-item button{flex-shrink:0;font-size:12px;padding:6px 9px}.hint{font-size:12px;color:var(--sub);margin:8px 0 0}.project-label{display:inline-block;margin:5px 0 8px;padding:4px 8px;border-radius:6px;background:var(--accentbg);color:var(--accent);font-size:12px;font-weight:750}
 .uid-bar{margin:34px auto 6px;text-align:center}.uid-bar.need{padding:10px;border:1px dashed var(--accent);border-radius:10px;background:var(--accentbg)}.uid-bar .uid-tag{background:none;border:0;padding:6px 10px;font-size:11px;font-weight:500;color:var(--sub);opacity:.2;cursor:pointer}.uid-bar .uid-tag:hover{opacity:.7}.uid-form{display:flex;gap:6px;align-items:center;justify-content:center;flex-wrap:wrap}.uid-form span{font-size:12.5px;color:var(--sub);font-weight:650}.uid-form input{width:150px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}.owner-tag{color:var(--accent)}
 @media(max-width:760px){main{padding:13px 10px 40px}.detail-panel{padding:10px}}@media(max-width:430px){.image-item{align-items:flex-start}.image-item button{white-space:nowrap}}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border:1px solid var(--line);border-radius:999px;font-size:12.5px;font-weight:650;cursor:pointer;background:var(--bg)}.chip input{accent-color:var(--accent)}.chip.on{border-color:var(--accent);background:var(--accentbg);color:var(--accent)}.admin{margin-bottom:14px;border-color:var(--accent)}
 </style>
 </head>
 <body>
@@ -20,6 +21,14 @@ main{max-width:1120px;margin:0 auto;padding:18px 14px 50px}h1{font-size:22px;mar
     <div class="row"><button id="refreshBtn">목록 새로고침</button><button type="button" onclick="window.location.href='card.html'">이미지 메이커로 돌아가기</button></div>
   </div>
   <div id="status" class="status"></div>
+  <section class="panel admin hidden" id="adminPanel">
+    <h2>관리자 배분</h2>
+    <div class="muted">받을 아이디를 고른 뒤, 채널 설정을 보내거나 아래 콘텐츠를 열어 ‘배분’을 누르세요.</div>
+    <h3 style="margin-top:12px">받을 아이디</h3>
+    <div id="userChips" class="chips"></div>
+    <div class="row"><input class="search" id="newTarget" placeholder="새 아이디 직접 추가" style="max-width:220px;margin:0"><button type="button" id="addTargetBtn">추가</button></div>
+    <div class="section"><h3>내 채널 설정</h3><div id="presetChips" class="chips"></div><button type="button" class="primary" id="sendPresetsBtn">선택한 채널 설정 보내기</button></div>
+  </section>
   <div class="layout">
     <section class="panel">
       <h2>저장된 콘텐츠</h2>
@@ -31,7 +40,7 @@ main{max-width:1120px;margin:0 auto;padding:18px 14px 50px}h1{font-size:22px;mar
   <div id="detail" class="hidden detail-panel">
     <div class="detail-head">
       <div><h2 id="detailTitle"></h2><div id="projectLabel" class="project-label"></div><div id="detailMeta" class="muted"></div></div>
-      <div class="row"><button id="deleteBtn" class="danger">콘텐츠 삭제</button></div>
+      <div class="row"><button id="openMakerBtn" class="primary">이미지 메이커에서 열기</button><button id="sendContentBtn" class="hidden">선택한 아이디에 배분</button><button id="deleteBtn" class="danger">콘텐츠 삭제</button></div>
     </div>
     <div class="section">
       <div class="field-head"><label for="rawText">원문</label><button type="button" id="copyRawBtn">복사</button></div>
@@ -272,7 +281,7 @@ async function loadContents(){
   const result=await callDb({action:"list"});
   if(uidAtStart!==getUserId())return;   // 응답을 기다리는 사이 아이디가 바뀐 경우
   if(!result||!result.ok)throw new Error(result&&result.error||"목록을 읽을 수 없습니다.");
-  isAdmin=!!result.isAdmin;
+  isAdmin=!!result.isAdmin;syncAdminUI();
   const fresh=prepContents(Array.isArray(result.contents)?result.contents:[]);
   const prev=selected, prevPostsJson=prev?JSON.stringify(prev.posts||[]):"";
   allContents=fresh;
@@ -313,6 +322,45 @@ $("deleteBtn").onclick=async()=>{
   setStatus("콘텐츠를 삭제했습니다.");
  }
  catch(e){setStatus("삭제 실패: "+(e.message||e))}finally{btn.disabled=false}
+};
+
+/* ---------- 관리자 배분 + 메이커로 열기 ---------- */
+let targets=new Set(),knownUsers=[],adminPresets=[],pickedPresets=new Set(),adminLoaded=false;
+function chip(host,label,on,fn){const l=document.createElement("label");l.className="chip"+(on?" on":"");const c=document.createElement("input");c.type="checkbox";c.checked=on;c.onchange=()=>{fn(c.checked);l.classList.toggle("on",c.checked)};l.append(c,document.createTextNode(label));host.appendChild(l)}
+function renderChips(){
+ const me=getUserId().toLowerCase(),uh=$("userChips"),ph=$("presetChips");uh.textContent="";ph.textContent="";
+ knownUsers.filter(u=>u!==me).forEach(u=>chip(uh,u,targets.has(u),on=>{on?targets.add(u):targets.delete(u)}));
+ if(!uh.children.length)uh.innerHTML='<span class="muted">다른 아이디가 아직 없습니다. 아래에서 직접 추가하세요.</span>';
+ adminPresets.forEach(p=>chip(ph,p.name,pickedPresets.has(p.name),on=>{on?pickedPresets.add(p.name):pickedPresets.delete(p.name)}));
+ if(!ph.children.length)ph.innerHTML='<span class="muted">저장된 채널 설정이 없습니다. 이미지 메이커에서 먼저 저장하세요.</span>';
+}
+async function loadAdminTools(){
+ adminLoaded=true;
+ try{const [u,s]=await Promise.all([callDb({action:"listUsers"}),callDb({action:"getSettings"})]);
+  knownUsers=(u&&u.users)||[];adminPresets=(s&&s.settings&&s.settings.presets)||[];
+ }catch(e){adminLoaded=false;setStatus("관리자 도구를 불러오지 못했습니다: "+(e.message||e))}
+ renderChips();
+}
+function syncAdminUI(){
+ $("adminPanel").classList.toggle("hidden",!isAdmin);$("sendContentBtn").classList.toggle("hidden",!isAdmin);
+ if(isAdmin&&!adminLoaded)loadAdminTools();
+}
+$("addTargetBtn").onclick=()=>{const v=$("newTarget").value.replace(/\s+/g," ").trim().toLowerCase();if(!v)return;if(!knownUsers.includes(v))knownUsers.push(v);targets.add(v);$("newTarget").value="";renderChips()};
+async function distribute(body,doneMsg){
+ if(!targets.size){setStatus("받을 아이디를 먼저 선택하세요.");return}
+ setStatus("배분하는 중…");
+ try{const r=await callDb(Object.assign({action:"distribute",targets:[...targets]},body));
+  if(!r||!r.ok)throw new Error(r&&r.error||"배분하지 못했습니다.");
+  setStatus(doneMsg+" → "+[...targets].join(", "));
+ }catch(e){setStatus("배분 실패: "+(e.message||e))}
+}
+$("sendPresetsBtn").onclick=()=>{const ps=adminPresets.filter(p=>pickedPresets.has(p.name));if(!ps.length){setStatus("보낼 채널 설정을 선택하세요.");return}distribute({presets:ps},`채널 설정 ${ps.length}개를 보냈습니다.`)};
+$("sendContentBtn").onclick=()=>{if(selected)distribute({contentIds:[selected.id]},`‘${selected.title}’ 콘텐츠를 보냈습니다.`)};
+$("openMakerBtn").onclick=()=>{
+ if(!selected)return;
+ try{localStorage.setItem("card_open_content_v1",JSON.stringify({id:selected.id,title:selected.title,channel:selected.channel,rawText:selected.rawText,settings:selected.settings||null,aspectRatio:selected.aspectRatio,splitMode:selected.splitMode,lastPageType:selected.lastPageType,maxPages:selected.maxPages}))}
+ catch(e){setStatus("브라우저 저장소를 쓸 수 없어 열지 못했습니다.");return}
+ window.location.href="card.html";
 };
 
 /* ---------- 내 아이디 (페이지 맨 아래) ---------- */
