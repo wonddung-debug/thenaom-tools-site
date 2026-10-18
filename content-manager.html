@@ -8,10 +8,10 @@
 :root{--bg:#f4f4f2;--panel:#fff;--ink:#1a1a1a;--sub:#666;--line:#dcdcd6;--accent:#2f6fed;--accentbg:#eef4ff}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Pretendard,"Noto Sans KR",Arial,sans-serif;line-height:1.5}
 main{max-width:1120px;margin:0 auto;padding:18px 14px 50px}h1{font-size:22px;margin:0 0 4px}h2{font-size:17px;margin:0}h3{font-size:14px;margin:0;font-weight:750}.muted{font-size:13px;color:var(--sub)}button,input,select,textarea{font:inherit}button{border:1px solid var(--line);border-radius:9px;background:var(--panel);color:var(--ink);padding:8px 12px;cursor:pointer;font-weight:650}button.primary{background:var(--accent);border-color:var(--accent);color:white}button.danger{color:#b42318}button:disabled{opacity:.5;cursor:not-allowed}
-.head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}.layout{display:grid;grid-template-columns:minmax(250px,340px) minmax(0,1fr);gap:14px;align-items:start}.panel{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:14px;min-width:0}.search{width:100%;padding:10px;border:1px solid var(--line);border-radius:9px;margin:10px 0;background:var(--bg);color:var(--ink)}.item{display:block;text-align:left;width:100%;margin:7px 0;padding:11px;background:var(--panel);font-weight:500}.item.active{border-color:var(--accent);background:var(--accentbg)}.item strong{display:block;font-size:14px;margin-bottom:3px}.item small{display:block;font-size:12px;color:var(--sub)}.empty{padding:20px 6px;color:var(--sub);font-size:13px}.field{margin:10px 0 16px}.field-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}.field-head label{font-size:13px;font-weight:750}.field-head button{flex-shrink:0;padding:6px 11px;font-size:12px}.field input,.field textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:10px;background:var(--bg);color:var(--ink)}textarea{min-height:140px;resize:vertical;line-height:1.55}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.row>*{min-width:0}.detail-head{display:flex;justify-content:space-between;align-items:start;gap:10px;flex-wrap:wrap}.section{border-top:1px solid var(--line);padding-top:15px;margin-top:18px}.status{margin:10px 0;color:var(--accent);font-size:13px;font-weight:700;white-space:pre-wrap}.hidden{display:none!important}.image-list{display:flex;flex-direction:column;gap:8px}.image-item{display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid var(--line);border-radius:9px;padding:8px 10px;min-width:0}.image-item a{color:var(--accent);font-size:13px;overflow-wrap:anywhere}.image-item button{flex-shrink:0;font-size:12px;padding:6px 9px}.hint{font-size:12px;color:var(--sub);margin:8px 0 0}.project-label{display:inline-block;margin:5px 0 8px;padding:4px 8px;border-radius:6px;background:var(--accentbg);color:var(--accent);font-size:12px;font-weight:750}
-@media(max-width:760px){.layout{grid-template-columns:1fr}main{padding:13px 10px 40px}}@media(max-width:430px){.image-item{align-items:flex-start}.image-item button{white-space:nowrap}}
+.head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}.layout{display:block}.content-entry{display:block;margin:0 0 9px}.detail-panel{margin:2px 0 18px;padding:14px;background:var(--bg);border:1px solid var(--line);border-radius:11px}.content-list{display:block}.panel{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:14px;min-width:0}.search{width:100%;padding:10px;border:1px solid var(--line);border-radius:9px;margin:10px 0;background:var(--bg);color:var(--ink)}.item{display:block;text-align:left;width:100%;margin:7px 0;padding:11px;background:var(--panel);font-weight:500}.item.active{border-color:var(--accent);background:var(--accentbg)}.item strong{display:block;font-size:14px;margin-bottom:3px}.item small{display:block;font-size:12px;color:var(--sub)}.empty{padding:20px 6px;color:var(--sub);font-size:13px}.field{margin:10px 0 16px}.field-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}.field-head label{font-size:13px;font-weight:750}.field-head button{flex-shrink:0;padding:6px 11px;font-size:12px}.field input,.field textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:10px;background:var(--bg);color:var(--ink)}textarea{min-height:140px;resize:vertical;line-height:1.55}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.row>*{min-width:0}.detail-head{display:flex;justify-content:space-between;align-items:start;gap:10px;flex-wrap:wrap}.section{border-top:1px solid var(--line);padding-top:15px;margin-top:18px}.status{margin:10px 0;color:var(--accent);font-size:13px;font-weight:700;white-space:pre-wrap}.hidden{display:none!important}.image-list{display:flex;flex-direction:column;gap:8px}.image-item{display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid var(--line);border-radius:9px;padding:8px 10px;min-width:0}.image-item a{color:var(--accent);font-size:13px;overflow-wrap:anywhere}.image-item button{flex-shrink:0;font-size:12px;padding:6px 9px}.hint{font-size:12px;color:var(--sub);margin:8px 0 0}.project-label{display:inline-block;margin:5px 0 8px;padding:4px 8px;border-radius:6px;background:var(--accentbg);color:var(--accent);font-size:12px;font-weight:750}
+@media(max-width:760px){main{padding:13px 10px 40px}.detail-panel{padding:10px}}@media(max-width:430px){.image-item{align-items:flex-start}.image-item button{white-space:nowrap}}
 </style>
-</head>
+<script type="text/javascript" nonce="1aa01868fbee463f810939b4d62" src="//local.adguard.org?ts=1792318564871&amp;type=content-script&amp;dmn=chatgpt.com&amp;url=https%3A%2F%2Fchatgpt.com%2Fbackend-api%2Festuary%2Fcontent%3Fid%3Dfile_00000000aee08209a4e860bc41be81e7%26fn%3Dcontent-manager.html%26cd%3Dattachment%26ts%3D497866%26p%3Dfs%26cid%3D1%26sig%3D9e5dcc0fc3b4a3a7555c5aab7ba25965a6a5c0a59284f48bd48b8b3492527d4f%26v%3D0&amp;app=chrome.exe&amp;css=2&amp;js=1&amp;rel=1&amp;rji=1&amp;sbe=1&amp;stealth=1&amp;st-dnt"></script><script type="text/javascript" nonce="1aa01868fbee463f810939b4d62" src="//local.adguard.org?ts=1792318564871&amp;name=AdGuard%20Extra&amp;name=AdGuard%20Popup%20Blocker&amp;type=user-script"></script></head>
 <body>
 <main>
   <div class="head">
@@ -25,24 +25,22 @@ main{max-width:1120px;margin:0 auto;padding:18px 14px 50px}h1{font-size:22px;mar
       <input class="search" id="search" type="text" placeholder="제목 또는 프로젝트명 검색">
       <div id="contentList" class="empty">저장 목록을 불러오는 중입니다.</div>
     </section>
-    <section class="panel">
-      <div id="noSelection" class="empty">왼쪽에서 콘텐츠를 선택하세요.</div>
-      <div id="detail" class="hidden">
-        <div class="detail-head">
-          <div><h2 id="detailTitle"></h2><div id="projectLabel" class="project-label"></div><div id="detailMeta" class="muted"></div></div>
-          <div class="row"><button id="deleteBtn" class="danger">콘텐츠 삭제</button></div>
-        </div>
-        <div class="section">
-          <h2>이미지</h2>
-          <div id="imageList" class="image-list" style="margin-top:10px"></div>
-        </div>
-        <div class="section">
-          <div class="field-head"><label for="rawText">원문</label><button type="button" id="copyRawBtn">복사</button></div>
-          <textarea id="rawText" readonly></textarea>
-        </div>
-        <div id="fixedFields"></div>
-      </div>
-    </section>
+  </div>
+  <div id="noSelection" class="hidden"></div>
+  <div id="detail" class="hidden detail-panel">
+    <div class="detail-head">
+      <div><h2 id="detailTitle"></h2><div id="projectLabel" class="project-label"></div><div id="detailMeta" class="muted"></div></div>
+      <div class="row"><button id="deleteBtn" class="danger">콘텐츠 삭제</button></div>
+    </div>
+    <div class="section">
+      <div class="field-head"><label for="rawText">원문</label><button type="button" id="copyRawBtn">복사</button></div>
+      <textarea id="rawText" readonly></textarea>
+    </div>
+    <div id="fixedFields"></div>
+    <div class="section" id="imagesSection">
+      <h2>이미지 링크</h2>
+      <div id="imageList" class="image-list" style="margin-top:10px"></div>
+    </div>
   </div>
 </main>
 <script>
@@ -101,8 +99,17 @@ function renderList(){
  const q=$("search").value.trim().toLowerCase(),host=$("contentList");host.textContent="";
  const filtered=allContents.filter(x=>`${x.title||""} ${x.channel||""} ${x.rawText||""}`.toLowerCase().includes(q));
  if(!filtered.length){host.className="empty";host.textContent=allContents.length?"검색 결과가 없습니다.":"아직 보관된 콘텐츠가 없습니다. 이미지 메이커에서 ‘콘텐츠 보관’을 눌러 주세요.";return}
- host.className="";
- filtered.forEach(item=>{const b=document.createElement("button");b.type="button";b.className="item"+(selected&&selected.id===item.id?" active":"");const s=document.createElement("strong");s.textContent=item.title||"제목 없음";const sm=document.createElement("small");sm.textContent=`프로젝트: ${item.channel||"미지정"} · ${(item.images||[]).length}장 · ${formatDate(item.createdAt)}`;b.append(s,sm);b.onclick=()=>openContent(item.id);host.appendChild(b)});
+ host.className="content-list";
+ filtered.forEach(item=>{
+  const entry=document.createElement("div");entry.className="content-entry";
+  const b=document.createElement("button");b.type="button";b.className="item"+(selected&&selected.id===item.id?" active":"");
+  const s=document.createElement("strong");s.textContent=item.title||"제목 없음";
+  const sm=document.createElement("small");sm.textContent=`프로젝트: ${item.channel||"미지정"} · ${(item.images||[]).length}장 · ${formatDate(item.createdAt)}`;
+  b.append(s,sm);b.onclick=()=>openContent(item.id);entry.appendChild(b);
+  // 선택한 콘텐츠의 상세 내용은 목록 전체 맨 아래가 아니라 해당 항목 바로 밑에 표시합니다.
+  if(selected&&selected.id===item.id){entry.appendChild($("detail"));}
+  host.appendChild(entry);
+ });
 }
 function formatDate(v){if(!v)return"날짜 미상";const d=new Date(v);return Number.isNaN(d.getTime())?String(v):d.toLocaleString("ko-KR")}
 function extractField(posts,kind){
