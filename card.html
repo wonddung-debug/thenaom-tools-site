@@ -245,11 +245,18 @@
   .seg.col small{display:block; margin-top:2px; font-size:11.5px; font-weight:500; opacity:.75;}
   .fontprev{margin-top:8px; padding:12px; border:1px dashed var(--line); border-radius:8px; background:var(--bg); font-size:22px; line-height:1.4; overflow:hidden;}
   .hint{font-size:12px; color:var(--sub); margin:8px 0 0;}
+  .foot-links{margin-top:18px;text-align:center}
+  .view-bar{display:flex;gap:8px;align-items:center;margin-top:12px}.view-bar[hidden]{display:none}.view-bar .seg{flex:1}.view-bar .nav{display:none;padding:8px 14px}.view-bar.swipe .nav{display:inline-block}
+  .list.swipe{flex-direction:row;overflow-x:auto;scroll-snap-type:x mandatory;gap:10px;-webkit-overflow-scrolling:touch}
+  .list.swipe .card{flex:0 0 100%;scroll-snap-align:center}
+  .pane-l,.pane-r{min-width:0}
+  @media(min-width:1000px){.wrap{max-width:1200px;display:grid;grid-template-columns:minmax(380px,500px) minmax(0,1fr);gap:26px;align-items:start}.pane-l{position:sticky;top:12px}.foot{grid-column:1/-1}.pane-r .list{margin-top:10px}.list.swipe .card{flex-basis:min(100%,620px)}}
 </style>
 </head>
 <body>
 
 <div class="wrap">
+<div class="pane-l">
   <!-- 상단 채널 프리셋 + 비율 선택 + 설정 버튼 -->
   <div class="topbar">
     <select id="presetSel" aria-label="채널 프리셋 선택"></select>
@@ -279,6 +286,10 @@
         <option value="choice_box">1. 2. 3. 숫자 선택지 (투표 박스형)</option>
         <option value="choice_clean">1. 2. 3. 숫자 선택지 (깔끔 텍스트형)</option>
         <option value="vs">VS 위/아래 2분할</option>
+        <option value="choice_pill">1. 2. 3. 숫자 선택지 (캡슐형)</option>
+        <option value="ab">A vs B 좌우 2분할</option>
+        <option value="ox">O / X 투표 (좌우)</option>
+        <option value="cta">마무리 + 저장·팔로우 유도</option>
         <option value="plain">일반 본문 (특수 레이아웃 끔)</option>
       </select>
     </div>
@@ -297,7 +308,12 @@
   <button type="button" class="primary" id="make">이미지 만들기</button>
   <p class="msg" id="msg"></p>
 
-  <!-- 생성된 이미지 나열 -->
+</div>
+<div class="pane-r">
+  <div class="view-bar" id="viewBar" hidden>
+    <div class="seg" id="viewSeg"><button type="button" data-val="list" class="active">세로로 보기</button><button type="button" data-val="swipe">옆으로 넘기기</button></div>
+    <button type="button" class="ghost nav" id="navPrev" aria-label="이전 장">◀</button><button type="button" class="ghost nav" id="navNext" aria-label="다음 장">▶</button>
+  </div>
   <div class="list" id="list"></div>
 
   <!-- 마지막 이미지 바로 아래 저장/공유 버튼 영역 -->
@@ -308,8 +324,11 @@
     <button type="button" class="primary accent" id="shareAll">한 번에 공유 (인스타·유튜브)</button>
   </div>
 
-  <!-- 내 아이디 (하단): 입력하면 이후에는 아주 작게만 표시됩니다 -->
+</div>
+<div class="foot">
+  <div class="foot-links"><button type="button" class="ghost" id="openArchiveBtn2">📦 보관함으로 이동</button></div>
   <div class="uid-bar" id="uidBar"></div>
+</div>
 </div>
 
 <!-- ⚙️ 설정 모달창 -->
@@ -1120,6 +1139,8 @@ function updateSplitUI(){
   let lastEx = "여러분의 생각은 어떠신가요?\n1. 첫 번째 선택지\n2. 두 번째 선택지\n3. 세 번째 선택지";
   if(lastType === "vs") lastEx = "마지막 장 위쪽 내용\nvs\n아래쪽 내용";
   else if(lastType === "plain") lastEx = "마지막 장 마무리 내용";
+  else if(lastType === "ab" || lastType === "ox") lastEx = "왼쪽 내용\nvs\n오른쪽 내용";
+  else if(lastType === "cta") lastEx = "마무리 문구 (아래에 저장·팔로우 버튼이 붙어요)";
 
   if(mode === "number"){
     $("src").placeholder = `1. 첫 번째 장 내용 (표지)\n2. 두 번째 장 내용 (**강조할 말**)\n3. 세 번째 장 내용`;
@@ -1170,20 +1191,25 @@ function parse(raw){
   return parts.map((p,i)=>{
     const isLast = i === parts.length - 1;
     const hasVsWord = /(^|\s)vs(\s|$)/i.test(p);
-    const forceChoice = isLast && (lastType === "choice_box" || lastType === "choice_clean");
+    const forceChoice = isLast && ["choice_box","choice_clean","choice_pill"].includes(lastType);
     const detectedChoice = extractChoices(p, forceChoice);
 
     if(isLast && (forceChoice || (lastType === "auto" && detectedChoice !== null && !hasVsWord))){
       if(detectedChoice){
         return {
           type: "choice",
-          choiceStyle: lastType === "choice_clean" ? "clean" : "box",
+          choiceStyle: lastType === "choice_clean" ? "clean" : (lastType === "choice_pill" ? "pill" : "box"),
           title: detectedChoice.title,
           items: detectedChoice.items
         };
       }
     }
 
+    if(isLast && (lastType === "ab" || lastType === "ox")){
+      const v = splitVS(p);
+      if(v.bottom) return {type:"vs", dir:"h", ox:lastType === "ox", top:formatBodyText(v.top), bottom:formatBodyText(v.bottom)};
+    }
+    if(isLast && lastType === "cta") return {type:"plain", cta:true, text:formatBodyText(p)};
     const useVs = isLast && (lastType === "vs" || (lastType === "auto" && hasVsWord));
     if(useVs){
       const v = splitVS(p);
@@ -1349,8 +1375,8 @@ function okLine(ctx, s, maxW){
   return ctx.measureText(stripMd(s)).width <= maxW && (!CHARLIM || lenOf(s) <= CHARLIM);
 }
 
-function wrap(ctx, text, maxW){
-  if(wrapMode === "strict") return [text];   /* 엔터 그대로: 자동 줄바꿈 없음 */
+function wrap(ctx, text, maxW, force){
+  if(wrapMode === "strict" && !force) return [text];   /* 엔터 그대로: 자동 줄바꿈 없음 */
   const lines = [], sep = BREAKCHAR ? "" : " ";
   const toks = BREAKCHAR ? (text.match(/\*\*|[\s\S]/gu) || []) : text.split(/[ \t]+/);
   let cur = "";
@@ -1373,6 +1399,12 @@ function wrap(ctx, text, maxW){
   return lines.length ? lines : [""];
 }
 
+/* 선택지 박스용: 엔터(\n)는 지키되 칸보다 긴 줄은 반드시 접어서 넘침을 막음 */
+function wrapItem(ctx, text, maxW){
+  const out = [];
+  String(text).split("\n").forEach(par=>{ if(par.trim()) wrap(ctx, par.trim(), maxW, true).forEach(l=>out.push(l)); });
+  return out.length ? out : [""];
+}
 function wrapBalanced(ctx, text, maxW){
   if(text.indexOf("\n") >= 0){
     const out = [];
@@ -1482,16 +1514,16 @@ function drawChoiceLayout(ctx, page, f, padX, padY, areaH, maxFont, lhRatio, bgC
   const style = page.choiceStyle || "box";
   const maxW = WIDTH - padX * 2;
   const startMax = Math.min(maxFont, 54);
-  const minSize = 22;
+  const minSize = 16;
 
-  if(style === "box"){
+  if(style === "box" || style === "pill"){
     let best = null;
     for(let s = startMax; s >= minSize; s -= 2){
       const lh = s * Math.min(lhRatio, 1.48);
       const titleSize = Math.round(s * 1.08);
       const titleLh = titleSize * 1.4;
       ctx.font = `${f.cover} ${titleSize}px "${f.family}", "Pretendard", sans-serif`;
-      const titleLines = page.title ? wrapBalanced(ctx, page.title, maxW) : [];
+      const titleLines = page.title ? (wrapMode === "strict" ? wrapItem(ctx, page.title, maxW) : wrapBalanced(ctx, page.title, maxW)) : [];
       const titleBlockH = titleLines.length ? (titleLines.length * titleLh + s * 0.75) : 0;
 
       const badgeSize = Math.round(s * 1.42);
@@ -1501,7 +1533,7 @@ function drawChoiceLayout(ctx, page, f, padX, padY, areaH, maxFont, lhRatio, bgC
       const textMaxW = maxW - boxPadX * 2 - badgeSize - badgeGap;
 
       ctx.font = `${f.weight} ${s}px "${f.family}", "Pretendard", sans-serif`;
-      const itemWrapped = page.items.map(it => wrap(ctx, it.text, textMaxW));
+      const itemWrapped = page.items.map(it => wrapItem(ctx, it.text, textMaxW));
       const boxHeights = itemWrapped.map(lines => Math.max(badgeSize, lines.length * lh) + boxPadY * 2);
       const boxGap = Math.round(s * 0.45);
       const totalBoxesH = boxHeights.reduce((a,b)=>a+b, 0) + boxGap * Math.max(0, page.items.length - 1);
@@ -1533,14 +1565,14 @@ function drawChoiceLayout(ctx, page, f, padX, padY, areaH, maxFont, lhRatio, bgC
       ctx.fillStyle = inkCol;
       ctx.globalAlpha = darkBg ? 0.09 : 0.045;
       ctx.beginPath();
-      ctx.roundRect(padX, curY, maxW, bh, 22);
+      ctx.roundRect(padX, curY, maxW, bh, style === "pill" ? Math.min(bh/2, best.s*1.4) : 22);
       ctx.fill();
 
       ctx.strokeStyle = inkCol;
       ctx.globalAlpha = darkBg ? 0.25 : 0.16;
       ctx.lineWidth = 2.5;
       ctx.beginPath();
-      ctx.roundRect(padX, curY, maxW, bh, 22);
+      ctx.roundRect(padX, curY, maxW, bh, style === "pill" ? Math.min(bh/2, best.s*1.4) : 22);
       ctx.stroke();
       ctx.restore();
 
@@ -1549,7 +1581,7 @@ function drawChoiceLayout(ctx, page, f, padX, padY, areaH, maxFont, lhRatio, bgC
       ctx.save();
       ctx.fillStyle = badgeFill;
       ctx.beginPath();
-      ctx.roundRect(bx, by, best.badgeSize, best.badgeSize, best.badgeSize * 0.32);
+      ctx.roundRect(bx, by, best.badgeSize, best.badgeSize, best.badgeSize * (style === "pill" ? 0.5 : 0.32));
       ctx.fill();
 
       ctx.fillStyle = badgeTextCol;
@@ -1575,7 +1607,7 @@ function drawChoiceLayout(ctx, page, f, padX, padY, areaH, maxFont, lhRatio, bgC
       const titleSize = Math.round(s * 1.08);
       const titleLh = titleSize * 1.45;
       ctx.font = `${f.cover} ${titleSize}px "${f.family}", "Pretendard", sans-serif`;
-      const titleLines = page.title ? wrapBalanced(ctx, page.title, maxW) : [];
+      const titleLines = page.title ? (wrapMode === "strict" ? wrapItem(ctx, page.title, maxW) : wrapBalanced(ctx, page.title, maxW)) : [];
       const titleBlockH = titleLines.length ? (titleLines.length * titleLh + s * 0.85) : 0;
 
       ctx.font = `${f.cover} ${s}px "${f.family}", "Pretendard", sans-serif`;
@@ -1583,7 +1615,7 @@ function drawChoiceLayout(ctx, page, f, padX, padY, areaH, maxFont, lhRatio, bgC
       const textMaxW = maxW - numW;
 
       ctx.font = `${f.weight} ${s}px "${f.family}", "Pretendard", sans-serif`;
-      const itemWrapped = page.items.map(it => wrap(ctx, it.text, textMaxW));
+      const itemWrapped = page.items.map(it => wrapItem(ctx, it.text, textMaxW));
       const itemGap = Math.round(s * 0.55);
       const itemsH = itemWrapped.reduce((sum, lines) => sum + lines.length * lh, 0) + itemGap * Math.max(0, page.items.length - 1);
       const totalH = titleBlockH + itemsH;
@@ -1634,6 +1666,42 @@ function drawChoiceLayout(ctx, page, f, padX, padY, areaH, maxFont, lhRatio, bgC
       curY += lines.length * best.lh + best.itemGap;
     });
   }
+}
+
+/* 마무리 장: 본문 아래 저장·팔로우 버튼 */
+function drawCta(ctx, f, hlCol, padY, areaH){
+  const w = 540, h = 96, x = (WIDTH - w)/2, y = padY + areaH - h - 10;
+  ctx.save();
+  try{ ctx.letterSpacing = "0px"; }catch(e){}
+  ctx.fillStyle = hlCol; ctx.beginPath(); ctx.roundRect(x, y, w, h, h/2); ctx.fill();
+  ctx.fillStyle = isDarkColor(hlCol) ? "#ffffff" : "#111111";
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.font = `${f.cover} 38px "${f.family}", "Pretendard", sans-serif`;
+  ctx.fillText("♥ 저장하고 팔로우 +", WIDTH/2, y + h/2 + 1);
+  ctx.restore();
+}
+/* A vs B / O·X 좌우 2분할 */
+function drawSideBySide(ctx, page, f, css, padX, padY, areaH, maxFont, lhRatio, bgCol, inkCol, hlCol, hlStyle){
+  const gap = 96, colW = (WIDTH - padX*2 - gap)/2, markH = page.ox ? 170 : 0;
+  const r = fit(ctx, css, [page.top, page.bottom], colW, areaH - markH, Math.min(maxFont, 50), 18, lhRatio);
+  [[r.all[0], padX], [r.all[1], padX + colW + gap]].forEach(([ls, x], i)=>{
+    const top = padY + markH + (areaH - markH - ls.length*r.lh)/2;
+    if(page.ox){
+      const cx = x + colW/2, cy = padY + 80, R = 58, k = R*0.8;
+      ctx.save(); ctx.strokeStyle = inkCol; ctx.lineWidth = 18; ctx.lineCap = "round"; ctx.beginPath();
+      if(i){ ctx.moveTo(cx-k, cy-k); ctx.lineTo(cx+k, cy+k); ctx.moveTo(cx+k, cy-k); ctx.lineTo(cx-k, cy+k); }
+      else ctx.arc(cx, cy, R, 0, Math.PI*2);
+      ctx.stroke(); ctx.restore();
+    }
+    drawFormattedLines(ctx, ls, top + r.lh/2, r.lh, r.size, "center", padX, inkCol, hlCol, hlStyle, f, false, x, colW);
+  });
+  const mx = WIDTH/2, my = padY + areaH/2;
+  ctx.save(); ctx.strokeStyle = inkCol; ctx.globalAlpha = 0.3; ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.moveTo(mx, padY + 10); ctx.lineTo(mx, padY + areaH - 10); ctx.stroke();
+  ctx.globalAlpha = 1; ctx.fillStyle = bgCol; ctx.beginPath(); ctx.arc(mx, my, 46, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = hlStyle === "color" ? hlCol : inkCol; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.font = `700 40px "Pretendard","Noto Sans KR",sans-serif`; ctx.fillText("VS", mx, my + 2);
+  ctx.restore();
 }
 
 function drawFrameAndDeco(ctx, H, bgCol, inkCol, hlCol, padX, padY){
@@ -1764,12 +1832,16 @@ function draw(page, idx, total, f){
   const areaH = H - padY*2 - footH/2;
 
   if(page.type === "plain"){
-    const r = fit(ctx, css, [page.text], maxW, areaH, isCover ? maxFont * getOpt("coverScale") : maxFont, getOpt("minFont"), lhRatio);
+    const ah = page.cta ? areaH - 140 : areaH;
+    const r = fit(ctx, css, [page.text], maxW, ah, isCover ? maxFont * getOpt("coverScale") : maxFont, getOpt("minFont"), lhRatio);
     const lines = r.all[0];
-    const startY = padY + (areaH - lines.length*r.lh)/2 + r.lh/2;
+    const startY = padY + (ah - lines.length*r.lh)/2 + r.lh/2;
     drawFormattedLines(ctx, lines, startY, r.lh, r.size, curAlign, padX, inkCol, hlCol, hlStyle, f, isCover);
+    if(page.cta) drawCta(ctx, f, hlCol, padY, areaH);
   }else if(page.type === "choice"){
     drawChoiceLayout(ctx, page, f, padX, padY, areaH, maxFont, lhRatio, bgCol, inkCol, hlCol, hlStyle);
+  }else if(page.dir === "h"){
+    drawSideBySide(ctx, page, f, css, padX, padY, areaH, maxFont, lhRatio, bgCol, inkCol, hlCol, hlStyle);
   }else{
     const vsH = 110;
     const halfH = (areaH - vsH)/2;
@@ -1906,6 +1978,7 @@ async function render(){
     blobs = [];
     $("list").innerHTML = "";
     $("bottomActions").hidden = true;
+    $("viewBar").hidden = true;
     $("msg").textContent = "";
     return;
   }
@@ -1949,8 +2022,8 @@ async function render(){
 
     const typeLabel = document.createElement("span");
     typeLabel.textContent = snapPages[i].type === "choice"
-      ? (snapPages[i].choiceStyle === "clean" ? "1.2.3. 선택지 (텍스트형)" : "1.2.3. 선택지 (박스형)")
-      : (snapPages[i].type === "vs" ? "VS 2분할 레이아웃" : (i === 0 ? "표지 (첫 장)" : "본문"));
+      ? (snapPages[i].choiceStyle === "clean" ? "1.2.3. 선택지 (텍스트형)" : (snapPages[i].choiceStyle === "pill" ? "1.2.3. 선택지 (캡슐형)" : "1.2.3. 선택지 (박스형)"))
+      : (snapPages[i].type === "vs" ? (snapPages[i].ox ? "O/X 투표" : (snapPages[i].dir === "h" ? "A vs B 좌우 2분할" : "VS 2분할 레이아웃")) : snapPages[i].cta ? "마무리 (저장·팔로우)" : (i === 0 ? "표지 (첫 장)" : "본문"));
 
     leftBox.appendChild(numBadge);
     leftBox.appendChild(typeLabel);
@@ -1980,6 +2053,7 @@ async function render(){
   $("saveAll").textContent = `모두 저장 (${n}장)`;
   $("shareAll").textContent = `한 번에 공유 (${n}장 · 인스타/유튜브)`;
   $("bottomActions").hidden = (n === 0);
+  $("viewBar").hidden = (n === 0); applyView();
   $("msg").textContent = `총 ${n}장 제작 완료!${archiveNote}`
     + (fontsOk ? "" : " ⚠ 폰트를 완전히 불러오지 못해 굵기가 다르게 보일 수 있어요. ‘이미지 만들기’를 다시 누르거나 새로고침해 주세요.");
 }
@@ -2130,6 +2204,7 @@ function openContentManager(){
   window.open(url.href, "_blank", "noopener");
 }
 $("openArchiveBtn").onclick = openContentManager;
+$("openArchiveBtn2").onclick = openContentManager;
 
 /* ---------- 내 아이디 (페이지 맨 아래) ---------- */
 function getUserId(){
@@ -2347,9 +2422,7 @@ $("archiveCurrent").onclick = async ()=>{
   }
   const firstLine = rawText.split(/\r?\n/).map(s=>s.trim()).find(Boolean) || "새 콘텐츠";
   const suggestedTitle = firstLine.replace(/^#+\s*/, "").replace(/\*+/g, "").slice(0,60);
-  const title = prompt("보관할 콘텐츠 제목을 입력하세요:", suggestedTitle);
-  if(title === null) return;
-  const finalTitle = title.trim() || suggestedTitle || "새 콘텐츠";
+  const finalTitle = suggestedTitle || "새 콘텐츠";   /* 제목은 원고 첫 줄로 자동 */
   const config = getCardDbConfig();
   if(!config) return;
 
@@ -2379,7 +2452,7 @@ $("archiveCurrent").onclick = async ()=>{
       throw new Error(finished?.error || "저장 완료 처리가 실패했습니다.");
     }
     // 저장 성공은 페이지 안에서만 표시합니다. 완료 팝업은 띄우지 않습니다.
-    $("msg").textContent = "";
+    $("msg").textContent = `✓ 보관함에 저장했어요 · ${finalTitle}`;
   }catch(err){
     console.error(err);
     $("msg").textContent = "콘텐츠 보관 실패";
@@ -2415,6 +2488,22 @@ function openFromArchive(){
   archiveNote = ` · ‘${h.title || "보관 콘텐츠"}’을(를) 보관 당시 설정 그대로 만들었어요`;
   runMake();
 }
+
+/* 보기 방식: 세로 목록 ↔ 옆으로 넘기기 (선택값은 이 브라우저에 기억) */
+let viewMode = "list";
+try{ viewMode = localStorage.getItem("card_view_mode") === "swipe" ? "swipe" : "list"; }catch(e){}
+function applyView(){
+  $("list").classList.toggle("swipe", viewMode === "swipe");
+  $("viewBar").classList.toggle("swipe", viewMode === "swipe");
+  setSegActive("viewSeg", viewMode);
+}
+document.querySelectorAll("#viewSeg button").forEach(b=>{
+  b.onclick = ()=>{ viewMode = b.dataset.val; try{ localStorage.setItem("card_view_mode", viewMode); }catch(e){} applyView(); };
+});
+const navList = d => { const l = $("list"); l.scrollBy({left:d * l.clientWidth, behavior:"smooth"}); };
+$("navPrev").onclick = ()=>navList(-1);
+$("navNext").onclick = ()=>navList(1);
+applyView();
 
 loadPresets();
 renderUidBar(false);

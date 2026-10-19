@@ -14,6 +14,12 @@ main{max-width:1120px;margin:0 auto;padding:18px 14px 50px}h1{font-size:22px;mar
 .copybtn{min-width:78px;text-align:center}button.copied{background:#1f9d55;border-color:#1f9d55;color:#fff}button.copyfail{background:#b42318;border-color:#b42318;color:#fff}
 #toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));transform:translate(-50%,12px);max-width:90vw;padding:10px 16px;border-radius:999px;background:#1f2937;color:#fff;font-size:13px;font-weight:700;box-shadow:0 6px 20px rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;z-index:9999;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#toast.show{opacity:1;transform:translate(-50%,0)}#toast.fail{background:#b42318}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border:1px solid var(--line);border-radius:999px;font-size:12.5px;font-weight:650;cursor:pointer;background:var(--bg)}.chip input{accent-color:var(--accent)}.chip.on{border-color:var(--accent);background:var(--accentbg);color:var(--accent)}.admin{margin-bottom:14px;border-color:var(--accent)}
+.tabs2{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 2px}.tabs2 button{border-radius:999px;font-size:13px;padding:6px 12px}.tabs2 button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.group-h{font-size:13px;font-weight:800;margin:16px 2px 4px;color:var(--sub)}.group-h:first-child{margin-top:6px}
+.sched{display:flex;gap:6px;flex-wrap:wrap;align-items:center}.sched select{padding:9px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+.at{color:var(--accent);font-weight:700}
+#detailHost:empty{display:none}
+@media(min-width:1000px){main{max-width:1500px}.layout{display:grid;grid-template-columns:minmax(360px,440px) minmax(0,1fr);gap:16px;align-items:start}.layout>.panel{position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto}#detailHost:empty{display:block;padding:60px 14px;text-align:center;color:var(--sub);font-size:14px;border:1px dashed var(--line);border-radius:11px}#detailHost:empty::before{content:"왼쪽 목록에서 콘텐츠를 고르면 여기에 열립니다"}#detailHost .detail-panel{margin:0;background:var(--panel)}}
 </style>
 </head>
 <body>
@@ -35,14 +41,22 @@ main{max-width:1120px;margin:0 auto;padding:18px 14px 50px}h1{font-size:22px;mar
     <section class="panel">
       <h2>저장된 콘텐츠</h2>
       <input class="search" id="search" type="text" placeholder="제목 또는 프로젝트명 검색">
+      <div class="tabs2" id="stateTabs"></div>
+      <div class="muted" style="margin-top:10px">채널별 보기 (여러 개 선택 가능)</div><div class="chips" id="chanChips"></div>
       <div id="contentList" class="empty">저장 목록을 불러오는 중입니다.</div>
     </section>
+    <div id="detailHost"></div>
   </div>
   <div id="noSelection" class="hidden"></div>
   <div id="detail" class="hidden detail-panel">
     <div class="detail-head">
       <div><h2 id="detailTitle"></h2><div id="projectLabel" class="project-label"></div><div id="detailMeta" class="muted"></div></div>
       <div class="row"><button id="openMakerBtn" class="primary">이미지 메이커에서 열기</button><button id="sendContentBtn" class="hidden">선택한 아이디에 배분</button><button id="deleteBtn" class="danger">콘텐츠 삭제</button></div>
+    </div>
+    <div class="section">
+      <div class="field-head"><label>발행 예약</label><span id="schedState" class="muted"></span></div>
+      <div class="sched"><select id="sDate" aria-label="날짜"></select><select id="sHour" aria-label="시"></select><select id="sMin" aria-label="분"></select><button type="button" class="primary" id="sSave">예약 저장</button><button type="button" id="sClear">예약 해제</button></div>
+      <p class="hint">예약 시각이 지나면 자동으로 ‘발행 완료’ 목록으로 이동합니다.</p>
     </div>
     <div class="section">
       <div class="field-head"><label for="rawText">원문</label><button type="button" id="copyRawBtn" class="copybtn">복사</button></div>
@@ -82,6 +96,11 @@ const mainEl = document.querySelector("main");
 const detailEl = $("detail");
 const listHost = $("contentList");
 let entryMap = new Map();
+let tab = "all", chans = new Set(), chanSig = "";
+const wide = window.matchMedia("(min-width:1000px)");
+const pad = n => String(n).padStart(2,"0"), DOW = "일월화수목금토";
+function stateOf(x){ if(!x.publishAt) return "none"; const t = Date.parse(x.publishAt); return isNaN(t) ? "none" : (t <= Date.now() ? "done" : "plan"); }
+function fmtAt(v){ const d = new Date(v); return `${d.getMonth()+1}/${d.getDate()}(${DOW[d.getDay()]}) ${pad(d.getHours())}:${pad(d.getMinutes())}`; }
 function getUserId(){
   try{return (localStorage.getItem(USER_ID_KEY)||"").trim()}catch(e){return ""}
 }
@@ -132,25 +151,49 @@ function prepContents(list){
 /* ---------- 목록 / 상세 펼침 ---------- */
 function parkDetail(){ if(detailEl.parentNode!==mainEl) mainEl.appendChild(detailEl); }
 
+function renderTabs(n,c){
+ const h=$("stateTabs");h.textContent="";
+ [["all","전체",n],["plan","발행 예정",c.plan],["none","미지정",c.none],["done","완료",c.done]].forEach(([k,l,v])=>{
+  const b=document.createElement("button");b.type="button";b.className=tab===k?"on":"";b.textContent=`${l} ${v}`;b.onclick=()=>{tab=k;renderList()};h.appendChild(b);
+ });
+}
+function renderChanChips(){
+ const cs=[...new Set(allContents.map(x=>x.channel||"미지정"))].sort();
+ [...chans].forEach(c=>{if(!cs.includes(c))chans.delete(c)});
+ const sig=cs.join("|");if(sig===chanSig)return;chanSig=sig;
+ const h=$("chanChips");h.textContent="";
+ cs.forEach(c=>chip(h,c,chans.has(c),on=>{on?chans.add(c):chans.delete(c);renderList()}));
+}
 function renderList(){
  parkDetail(); // 목록을 비우기 전에 상세 화면을 안전한 곳으로 옮깁니다.
  const q=$("search").value.trim().toLowerCase();
+ renderChanChips();
+ const base=allContents.filter(x=>(!q||(x._q||"").includes(q))&&(!chans.size||chans.has(x.channel||"미지정")));
+ const cnt={plan:0,none:0,done:0};base.forEach(x=>cnt[stateOf(x)]++);
+ renderTabs(base.length,cnt);
  listHost.textContent="";entryMap=new Map();
- const filtered=q?allContents.filter(x=>(x._q||"").includes(q)):allContents;
- if(!filtered.length){
+ if(!base.some(x=>tab==="all"||stateOf(x)===tab)){
   listHost.className="empty";
-  listHost.textContent=allContents.length?"검색 결과가 없습니다.":"아직 보관된 콘텐츠가 없습니다. 이미지 메이커에서 ‘콘텐츠 보관’을 눌러 주세요.";
+  listHost.textContent=allContents.length?"조건에 맞는 콘텐츠가 없습니다.":"아직 보관된 콘텐츠가 없습니다. 이미지 메이커에서 ‘콘텐츠 보관’을 눌러 주세요.";
   syncSelection();return;
  }
  listHost.className="content-list";
- const frag=document.createDocumentFragment();
- filtered.forEach(item=>{
-  const entry=document.createElement("div");entry.className="content-entry";
-  const b=document.createElement("button");b.type="button";b.className="item";b.setAttribute("aria-expanded","false");
-  const s=document.createElement("strong");s.textContent=item.title||"제목 없음";
-  const sm=document.createElement("small");sm.textContent=`프로젝트: ${item.channel||"미지정"} · ${(item.images||[]).length?(item.images.length+"장 · "):""}${formatDate(item.createdAt)}`+(isAdmin?` · 아이디: ${item.ownerId||"(주인 없음)"}`:"");
-  b.append(s,sm);b.onclick=()=>toggleContent(item.id);
-  entry.appendChild(b);frag.appendChild(entry);entryMap.set(item.id,entry);
+ const frag=document.createDocumentFragment(),T=x=>Date.parse(x.publishAt)||0;
+ [["plan","발행 예정"],["none","예약 미지정"],["done","발행 완료"]].forEach(([k,name])=>{
+  if(tab!=="all"&&tab!==k)return;
+  const g=base.filter(x=>stateOf(x)===k);if(!g.length)return;
+  if(k==="plan")g.sort((a,b)=>T(a)-T(b));else if(k==="done")g.sort((a,b)=>T(b)-T(a));
+  if(tab==="all"){const h=document.createElement("div");h.className="group-h";h.textContent=`${name} ${g.length}`;frag.appendChild(h)}
+  g.forEach(item=>{
+   const entry=document.createElement("div");entry.className="content-entry";
+   const b=document.createElement("button");b.type="button";b.className="item";b.setAttribute("aria-expanded","false");
+   const st=document.createElement("strong");st.textContent=item.title||"제목 없음";
+   const sm=document.createElement("small");sm.textContent=`프로젝트: ${item.channel||"미지정"} · ${formatDate(item.createdAt)}`+(isAdmin?` · 아이디: ${item.ownerId||"(주인 없음)"}`:"");
+   b.append(st,sm);
+   if(item.publishAt){const at=document.createElement("small");at.className="at";at.textContent=(k==="done"?"발행 ":"예약 ")+fmtAt(item.publishAt);b.appendChild(at)}
+   b.onclick=()=>toggleContent(item.id);
+   entry.appendChild(b);frag.appendChild(entry);entryMap.set(item.id,entry);
+  });
  });
  listHost.appendChild(frag);
  syncSelection();
@@ -162,9 +205,10 @@ function syncSelection(){
   b.classList.toggle("active",on);b.setAttribute("aria-expanded",on?"true":"false");
  });
  const entry=selected?entryMap.get(selected.id):null;
- if(entry){entry.appendChild(detailEl);detailEl.classList.remove("hidden")}
+ if(entry){(wide.matches?$("detailHost"):entry).appendChild(detailEl);detailEl.classList.remove("hidden")}
  else{parkDetail();detailEl.classList.add("hidden")}
 }
+wide.addEventListener("change",()=>syncSelection());
 function formatDate(v){if(!v)return"날짜 미상";const d=new Date(v);return Number.isNaN(d.getTime())?String(v):d.toLocaleString("ko-KR")}
 function extractField(posts,kind){
  let entries=(posts||[]).filter(p=>p&&p.kind===kind);
@@ -190,7 +234,7 @@ function fillDetail(){
  const managedKinds=new Set(FIXED_FIELDS.map(x=>x.kind).concat(["coupang_comment"]));
  legacyPosts=allPosts.filter(p=>p&&!managedKinds.has(p.kind)).map(p=>({...p}));
  fieldValues={};FIXED_FIELDS.forEach(f=>fieldValues[f.kind]=extractField(allPosts,f.kind));
- renderImages();renderFixedFields();
+ setSched(selected.publishAt);renderImages();renderFixedFields();
 }
 function openContent(id){
  // 다른 콘텐츠로 이동하기 전에 입력 중인 내용이 있으면 자동 저장 큐에 넣습니다.
@@ -230,6 +274,39 @@ function renderFixedFields(){
   wrap.appendChild(input);host.appendChild(wrap);
  });
 }
+
+/* ---------- 발행 예약 (날짜·시·분 드롭다운) ---------- */
+(function(){
+ const d=$("sDate");d.add(new Option("날짜 선택",""));
+ const now=new Date();
+ for(let i=0;i<120;i++){const t=new Date(now.getFullYear(),now.getMonth(),now.getDate()+i);d.add(new Option(`${t.getMonth()+1}/${t.getDate()}(${DOW[t.getDay()]})${i?"":" 오늘"}`,`${t.getFullYear()}-${pad(t.getMonth()+1)}-${pad(t.getDate())}`))}
+ for(let i=0;i<24;i++)$("sHour").add(new Option(pad(i)+"시",i));
+ for(let i=0;i<60;i++)$("sMin").add(new Option(pad(i)+"분",i));
+})();
+function setSched(v){
+ const d=$("sDate"),t=v?new Date(v):null;
+ if(t&&!isNaN(t)){
+  const key=`${t.getFullYear()}-${pad(t.getMonth()+1)}-${pad(t.getDate())}`;
+  if(![...d.options].some(o=>o.value===key))d.add(new Option(`${t.getMonth()+1}/${t.getDate()}(${DOW[t.getDay()]})`,key),1);
+  d.value=key;$("sHour").value=t.getHours();$("sMin").value=t.getMinutes();
+  $("schedState").textContent=(t<=new Date()?"발행 완료 · ":"발행 예정 · ")+fmtAt(v);
+ }else{d.value="";$("sHour").value=9;$("sMin").value=0;$("schedState").textContent="예약 미지정"}
+}
+async function saveSched(clear){
+ if(!selected)return;const id=selected.id;let at="";
+ if(!clear){const d=$("sDate").value;if(!d){setStatus("날짜를 먼저 선택하세요.");return}at=new Date(`${d}T${pad($("sHour").value)}:${pad($("sMin").value)}:00`).toISOString()}
+ setStatus("예약 저장 중…");
+ try{
+  const r=await callDb({action:"schedule",id,publishAt:at});
+  if(!r||!r.ok)throw new Error(r&&r.error||"저장하지 못했습니다.");
+  const it=allContents.find(x=>x.id===id);if(it)it.publishAt=at;
+  writeCache();renderList();if(selected&&selected.id===id)setSched(at);
+  setStatus(clear?"예약을 해제했습니다.":"발행 예약을 저장했습니다.");
+ }catch(e){setStatus("예약 저장 실패: "+(e.message||e)+" (Apps Script를 새 버전으로 배포했는지 확인하세요)")}
+}
+$("sSave").onclick=()=>saveSched(false);$("sClear").onclick=()=>saveSched(true);
+// 예약 시각이 지나면 자동으로 ‘완료’ 목록으로 옮깁니다(입력 중에는 건드리지 않음).
+let stSig="";setInterval(()=>{const g=allContents.map(stateOf).join();if(stSig&&g!==stSig&&!hasUnsavedEdits()&&!detailEl.contains(document.activeElement))renderList();stSig=g},30000);
 
 /* ---------- 자동 저장 ---------- */
 function makeAutoSaveSnapshot(){
@@ -428,7 +505,7 @@ async function submitUserId(raw){
  switchUser();
 }
 function switchUser(){
- selected=null;allContents=[];isAdmin=false;fieldValues={};legacyPosts=[];
+ selected=null;allContents=[];isAdmin=false;fieldValues={};legacyPosts=[];chans.clear();chanSig="";tab="all";
  renderUidBar(false);
  if(!getUserId()){showNeedId();return}
  const c=readCache();
