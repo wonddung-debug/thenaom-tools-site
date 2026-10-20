@@ -329,8 +329,10 @@
   .fld .fh{display:flex; align-items:center; gap:6px; margin-bottom:4px}
   .fld .fh label{font-size:13.5px; font-weight:700}
   .fld .fh button{margin-left:auto; min-width:76px}
-  .fld .fh button.did{color:var(--ok-ink); border-color:var(--ok-ink)}
-  textarea.ta{min-height:84px; height:84px; font-size:15px; padding:10px; border-radius:10px}
+  .fld .fh button.did, #rawBox > summary button.did{color:var(--ok-ink); border-color:var(--ok-ink)}
+  #rawBox > summary .rl{font-size:13.5px; font-weight:700}
+  #rawBox > summary button{margin-left:auto; min-width:76px}
+  textarea.ta{min-height:148px; height:148px; resize:none; overflow-y:auto; font-size:15px; padding:10px; border-radius:10px}
   #acts{display:flex; gap:8px; margin-top:4px}
   #acts .primary{flex:1; padding:13px 10px; font-size:15.5px}
   #acts .primary.isdone{background:var(--panel); color:var(--ink); border-color:var(--line)}
@@ -378,14 +380,14 @@
     body.m-detail #top .ttl{display:none}
     #paneTxt, #txtBody{display:contents}
     #emptyMsg{display:none !important}
-    #rawBox{order:6} #fields{order:5} #acts{order:7}
+    #rawBox{order:5} #fields{order:6} #acts{order:7}
     body.newdoc #rawBox{order:2}
     #rawBox{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:0 10px 10px}
     body.newdoc #rawBox{border-color:var(--accent)}
     .srow input, .srow select, #dHead select, #dHead input[type="datetime-local"]{min-height:42px; font-size:16px}
     #newBtn{height:42px; width:44px}
     textarea.ta{font-size:16px}
-    .fld .fh button{min-height:40px}
+    .fld .fh button, #rawBox > summary button{min-height:40px}
     /* 채널 디자인: 위에 미리보기를 붙여 두고 아래에서 고칩니다 */
     body.design #colList, body.design #dHead, body.design #paneTxt{display:none}
     body.design #paneImg{display:block; position:sticky; top:var(--hh); z-index:8; background:var(--bg); max-height:44vh; overflow:auto; border-bottom:1px solid var(--line); padding-bottom:6px}
@@ -406,7 +408,7 @@
     #paneImg{grid-column:3; grid-row:1 / 3}
     #colList, #paneTxt, #paneImg, #designPane{overflow:auto; min-height:0; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:10px 12px}
     #dHead{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:8px 10px}
-    #rawBox > summary{display:none}
+    #rawBox > summary{cursor:default}
     #viewBar{top:-10px; background:var(--panel); margin-top:-10px; padding-top:10px}
     #paneImg .card{background:var(--bg)}
     body.design #colList, body.design #dHead, body.design #paneTxt{display:none}
@@ -458,7 +460,7 @@
     <div id="emptyMsg">왼쪽 목록에서 글을 고르거나 <b>+</b> 를 눌러 새 글을 시작하세요.</div>
     <div id="txtBody">
       <details id="rawBox">
-        <summary>원글 <span class="tg e" id="rawTag">비어 있음</span></summary>
+        <summary><span class="rl">원글</span><span class="tg e" id="rawTag">비어 있음</span><button type="button" class="ghost sm" id="cpy_raw">복사</button></summary>
         <textarea id="src" spellcheck="false"></textarea>
         <div class="num-hint" id="numHint" hidden>
           <span id="numHintText"></span>
@@ -2271,7 +2273,7 @@ function shareImages(){
     alert("이 브라우저는 이미지 공유를 지원하지 않습니다. ‘다운로드’를 눌러 주세요.");
     return;
   }
-  const cap = (S.cur && S.cur.f && S.cur.f.instagram_caption || "").trim() ? S.cur.f.instagram_caption : "";
+  const cap = (S.cur && S.cur.f && S.cur.f.instagram_caption || "").trim() ? plainCopy(S.cur.f.instagram_caption) : "";
   const p = navigator.share({files});      /* 누른 즉시 호출해야 공유창이 열립니다 */
   let capDone = false;
   const tryCopy = () => {
@@ -2281,7 +2283,7 @@ function shareImages(){
   tryCopy();
   p.then(()=>{
     markUsed("sh");
-    tryCopy().then(()=>{ if(capDone) toast("인스타 설명도 복사해 두었어요 · 인스타에서 붙여넣기 하세요"); });
+    tryCopy().then(()=>{ if(capDone) toast(`인스타 설명 ${cap.length.toLocaleString()}글자 복사됨`); });
   }).catch(e=>{
     if(e && e.name === "AbortError") return;
     toast("공유하지 못했어요: " + (e && e.message || e), "bad");
@@ -2956,6 +2958,7 @@ function fillDetail(){
   $("dtClr").hidden = !c.publishAt;
   if(act !== $("src")) $("src").value = c.rawText || "";
   updateRawTag();
+  updateCopyBtn("raw");
   updateNumHint();
   FIELDS.forEach(x => {
     const ta = $("fld_" + x.kind);
@@ -2983,13 +2986,10 @@ function applyDesignFor(c){
   }
   updateSplitUI();
 }
-function autoGrow(ta){
-  ta.style.height = "auto";
-  ta.style.height = Math.min(Math.max(ta.scrollHeight + 2, 84), 420) + "px";
-}
+function autoGrow(ta){ /* 칸 높이는 고정 — 길어지면 칸 안에서 스크롤 */ }
 function updateRawTag(){
   const t = $("rawTag"), v = (S.cur && S.cur.rawText) || "";
-  t.textContent = v.trim() ? `${v.length.toLocaleString()}자 · ${pages.length || "?"}장` : "비어 있음";
+  t.textContent = v.trim() ? `입력됨 · ${v.length.toLocaleString()}자` : "비어 있음";
   t.className = v.trim() ? "tg" : "tg e";
 }
 function updateTag(kind){
@@ -3037,20 +3037,27 @@ function updateShareMarks(){
       scheduleListRender();
     });
     ta.addEventListener("blur", () => flushSoon(150));
-    btn.addEventListener("click", async () => {
-      const v = (S.cur && S.cur.f[x.kind]) || "";
-      if(!v.trim()){ toast(x.label + "이(가) 비어 있어요", "bad"); return; }
-      const ok = await copyText(v);
-      if(!ok){ toast("복사하지 못했어요. 글자를 길게 눌러 직접 복사해 주세요.", "bad"); return; }
-      (COPIED[S.cur.key] = COPIED[S.cur.key] || {})[x.kind] = Date.now();
-      saveCopied();
-      btn._flash = true; btn.textContent = "✓ 복사됨"; btn.classList.add("did");
-      setTimeout(() => { btn._flash = false; updateCopyBtn(x.kind); }, 1400);
-      toast(`✓ ${x.label} 복사됨 · ${v.length.toLocaleString()}자`);
-      try{ if(navigator.vibrate) navigator.vibrate(25); }catch(e){}
-    });
+    btn.addEventListener("click", () => copyField(x.kind, x.label, (S.cur && S.cur.f[x.kind]) || ""));
   });
 })();
+/* 복사할 때 **강조** 기호는 빼고 글자만 복사합니다. 알림은 아래 한 줄(몇 글자)만 띄웁니다. */
+const plainCopy = t => String(t || "").replace(/\*\*/g, "");
+async function copyField(kind, label, text){
+  if(!S.cur) return;
+  const v = plainCopy(text);
+  if(!v.trim()){ toast(label + "이(가) 비어 있어요", "bad"); return; }
+  const ok = await copyText(v);
+  if(!ok){ toast("복사하지 못했어요. 글자를 길게 눌러 직접 복사해 주세요.", "bad"); return; }
+  (COPIED[S.cur.key] = COPIED[S.cur.key] || {})[kind] = Date.now();
+  saveCopied();
+  updateCopyBtn(kind);
+  toast(`${v.length.toLocaleString()}글자 복사됨`);
+}
+$("cpy_raw").addEventListener("click", e => {
+  e.preventDefault(); e.stopPropagation();       /* 버튼을 눌러도 원글 칸이 접히지 않게 */
+  copyField("raw", "원글", (S.cur && S.cur.rawText) || "");
+});
+$("rawBox").querySelector("summary").addEventListener("click", e => { if(isWide()) e.preventDefault(); });
 async function copyText(text){
   try{ await navigator.clipboard.writeText(text); return true; }
   catch(e){
@@ -3075,6 +3082,7 @@ $("src").addEventListener("input", () => {
   const first = !S.contents.includes(c);
   c.rawText = $("src").value;
   c.title = deriveTitle(c.rawText);
+  updateRawTag();
   updateNumHint();
   queueSave(c, {rawText:c.rawText});
   if(first) S.tab = stateOf(c);
