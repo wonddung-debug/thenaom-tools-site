@@ -326,17 +326,36 @@
   #rawBox .num-hint{margin:8px 0 0}
   #optBox .split-box{margin:6px 0 0}
   #fields{display:flex; flex-direction:column; gap:14px}
-  .fld .fh{display:flex; align-items:center; gap:6px; margin-bottom:4px}
-  .fld .fh label{font-size:13.5px; font-weight:700}
-  .fld .fh button{margin-left:auto; min-width:76px}
-  .fld .fh button.did, #rawBox > summary button.did{color:var(--ok-ink); border-color:var(--ok-ink)}
+  /* 설명 칸: 원글처럼 접고 펴는 칸 (PC는 늘 펼침) */
+  .fbox > summary{min-height:40px; display:flex; align-items:center; gap:6px; cursor:pointer}
+  .fbox > summary .fl{font-size:13.5px; font-weight:700}
+  .fbox > summary button{margin-left:auto; min-width:76px}
+  .fbox > summary button.did, #rawBox > summary button.did{color:var(--ok-ink); border-color:var(--ok-ink)}
+  .fbox > textarea{margin-top:4px}
   #rawBox > summary .rl{font-size:13.5px; font-weight:700}
   #rawBox > summary button{margin-left:auto; min-width:76px}
   textarea.ta{min-height:148px; height:148px; resize:none; overflow-y:auto; font-size:15px; padding:10px; border-radius:10px}
   #acts{display:flex; gap:8px; margin-top:4px}
   #acts .primary{flex:1; padding:13px 10px; font-size:15.5px}
   #acts .primary.isdone{background:var(--panel); color:var(--ink); border-color:var(--line)}
-  #delBtn{flex:none}
+  #delBtn{flex:0 0 30%; padding:13px 10px; font-size:15.5px; font-weight:700; border-radius:12px; color:var(--bad); border-color:var(--bad)}
+
+  /* 큰 새 글 버튼 · 여러 개 골라 삭제 */
+  #newBig{display:block; width:100%; margin:10px 0 2px; padding:13px; font-size:16px; font-weight:700; border-radius:12px; background:var(--accent); color:#fff; border:1px solid var(--accent); cursor:pointer}
+  #selBtn{flex:none; height:38px; padding:0 12px; font-size:13.5px; font-weight:700}
+  #selHead{display:flex; gap:8px; align-items:center; margin:8px 0 2px; padding:8px 10px; border:1px solid var(--bad); border-radius:10px; background:var(--panel); font-size:13.5px; font-weight:700}
+  #selHead span{margin-right:auto}
+  .sk{position:relative; width:24px; height:24px; flex:none; border-radius:6px; border:2px solid var(--sub); background:var(--panel); padding:0; cursor:pointer}
+  .sk::after{content:""; position:absolute; inset:-11px}
+  .sk.on{background:var(--bad); border-color:var(--bad)}
+  .sk.on::before{content:""; position:absolute; left:50%; top:50%; width:6px; height:11px; border:solid #fff; border-width:0 2.5px 2.5px 0; transform:translate(-50%,-62%) rotate(45deg)}
+  .it.picked{border-color:var(--bad); box-shadow:inset 0 0 0 1px var(--bad)}
+  #selDel{display:flex; gap:8px; margin-top:10px}
+  #selDel button{padding:14px 10px; font-size:16px; font-weight:700; border-radius:12px; cursor:pointer}
+  #selDelGo{flex:1; background:var(--bad); color:#fff; border:1px solid var(--bad)}
+  #selDelNo{flex:0 0 28%}
+  .card.ig{border-color:var(--accent)}
+  .card.ig .badge-num{background:var(--accent); color:#fff}
 
   /* 이미지 */
   #viewBar{position:sticky; top:var(--hh); z-index:6; display:flex; gap:6px; align-items:center; flex-wrap:wrap; margin:0; padding:6px 0; background:var(--bg)}
@@ -387,7 +406,18 @@
     .srow input, .srow select, #dHead select, #dHead input[type="datetime-local"]{min-height:42px; font-size:16px}
     #newBtn{height:42px; width:44px}
     textarea.ta{font-size:16px}
-    .fld .fh button, #rawBox > summary button{min-height:40px}
+    .fbox > summary button, #rawBox > summary button{min-height:40px}
+    #fields{gap:10px}
+    .fbox{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:0 10px 10px}
+    /* 접혀 있을 때는 제목 줄이 칸 가운데 오도록 */
+    .fbox:not([open]), #rawBox:not([open]){padding-bottom:0}
+    .fbox > summary, #rawBox > summary{min-height:54px}
+    #selBtn{height:42px}
+    /* 폰: 새 글 버튼·삭제 바는 화면 맨 아래에 늘 떠 있음 */
+    body.m-list #newBig, body.m-list #selDel{position:fixed; left:12px; right:12px; bottom:calc(12px + env(safe-area-inset-bottom,0px)); width:auto; margin:0; z-index:40}
+    body.m-list #newBig{padding:15px; font-size:17px; box-shadow:0 6px 18px rgba(0,0,0,.25)}
+    body.m-list #selDel button{box-shadow:0 6px 18px rgba(0,0,0,.25)}
+    body.m-list #toast{bottom:calc(86px + env(safe-area-inset-bottom,0px))}
     /* 채널 디자인: 위에 미리보기를 붙여 두고 아래에서 고칩니다 */
     body.design #colList, body.design #dHead, body.design #paneTxt{display:none}
     body.design #paneImg{display:block; position:sticky; top:var(--hh); z-index:8; background:var(--bg); max-height:44vh; overflow:auto; border-bottom:1px solid var(--line); padding-bottom:6px}
@@ -408,7 +438,9 @@
     #paneImg{grid-column:3; grid-row:1 / 3}
     #colList, #paneTxt, #paneImg, #designPane{overflow:auto; min-height:0; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:10px 12px}
     #dHead{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:8px 10px}
-    #rawBox > summary{cursor:default}
+    #rawBox > summary, .fbox > summary{cursor:default}
+    #newBig{position:sticky; bottom:0; box-shadow:0 -8px 10px var(--panel)}
+    #selDel{position:sticky; bottom:0; background:var(--panel); padding:8px 0 0; margin-top:8px}
     #viewBar{top:-10px; background:var(--panel); margin-top:-10px; padding-top:10px}
     #paneImg .card{background:var(--bg)}
     body.design #colList, body.design #dHead, body.design #paneTxt{display:none}
@@ -443,9 +475,19 @@
       <input type="search" id="q" placeholder="검색" aria-label="글 검색" autocomplete="off">
       <select id="chanF" aria-label="채널로 거르기" hidden></select>
       <button type="button" class="ghost" id="newBtn" aria-label="새 글" title="새 글">+</button>
+      <button type="button" class="ghost" id="selBtn" title="여러 개 골라서 삭제">선택</button>
     </div>
     <div class="tabs3" id="tabs3"></div>
+    <div id="selHead" hidden>
+      <span id="selCount">0개 선택됨</span>
+      <button type="button" class="ghost sm" id="selAll">전체 선택</button>
+    </div>
     <div id="items"><div class="empty">불러오는 중…</div></div>
+    <button type="button" id="newBig">+ 새 글 작성</button>
+    <div id="selDel" hidden>
+      <button type="button" id="selDelGo" disabled>선택한 0개 삭제</button>
+      <button type="button" class="ghost" id="selDelNo">취소</button>
+    </div>
   </aside>
 
   <!-- 가운데 위: 채널 · 올릴 날짜 -->
@@ -509,13 +551,13 @@
       <div class="seg" id="viewSeg"><button type="button" data-val="list" class="active">세로</button><button type="button" data-val="swipe">가로</button></div>
       <button type="button" class="ghost nav" id="navPrev" aria-label="이전 장">◀</button><button type="button" class="ghost nav" id="navNext" aria-label="다음 장">▶</button>
       <span id="imgCount"></span>
-      <button type="button" class="ghost sm" id="tbSave">다운로드</button>
-      <button type="button" class="ghost sm hl" id="tbShare">인스타 공유</button>
+      <button type="button" class="ghost sm" id="tbSave" title="유튜브용 (원래 이미지)">다운로드</button>
+      <button type="button" class="ghost sm hl" id="tbShare" title="인스타용 (마지막 장에 1·2 숫자와 안내 줄)">인스타 공유</button>
     </div>
     <div id="imgEmpty" class="empty">원글을 넣으면 여기에 이미지가 바로 만들어집니다.</div>
     <div class="list" id="list"></div>
     <div class="bottom-actions" id="bottomActions" hidden>
-      <button type="button" class="primary" id="saveAll">이미지 다운로드</button>
+      <button type="button" class="primary" id="saveAll">유튜브용 다운로드</button>
       <button type="button" class="primary accent" id="shareAll">인스타 공유</button>
     </div>
     <p class="msg" id="msg"></p>
@@ -805,6 +847,14 @@
         <p class="hint">글자 수는 공백 포함, **강조 표시**는 제외하고 셉니다. ‘엔터 그대로’ 모드에서는 글자 수 제한이 적용되지 않아요.</p>
       </div>
 
+      <!-- 인스타 공유용 마지막 장 -->
+      <div class="sec" data-tab="misc">
+        <div class="sec-title">📸 인스타 공유용 마지막 장</div>
+        <label class="lbl" for="igNote">마지막 장 아래 안내 문구 (비워 두면 숫자 1·2만 붙어요)</label>
+        <input type="text" id="igNote" maxlength="60" value="1 또는 2 댓글 → 사연 뒷이야기 DM으로 보내드려요 💌">
+        <p class="hint">‘인스타 공유’로 보낼 때만 마지막 투표 장(VS · A vs B · 1.2.3. 선택지)에 들어가요. VS 장에는 위·아래에 1·2 숫자도 붙어요. 선택지가 3개 이상이면 문구 속 ‘1 또는 2’는 ‘1~4’처럼 자동으로 바뀌어요. ‘다운로드’(유튜브용)는 원래 이미지 그대로예요.</p>
+      </div>
+
       <!-- 5. 최대 장수 제한 -->
       <div class="sec" data-tab="misc" style="margin-bottom:0;">
         <div class="sec-title">📑 최대 장수 제한</div>
@@ -924,7 +974,7 @@ FONTS.forEach((f,i)=>{
   fontSel.appendChild(o);
 });
 
-let pages = [], canvases = [], blobs = [];
+let pages = [], canvases = [], blobs = [], igBlobs = [];   /* blobs = 유튜브용(다운로드), igBlobs = 인스타용(공유) */
 let textAlign = "left", wrapMode = "auto", currentTheme = "white";
 let logoImg = null, logoDataUrl = "";
 
@@ -1404,7 +1454,8 @@ function limitPages(list){
 
 /* ---------- 확장 옵션 (프리셋에 함께 저장됨) ---------- */
 const EXTRA = {letterSpacing:0, coverScale:1, textShadow:"none", strokeW:0, strokeColor:"#000000",
-  charLimit:0, breakMode:"word", fitMode:"auto", minFont:20, bgPattern:"none", frameColor:"ink"};
+  charLimit:0, breakMode:"word", fitMode:"auto", minFont:20, bgPattern:"none", frameColor:"ink",
+  igNote:"1 또는 2 댓글 → 사연 뒷이야기 DM으로 보내드려요 💌"};
 function getOpt(k){
   const v = $(k).value;
   if(typeof EXTRA[k] !== "number") return v;
@@ -1809,12 +1860,55 @@ function drawCta(ctx, f, hlCol, padY, areaH){
   ctx.fillText("♥ 저장하고 팔로우 +", WIDTH/2, y + h/2 + 1);
   ctx.restore();
 }
+/* 인스타 공유용: 투표 선택지 앞에 붙는 동그란 숫자 */
+function drawNumBadge(ctx, label, cx, cy, size, f, hlCol){
+  ctx.save();
+  try{ ctx.letterSpacing = "0px"; }catch(e){}
+  ctx.fillStyle = hlCol;
+  ctx.beginPath(); ctx.arc(cx, cy, size/2, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = isDarkColor(hlCol) ? "#ffffff" : "#111111";
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.font = `${f.cover} ${Math.round(size*0.6)}px "${f.family}", "Pretendard", sans-serif`;
+  ctx.fillText(label, cx, cy + 1);
+  ctx.restore();
+}
+/* 인스타 공유용: 마지막 장 아래 안내 한 줄 (작은 캡슐) */
+const IG_NOTE_H = 84;
+function igNoteY(H){
+  const on = $("pageNumStyle").value !== "none";
+  return H - (on ? (Number($("pageNumY").value) || 58) + (Number($("pageNumSize").value) || 32)/2 + 54 : 72);
+}
+function drawIgNote(ctx, text, H, f, inkCol, padX){
+  const maxW = Math.max(520, WIDTH - padX*2) - 56;
+  ctx.save();
+  try{ ctx.letterSpacing = "0px"; }catch(e){}
+  let s = 34;
+  const css = n => `${f.cover} ${n}px "${f.family}", "Pretendard", "Noto Sans KR", sans-serif`;
+  ctx.font = css(s);
+  while(s > 20 && ctx.measureText(text).width > maxW){ s -= 1; ctx.font = css(s); }
+  const w = Math.min(ctx.measureText(text).width, maxW), y = igNoteY(H), h = Math.round(s*1.9);
+  ctx.fillStyle = inkCol; ctx.globalAlpha = 0.07;
+  ctx.beginPath(); ctx.roundRect(WIDTH/2 - w/2 - 28, y - h/2, w + 56, h, h/2); ctx.fill();
+  ctx.globalAlpha = 0.85;
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillText(text, WIDTH/2, y + 1, maxW);
+  ctx.restore();
+}
+/* 마지막 장이 투표 장(VS·A vs B·O/X·1.2.3. 선택지)인지 */
+const isVotePage = p => !!p && (p.type === "vs" || p.type === "choice");
+/* 인스타용 마지막 장이 유튜브용과 달라지는지 (안내 문구가 있거나, 숫자를 붙일 VS 장) */
+function needsIgLast(p){
+  if(!isVotePage(p)) return false;
+  return !!String(getOpt("igNote") || "").trim() || (p.type === "vs" && !p.ox);
+}
+
 /* A vs B / O·X 좌우 2분할 */
-function drawSideBySide(ctx, page, f, css, padX, padY, areaH, maxFont, lhRatio, bgCol, inkCol, hlCol, hlStyle){
-  const gap = 96, colW = (WIDTH - padX*2 - gap)/2, markH = page.ox ? 170 : 0;
+function drawSideBySide(ctx, page, f, css, padX, padY, areaH, maxFont, lhRatio, bgCol, inkCol, hlCol, hlStyle, num){
+  const gap = 96, colW = (WIDTH - padX*2 - gap)/2, markH = page.ox ? 170 : (num ? 130 : 0);
   const r = fit(ctx, css, [page.top, page.bottom], colW, areaH - markH, Math.min(maxFont, 50), 18, lhRatio);
   [[r.all[0], padX], [r.all[1], padX + colW + gap]].forEach(([ls, x], i)=>{
     const top = padY + markH + (areaH - markH - ls.length*r.lh)/2;
+    if(num && !page.ox) drawNumBadge(ctx, String(i + 1), x + colW/2, padY + 62, 92, f, hlCol);
     if(page.ox){
       const cx = x + colW/2, cy = padY + 80, R = 58, k = R*0.8;
       ctx.save(); ctx.strokeStyle = inkCol; ctx.lineWidth = 18; ctx.lineCap = "round"; ctx.beginPath();
@@ -1926,7 +2020,8 @@ function drawFrameAndDeco(ctx, H, bgCol, inkCol, hlCol, padX, padY){
   }
 }
 
-function draw(page, idx, total, f){
+/* ig = true 이면 인스타 공유용 (마지막 투표 장에 1·2 숫자 + 안내 줄). 기본은 유튜브용 원래 이미지 */
+function draw(page, idx, total, f, ig){
   const H = getHeight();
   const c = document.createElement("canvas");
   c.width = WIDTH;
@@ -1958,7 +2053,15 @@ function draw(page, idx, total, f){
   const curAlign = isCover ? "center" : textAlign;
   const css = s => `${wt} ${s}px "${f.family}", "Pretendard", "Noto Sans KR", sans-serif`;
   const maxW = WIDTH - padX*2;
-  const areaH = H - padY*2 - footH/2;
+  const igOn = !!ig && idx === total - 1 && isVotePage(page);
+  let igText = igOn ? String(getOpt("igNote") || "").trim() : "";
+  /* 선택지가 3개 이상이면 문구 속 ‘1 또는 2’를 ‘1~4’처럼 바꿔 줍니다 */
+  if(igText && page.type === "choice" && page.items.length > 2){
+    igText = igText.replace(/1\s*(또는|이나|or|,|\/)\s*2/, `${page.items[0].num}~${page.items[page.items.length - 1].num}`);
+  }
+  const igNum = igOn && page.type === "vs" && !page.ox;
+  /* 안내 줄이 들어갈 자리만큼 본문 칸을 위로 줄입니다 */
+  const areaH = H - padY*2 - footH/2 - (igText ? Math.max(0, padY + (H - padY*2 - footH/2) - (igNoteY(H) - IG_NOTE_H/2 - 18)) : 0);
 
   if(page.type === "plain"){
     const ah = page.cta ? areaH - 140 : areaH;
@@ -1970,18 +2073,26 @@ function draw(page, idx, total, f){
   }else if(page.type === "choice"){
     drawChoiceLayout(ctx, page, f, padX, padY, areaH, maxFont, lhRatio, bgCol, inkCol, hlCol, hlStyle);
   }else if(page.dir === "h"){
-    drawSideBySide(ctx, page, f, css, padX, padY, areaH, maxFont, lhRatio, bgCol, inkCol, hlCol, hlStyle);
+    drawSideBySide(ctx, page, f, css, padX, padY, areaH, maxFont, lhRatio, bgCol, inkCol, hlCol, hlStyle, igNum);
   }else{
     const vsH = 110;
     const halfH = (areaH - vsH)/2;
-    const r = fit(ctx, css, [page.top, page.bottom], maxW, halfH, Math.min(maxFont, 58), 20, lhRatio);
+    /* 인스타용이면 글 왼쪽에 1·2 숫자 자리를 비워 둡니다 */
+    const bSize = igNum ? Math.round(Math.min(maxFont, 58) * 1.3) : 0, bGap = igNum ? 28 : 0;
+    const tX = padX + bSize + bGap, tW = maxW - bSize - bGap;
+    const r = fit(ctx, css, [page.top, page.bottom], tW, halfH, Math.min(maxFont, 58), 20, lhRatio);
     const tl = r.all[0], bl = r.all[1];
 
     const topY = padY + (halfH - tl.length*r.lh)/2 + r.lh/2;
-    drawFormattedLines(ctx, tl, topY, r.lh, r.size, curAlign, padX, inkCol, hlCol, hlStyle, f, false);
+    drawFormattedLines(ctx, tl, topY, r.lh, r.size, curAlign, padX, inkCol, hlCol, hlStyle, f, false, igNum ? tX : null, igNum ? tW : null);
 
     const botY = padY + halfH + vsH + (halfH - bl.length*r.lh)/2 + r.lh/2;
-    drawFormattedLines(ctx, bl, botY, r.lh, r.size, curAlign, padX, inkCol, hlCol, hlStyle, f, false);
+    drawFormattedLines(ctx, bl, botY, r.lh, r.size, curAlign, padX, inkCol, hlCol, hlStyle, f, false, igNum ? tX : null, igNum ? tW : null);
+
+    if(igNum){
+      drawNumBadge(ctx, "1", padX + bSize/2, topY - r.lh/2 + tl.length*r.lh/2, bSize, f, hlCol);
+      drawNumBadge(ctx, "2", padX + bSize/2, botY - r.lh/2 + bl.length*r.lh/2, bSize, f, hlCol);
+    }
 
     const cy = padY + halfH + vsH/2;
     ctx.save();
@@ -2000,6 +2111,8 @@ function draw(page, idx, total, f){
     ctx.font = `700 52px "Pretendard","Noto Sans KR",sans-serif`;
     ctx.fillText("VS", WIDTH/2, cy + 2);
   }
+
+  if(igText) drawIgNote(ctx, igText, H, f, inkCol, padX);
 
   const pStyle = $("pageNumStyle").value;
   if(pStyle !== "none"){
@@ -2143,7 +2256,7 @@ async function render(){
   const snapPages = [...pages];
   const list = $("list");
   if(!snapPages.length){
-    canvases = []; blobs = [];
+    canvases = []; blobs = []; igBlobs = [];
     list.textContent = "";
     $("bottomActions").hidden = true;
     $("viewBar").hidden = true;
@@ -2161,12 +2274,17 @@ async function render(){
 
   const dsig = designSignature(f);
   const n = snapPages.length;
-  const entries = new Array(n), todo = [];
-  for(let i = 0; i < n; i++){
-    const sig = dsig + "|" + i + "|" + n + "|" + JSON.stringify(snapPages[i]);
+  /* 인스타 공유용 마지막 장 (유튜브용과 다를 때만 한 장 더 만듭니다) → 목록 맨 끝(n번째 칸)에 미리보기 */
+  const withIg = needsIgLast(snapPages[n - 1]);
+  const m = n + (withIg ? 1 : 0);
+  const entries = new Array(m), todo = [];
+  for(let i = 0; i < m; i++){
+    const ig = i === n;
+    const pi = ig ? n - 1 : i;
+    const sig = dsig + "|" + (ig ? "ig|" : "") + pi + "|" + n + "|" + JSON.stringify(snapPages[pi]);
     const hit = imgCache.get(sig);
     if(hit){ imgCache.delete(sig); imgCache.set(sig, hit); entries[i] = hit; }
-    else todo.push({i, sig, c: draw(snapPages[i], i, n, f)});
+    else todo.push({i, sig, c: draw(snapPages[pi], pi, n, f, ig)});
   }
   if(todo.length){
     const made = await Promise.all(todo.map(t => toBlob(t.c)));
@@ -2178,21 +2296,23 @@ async function render(){
     });
   }
 
-  for(let i = 0; i < n; i++){
+  for(let i = 0; i < m; i++){
     let card = list.children[i];
     if(!card){ card = makeCard(); list.appendChild(card); }
     const e = entries[i];
-    card._num.textContent = `${String(i+1).padStart(2,"0")} / ${String(n).padStart(2,"0")}`;
-    card._type.textContent = pageTypeLabel(snapPages[i], i);
+    const ig = i === n, pi = ig ? n - 1 : i;
+    card.classList.toggle("ig", ig);
+    card._num.textContent = ig ? `${String(n).padStart(2,"0")} · 인스타용` : `${String(i+1).padStart(2,"0")} / ${String(n).padStart(2,"0")}`;
+    card._type.textContent = ig ? "‘인스타 공유’ 누르면 마지막 장은 이걸로 나가요" : pageTypeLabel(snapPages[i], i);
     if(card._sig !== e.sig){
       /* 이미지 크기를 미리 알려 두면 그리는 동안 화면이 밀리지 않습니다 */
       card._img.width = WIDTH; card._img.height = getHeight();
       card._img.src = e.url; card._sig = e.sig;
     }
-    card._img.alt = `${i+1}번 이미지`;
-    card._dl.onclick = () => { download(e.blob, fname(i, n)); markUsed("dl"); };
+    card._img.alt = ig ? `${n}번 이미지 (인스타용)` : `${i+1}번 이미지`;
+    card._dl.onclick = () => { download(e.blob, fname(pi, n)); markUsed("dl"); };
   }
-  while(list.children.length > n) list.lastElementChild.remove();
+  while(list.children.length > m) list.lastElementChild.remove();
 
   const prevTemp = shownTemp;
   shownTemp = entries.filter(e => !imgCache.has(e.sig));
@@ -2207,13 +2327,14 @@ async function render(){
   }
 
   canvases = [];
-  blobs = entries.map(e => e.blob);
+  blobs = entries.slice(0, n).map(e => e.blob);                       /* 다운로드 = 유튜브용 (원래 이미지) */
+  igBlobs = withIg ? blobs.slice(0, n - 1).concat([entries[n].blob]) : blobs.slice();   /* 공유 = 인스타용 */
   $("imgEmpty").hidden = true;
   $("bottomActions").hidden = false;
   $("viewBar").hidden = false;
   applyView();
   $("imgCount").textContent = `${n}장`;
-  $("saveAll").textContent = `이미지 다운로드 (${n}장)`;
+  $("saveAll").textContent = `유튜브용 다운로드 (${n}장)`;
   if(!fontsOk){
     $("msg").textContent = "⚠ 글꼴을 다 불러오지 못해 굵기가 다르게 보일 수 있어요. 잠시 후 자동으로 다시 그립니다.";
     if(fontRetries < 3){ fontRetries++; setTimeout(()=>scheduleRender(false), 2500); }
@@ -2254,17 +2375,18 @@ async function saveAllImages(btn){
   btn.textContent = `${n}장 저장 완료`;
   markUsed("dl");
   setTimeout(()=>{
-    $("saveAll").textContent = `이미지 다운로드 (${blobs.length}장)`;
+    $("saveAll").textContent = `유튜브용 다운로드 (${blobs.length}장)`;
     updateShareMarks();
   }, 2200);
   btns.forEach(b => b.disabled = false);
   saving = false;
 }
 
-/* 공유: 이미지를 공유창으로 보내고, 인스타 설명이 있으면 같이 복사해 둡니다(인스타에서 바로 붙여넣기). */
+/* 공유: 인스타용 이미지(마지막 투표 장만 1·2 숫자 + 안내 줄)를 공유창으로 보내고,
+   인스타 설명이 있으면 같이 복사해 둡니다(인스타에서 바로 붙여넣기). */
 function shareImages(){
-  if(!blobs.length) return;
-  const snapBlobs = [...blobs];
+  if(!igBlobs.length) return;
+  const snapBlobs = [...igBlobs];
   const n = snapBlobs.length;
   const stamp = makeStamp();
   const baseTime = Date.now() - (n * 2000);
@@ -2389,7 +2511,8 @@ const isWide = () => wideMQ.matches;
 const S = {
   uid:"", isAdmin:false, loaded:false,
   contents:[], channels:[], chVer:"", access:{}, users:[],
-  cur:null, tab:"none", chanF:"", q:"", view:"list", mode:"work", rawOpen:false, dzTab:"ch"
+  cur:null, tab:"none", chanF:"", q:"", view:"list", mode:"work", rawOpen:false, dzTab:"ch",
+  selMode:false, sel:new Set(), visKeys:[], fOpen:{}
 };
 let OUT = {};          /* 아직 서버에 못 보낸 수정 (글 key → {id, fields, v}) — 폰에 바로 기록 */
 let COPIED = {};       /* 글마다 복사·다운로드·공유한 표시 */
@@ -2816,6 +2939,14 @@ function itemHtml(c){
   const owner = S.isAdmin && c.ownerId ? " · " + esc(c.ownerId) : "";
   const pend = OUT[c.key] ? " · 저장 대기" : "";
   const tags = FIELDS.map(x => `<span class="tg${(c.f[x.kind] || "").trim() ? "" : " e"}" title="${esc(x.label)}">${x.short}</span>`).join("");
+  /* 선택 모드: 동그라미(완료) 대신 네모 체크칸, 글을 눌러도 열지 않고 고르기만 함 */
+  if(S.selMode){
+    const pk = S.sel.has(c.key);
+    return `<div class="it${pk ? " picked" : ""}" data-key="${esc(c.key)}">`
+      + `<button type="button" class="sk${pk ? " on" : ""}" data-act="sel" aria-pressed="${pk}" aria-label="${pk ? "선택 해제" : "삭제할 글로 선택"}"></button>`
+      + `<button type="button" class="ib" data-act="sel"><b>${esc(c.title || deriveTitle(c.rawText))}</b>`
+      + `<small>${esc(chName(c))} · ${when}${owner}${pend}</small><span class="tgs">${tags}</span></button></div>`;
+  }
   return `<div class="it${on ? " on" : ""}" data-key="${esc(c.key)}">`
     + `<button type="button" class="ck${c.doneAt ? " d" : ""}" data-act="done" aria-label="${c.doneAt ? "완료 취소" : "작업 완료로 표시"}" title="${c.doneAt ? "완료 취소" : "작업 완료"}"></button>`
     + `<button type="button" class="ib" data-act="open"><b>${esc(c.title || deriveTitle(c.rawText))}</b>`
@@ -2836,12 +2967,84 @@ function renderList(){
   else if(S.tab === "done") items.sort((a, b) => T(b.doneAt) - T(a.doneAt));
   else items.sort((a, b) => (T(b.createdAt) || Infinity) - (T(a.createdAt) || Infinity));
   const host = $("items");
-  if(!items.length){ host.innerHTML = `<div class="empty">${esc(emptyText(q))}</div>`; return; }
+  if(!items.length){ S.visKeys = []; host.innerHTML = `<div class="empty">${esc(emptyText(q))}</div>`; updateSelUI(); return; }
   const more = items.length > doneLimit;
   if(more) items = items.slice(0, doneLimit);
+  S.visKeys = items.map(c => c.key);
   host.innerHTML = items.map(itemHtml).join("")
     + (more ? `<button type="button" class="ghost" data-act="more" style="width:100%;margin-top:8px">더 보기</button>` : "");
+  updateSelUI();
 }
+
+/* ---------- 여러 개 골라서 삭제 ---------- */
+function updateSelUI(){
+  if(!S.sel) S.sel = new Set();
+  const keys = new Set(S.contents.map(c => c.key));
+  [...S.sel].forEach(k => { if(!keys.has(k)) S.sel.delete(k); });      /* 사라진 글은 선택에서 뺌 */
+  const k = S.sel.size;
+  document.body.classList.toggle("selmode", !!S.selMode);
+  $("selHead").hidden = !S.selMode;
+  $("selDel").hidden = !S.selMode;
+  $("newBig").hidden = !!S.selMode;
+  $("selBtn").textContent = S.selMode ? "취소" : "선택";
+  $("selCount").textContent = `${k}개 선택됨`;
+  const vis = S.visKeys || [];
+  const allOn = vis.length > 0 && vis.every(x => S.sel.has(x));
+  $("selAll").textContent = allOn ? "전체 해제" : "전체 선택";
+  $("selAll").disabled = !vis.length;
+  if(!selDeleting){
+    $("selDelGo").textContent = `선택한 ${k}개 삭제`;
+    $("selDelGo").disabled = !k;
+  }
+}
+let selDeleting = false;
+function setSelMode(on){
+  S.selMode = !!on;
+  S.sel = new Set();
+  renderList();
+}
+$("selBtn").onclick = () => setSelMode(!S.selMode);
+$("selDelNo").onclick = () => setSelMode(false);
+$("selAll").onclick = () => {
+  const vis = S.visKeys || [];
+  const allOn = vis.length > 0 && vis.every(x => S.sel.has(x));
+  vis.forEach(x => allOn ? S.sel.delete(x) : S.sel.add(x));
+  renderList();
+};
+$("selDelGo").onclick = async () => {
+  if(selDeleting) return;
+  const picked = S.contents.filter(c => S.sel.has(c.key));
+  if(!picked.length) return;
+  const can = picked.filter(canDelete), skip = picked.length - can.length;
+  if(!can.length){ toast("고른 글은 모두 다른 아이디의 글이라 지울 수 없어요", "bad"); return; }
+  if(!confirm(`${can.length}개 글을 삭제할까요? 되돌릴 수 없습니다.` + (skip ? `\n(다른 아이디의 글 ${skip}개는 빼고 지워요)` : ""))) return;
+  selDeleting = true;
+  const go = $("selDelGo");
+  go.disabled = true;
+  setSaveSt("saving");
+  let ok = 0, fail = 0;
+  for(const c of can){
+    go.textContent = `삭제 중 ${ok + fail + 1}/${can.length}`;
+    delete OUT[c.key]; saveOut();
+    if(c.id){
+      try{
+        const r = await callDb({action:"delete", id:c.id});
+        if(!r || !r.ok) throw new Error((r && r.error) || "삭제하지 못했습니다.");
+      }catch(e){ fail++; continue; }
+    }
+    delete COPIED[c.key];
+    S.sel.delete(c.key);
+    removeLocal(c, "");
+    ok++;
+  }
+  saveCopied();
+  setSaveSt("ok");
+  selDeleting = false;
+  if(!fail) S.selMode = false;          /* 다 지웠으면 선택 모드를 끝내고, 실패한 글은 골라 둔 채로 남김 */
+  renderList();
+  toast(`${ok}개 삭제했어요` + (fail ? ` · ${fail}개는 못 지웠어요 (다시 눌러 주세요)` : "") + (skip ? ` · 다른 아이디 글 ${skip}개는 건너뜀` : ""), fail ? "bad" : "");
+};
+$("newBig").onclick = () => newDraft({focus:true});
 function markActive(){
   document.querySelectorAll("#items .it").forEach(el => el.classList.toggle("on", !!S.cur && el.dataset.key === S.cur.key));
 }
@@ -2852,13 +3055,19 @@ $("items").addEventListener("click", e => {
   const row = b.closest(".it");
   const c = row && S.contents.find(x => x.key === row.dataset.key);
   if(!c) return;
-  if(b.dataset.act === "done") toggleDone(c);
+  if(b.dataset.act === "sel"){
+    if(S.sel.has(c.key)) S.sel.delete(c.key); else S.sel.add(c.key);
+    renderList();
+  }
+  else if(S.selMode) return;
+  else if(b.dataset.act === "done") toggleDone(c);
   else openContent(c);
 });
 $("tabs3").addEventListener("click", e => {
   const b = e.target.closest("button[data-tab]");
   if(!b) return;
   S.tab = b.dataset.tab; doneLimit = 100;
+  if(S.sel) S.sel.clear();
   renderList(); saveState();
 });
 $("q").addEventListener("input", () => { S.q = $("q").value; scheduleListRender(); });
@@ -2928,7 +3137,8 @@ function openContent(c, opt){
   if(S.cur && S.cur !== c) flushSoon(80);
   const same = S.cur === c;
   S.cur = c;
-  if(!same) fontRetries = 0;
+  if(!same){ fontRetries = 0; S.fOpen = {}; }
+  if(S.selMode){ S.selMode = false; S.sel.clear(); updateSelUI(); }
   document.body.classList.remove("nosel");
   document.body.classList.toggle("newdoc", !c.rawText);
   if(!same && !opt.restore) S.rawOpen = false;
@@ -2967,6 +3177,7 @@ function fillDetail(){
     updateCopyBtn(x.kind);
   });
   $("rawBox").open = isWide() || !c.rawText || S.rawOpen;
+  applyFieldOpen();
   updateDoneBtn();
   $("delBtn").hidden = !canDelete(c);
   updateShareMarks();
@@ -3016,17 +3227,26 @@ function updateShareMarks(){
   $("tbShare").textContent = m.sh ? "인스타 공유 ✓" : "인스타 공유";
 }
 
-/* 설명 4칸 만들기 */
+/* 설명 4칸 만들기 — 원글처럼 접고 펴는 칸. 폰에서는 접힌 채로 열리고, 제목 줄의 ‘복사’로 펴지 않고 바로 복사 */
+function applyFieldOpen(){
+  FIELDS.forEach(x => { const b = $("box_" + x.kind); if(b) b.open = isWide() || !!S.fOpen[x.kind]; });
+}
 (function buildFields(){
   const host = $("fields");
   FIELDS.forEach(x => {
-    const wrap = document.createElement("div");
-    wrap.className = "fld";
-    wrap.innerHTML = `<div class="fh"><label for="fld_${x.kind}">${x.label}</label><span class="tg e" id="tag_${x.kind}">비어 있음</span>`
-      + `<button type="button" class="ghost sm" id="cpy_${x.kind}">복사</button></div>`
-      + `<textarea class="ta" id="fld_${x.kind}" placeholder="${x.label} 입력"></textarea>`;
+    const wrap = document.createElement("details");
+    wrap.className = "fld fbox";
+    wrap.id = "box_" + x.kind;
+    wrap.innerHTML = `<summary><span class="fl">${x.label}</span><span class="tg e" id="tag_${x.kind}">비어 있음</span>`
+      + `<button type="button" class="ghost sm" id="cpy_${x.kind}">복사</button></summary>`
+      + `<textarea class="ta" id="fld_${x.kind}" placeholder="${x.label} 입력" aria-label="${x.label}"></textarea>`;
     host.appendChild(wrap);
     const ta = wrap.querySelector("textarea"), btn = wrap.querySelector("button");
+    wrap.querySelector("summary").addEventListener("click", e => { if(isWide()) e.preventDefault(); });
+    wrap.addEventListener("toggle", () => {
+      if(isWide()) return;
+      S.fOpen[x.kind] = wrap.open;
+    });
     ta.addEventListener("input", () => {
       const c = S.cur;
       if(!c) return;
@@ -3037,7 +3257,10 @@ function updateShareMarks(){
       scheduleListRender();
     });
     ta.addEventListener("blur", () => flushSoon(150));
-    btn.addEventListener("click", () => copyField(x.kind, x.label, (S.cur && S.cur.f[x.kind]) || ""));
+    btn.addEventListener("click", e => {
+      e.preventDefault(); e.stopPropagation();       /* 복사 버튼을 눌러도 칸이 펴지거나 접히지 않게 */
+      copyField(x.kind, x.label, (S.cur && S.cur.f[x.kind]) || "");
+    });
   });
 })();
 /* 복사할 때 **강조** 기호는 빼고 글자만 복사합니다. 알림은 아래 한 줄(몇 글자)만 띄웁니다. */
@@ -3174,6 +3397,7 @@ window.addEventListener("popstate", () => {
 });
 wideMQ.addEventListener ? wideMQ.addEventListener("change", onWideChange) : wideMQ.addListener(onWideChange);
 function onWideChange(){
+  applyFieldOpen();
   if(isWide()){
     if(S.cur) $("rawBox").open = true;
     else if(S.mode === "work") newDraft({silent:true, focus:false});
