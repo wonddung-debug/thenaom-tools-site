@@ -265,7 +265,11 @@
 
   /* 맨 위 줄 */
   #top{position:sticky; top:0; z-index:30; display:flex; align-items:center; gap:8px; height:var(--hh); padding:0 12px; background:var(--panel); border-bottom:1px solid var(--line)}
-  #top .ttl{font-size:16px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  #top .ttl{font-size:16px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; padding:10px 6px; user-select:none; -webkit-tap-highlight-color:transparent}
+  /* 당겨서 새로고침 안내 */
+  #pullBar{position:fixed; left:50%; top:calc(var(--hh) + 4px); z-index:35; transform:translate(-50%,-70px); opacity:0; pointer-events:none; padding:9px 18px; border-radius:999px; background:#1f2937; color:#fff; font-size:14px; font-weight:700; white-space:nowrap; transition:opacity .12s}
+  #pullBar.show{opacity:1}
+  #pullBar.go{background:var(--accent)}
   #saveSt{margin-left:auto; font-size:12px; color:var(--sub); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0}
   #saveSt.bad{color:var(--bad); font-weight:700}
   #top .uid-bar{margin:0; flex:none}
@@ -342,7 +346,7 @@
   .paste-acts .primary{flex:1; padding:12px; font-size:15px}
   .paste-acts .ghost{flex:0 0 28%; font-size:14px}
   /* 마지막 장 모양 바로 고르기 (이미지 위) */
-  #lastRow{display:flex; gap:8px; align-items:center; margin:6px 0 0; padding:8px 10px; border:1px solid var(--line); border-radius:10px; background:var(--panel)}
+  #lastRow{display:none !important; gap:8px; align-items:center; margin:6px 0 0; padding:8px 10px; border:1px solid var(--line); border-radius:10px; background:var(--panel)}
   #lastRow b{font-size:13px; white-space:nowrap}
   #lastQuick{flex:1; min-width:0; padding:8px 10px; font-size:14px; font-weight:600}
   #rawBox > summary .rl{font-size:13.5px; font-weight:700}
@@ -374,14 +378,18 @@
   #viewBar{position:sticky; top:var(--hh); z-index:6; display:flex; gap:6px; align-items:center; flex-wrap:wrap; margin:0; padding:6px 0; background:var(--bg)}
   #viewBar .seg{flex:0 0 auto}
   #viewSeg button{padding:5px 10px; font-size:12px; flex:0 0 auto}
-  #viewBar .nav{padding:5px 9px; font-size:12px}
+  #viewBar .nav{display:none !important}
   #imgCount{font-size:12px; color:var(--sub); margin-right:auto; white-space:nowrap}
   #imgEmpty{border:1px dashed var(--line); border-radius:12px}
   #list{margin-top:6px}
   .card-head .badge-num{font-size:12px}
   #bottomActions{flex-direction:row; margin-top:12px}
   #bottomActions button{flex:1; padding:12px 8px; font-size:14.5px}
-  #list.swipe + #bottomActions{display:none}
+  /* 이미지 바로 위 다운로드 · 인스타 공유 (이미지가 없을 땐 같이 숨김) */
+  #topActions{display:flex; gap:8px; margin:6px 0 2px}
+  #topActions button{flex:1; padding:12px 8px; font-size:15px}
+  #viewBar[hidden] + #topActions{display:none}
+  body.design #topActions{display:none}
 
   /* 채널 디자인 */
   #designPane{display:none}
@@ -408,7 +416,11 @@
   @media (max-width:999px){
     body.m-list #dHead, body.m-list #paneImg, body.m-list #paneTxt{display:none}
     body.m-detail #colList{display:none}
-    body.m-detail:not(.design) #backBtn{display:inline-block}
+    body.m-detail:not(.design) #backBtn{display:inline-block; min-height:42px; padding:0 18px; font-size:17px; font-weight:800; border-radius:12px; background:var(--accent); color:#fff; border-color:var(--accent)}
+    /* 이미지 위·아래 다운로드 · 인스타 공유 버튼을 크게 */
+    #topActions button, #bottomActions button{min-height:54px; font-size:17px}
+    /* 목록에서 당겨서 새로고침할 때 브라우저 기본 동작과 겹치지 않게 */
+    body.m-list{overscroll-behavior-y:contain}
     body.m-detail #top .ttl{display:none}
     #paneTxt, #txtBody{display:contents}
     #emptyMsg{display:none !important}
@@ -419,7 +431,11 @@
     .srow input, .srow select, #dHead select, #dHead input[type="datetime-local"]{min-height:42px; font-size:16px}
     #newBtn{height:42px; width:44px}
     textarea.ta{font-size:16px}
-    .fbox > summary button, #rawBox > summary button{min-height:40px}
+    /* 설명 칸 제목 · 복사 버튼 글자를 키움 (아주 좁은 폰에서는 줄이 넘어가도록) */
+    .fbox > summary, #rawBox > summary{flex-wrap:wrap; row-gap:4px; padding:4px 0}
+    .fbox > summary .fl, #rawBox > summary .rl{font-size:17.5px; white-space:nowrap}
+    .fbox > summary .tg, #rawBox > summary .tg{font-size:12px}
+    .fbox > summary button, #rawBox > summary button{min-height:46px; min-width:92px; padding:0 14px; font-size:16.5px; font-weight:700; border-radius:10px}
     #fields{gap:10px}
     .fbox{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:0 10px 10px}
     /* 접혀 있을 때는 제목 줄이 칸 가운데 오도록 */
@@ -467,7 +483,7 @@
 <body class="m-list nosel">
 <header id="top">
   <button type="button" class="ghost sm" id="backBtn">← 목록</button>
-  <b class="ttl">콘텐츠 작업실</b>
+  <b class="ttl" id="ttlBtn" role="button" tabindex="0" title="누르면 새로고침">콘텐츠 작업실</b>
   <button type="button" class="ghost sm" id="btnDesign" hidden>채널 디자인</button>
   <span id="saveSt" role="status" aria-live="polite"></span>
   <div class="uid-bar" id="uidBar"></div>
@@ -576,8 +592,10 @@
       <div class="seg" id="viewSeg"><button type="button" data-val="list" class="active">세로</button><button type="button" data-val="swipe">가로</button></div>
       <button type="button" class="ghost nav" id="navPrev" aria-label="이전 장">◀</button><button type="button" class="ghost nav" id="navNext" aria-label="다음 장">▶</button>
       <span id="imgCount"></span>
-      <button type="button" class="ghost sm" id="tbSave" title="유튜브용 (원래 이미지)">다운로드</button>
-      <button type="button" class="ghost sm hl" id="tbShare" title="인스타용 (마지막 장에 1·2 숫자와 안내 줄)">인스타 공유</button>
+    </div>
+    <div class="top-actions" id="topActions">
+      <button type="button" class="primary" id="tbSave" title="유튜브용 (원래 이미지)">다운로드</button>
+      <button type="button" class="primary accent" id="tbShare" title="인스타용 (마지막 장에 1·2 숫자와 안내 줄)">인스타 공유</button>
     </div>
     <div id="lastRow" hidden>
       <b>마지막 장</b>
@@ -2427,6 +2445,8 @@ let saving = false;
 async function saveAllImages(btn){
   if(saving || !blobs.length) return;
   saving = true;
+  /* 다운로드를 누른 바로 그 순간에 유튜브 게시글을 먼저 복사합니다 (폰은 누른 순간에만 복사가 허용돼요) */
+  copyField("youtube_description", "유튜브 게시글", (S.cur && S.cur.f && S.cur.f.youtube_description) || "");
   const snapBlobs = [...blobs];
   const n = snapBlobs.length;
   /* 첫 이미지 저장 시각을 한 번만 정해서 전체 장에 똑같이 사용 */
@@ -3461,7 +3481,7 @@ async function copyField(kind, label, text){
   (COPIED[S.cur.key] = COPIED[S.cur.key] || {})[kind] = Date.now();
   saveCopied();
   updateCopyBtn(kind);
-  toast(`${v.length.toLocaleString()}글자 복사됨`);
+  toast(`${label} ${v.length.toLocaleString()}글자 복사됨`);
 }
 $("cpy_raw").addEventListener("click", e => {
   e.preventDefault(); e.stopPropagation();       /* 버튼을 눌러도 원글 칸이 접히지 않게 */
@@ -3857,6 +3877,54 @@ async function changeUid(){
   LS.setRaw(USER_ID_KEY, id);
   location.reload();
 }
+/* 맨 위 ‘콘텐츠 작업실’ 글자를 누르면 새로고침 (저장 중인 내용은 먼저 마무리) */
+let refreshing = false;
+async function refreshPage(){
+  if(refreshing) return;
+  if(S.mode === "design" && dzDirty && !confirm("저장하지 않은 디자인 변경이 있어요. 버리고 새로고침할까요?")) return;
+  refreshing = true;
+  toast("새로고침 중…");
+  if(S.uid){
+    await Promise.race([flush(), new Promise(r => setTimeout(r, 8000))]).catch(()=>{});
+    try{ saveState(); writeCacheNow(); }catch(e){}
+  }
+  location.reload();
+}
+$("ttlBtn").addEventListener("click", refreshPage);
+$("ttlBtn").addEventListener("keydown", e => { if(e.key === "Enter" || e.key === " "){ e.preventDefault(); refreshPage(); } });
+
+/* 폰: 목록에서 맨 위일 때 아래로 당기면 새로고침 */
+(function pullToRefresh(){
+  const bar = document.createElement("div");
+  bar.id = "pullBar";
+  bar.textContent = "↓ 당겨서 새로고침";
+  document.body.appendChild(bar);
+  const LIMIT = 90;                       /* 손가락을 이만큼 끌어내리면 새로고침 */
+  let y0 = 0, x0 = 0, dist = 0, on = false;
+  const canPull = () => !isWide() && document.body.classList.contains("m-list") && S.mode === "work" && !!S.uid && window.scrollY <= 0;
+  const reset = () => { on = false; dist = 0; bar.classList.remove("show", "go"); bar.style.transform = ""; };
+  document.addEventListener("touchstart", e => {
+    on = false;
+    if(e.touches.length !== 1 || !canPull()) return;
+    if(e.target && e.target.closest && e.target.closest("input, textarea, select")) return;
+    y0 = e.touches[0].clientY; x0 = e.touches[0].clientX; dist = 0; on = true;
+  }, {passive:true});
+  document.addEventListener("touchmove", e => {
+    if(!on) return;
+    const t = e.touches[0], dy = t.clientY - y0;
+    if(dy <= 0 || window.scrollY > 0 || Math.abs(t.clientX - x0) > dy){ reset(); return; }
+    dist = dy;
+    bar.classList.toggle("show", dy > 12);
+    bar.classList.toggle("go", dy >= LIMIT);
+    bar.textContent = dy >= LIMIT ? "놓으면 새로고침" : "↓ 당겨서 새로고침";
+    bar.style.transform = `translate(-50%, ${Math.min(dy * 0.6, 80) - 60}px)`;
+    if(e.cancelable) e.preventDefault();
+  }, {passive:false});
+  const end = () => { const go = on && dist >= LIMIT; reset(); if(go) refreshPage(); };
+  document.addEventListener("touchend", end, {passive:true});
+  document.addEventListener("touchcancel", reset, {passive:true});
+})();
+
 $("gateForm").addEventListener("submit", e => {
   e.preventDefault();
   const id = normId($("gateIn").value);
