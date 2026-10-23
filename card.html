@@ -1692,7 +1692,7 @@ function drawFormattedLines(ctx, lines, startY, lh, fontSize, align, padX, inkCo
   const boxW = customMaxW !== null ? customMaxW : (WIDTH - padX * 2);
 
   const setFontWeight = bold => {
-    const wt = (bold || isCover) ? f.cover : f.weight;
+    const wt = isCover ? Math.max(f.cover, 700) : (bold ? f.cover : f.weight);
     ctx.font = `${wt} ${fontSize}px "${f.family}", "Pretendard", "Noto Sans KR", sans-serif`;
   };
 
@@ -2131,7 +2131,7 @@ function draw(page, idx, total, f, ig){
   const coverC = firstPlain && $("coverCenter").checked;
   const coverB = firstPlain && $("coverBold").checked;
   const isCover = coverC || coverB;          /* 표지 크기 배율은 둘 중 하나라도 켜져 있으면 적용 */
-  const wt = coverB ? f.cover : f.weight;
+  const wt = coverB ? Math.max(f.cover, 700) : f.weight;
   const curAlign = coverC ? "center" : textAlign;
   const css = s => `${wt} ${s}px "${f.family}", "Pretendard", "Noto Sans KR", sans-serif`;
   const maxW = WIDTH - padX*2;
