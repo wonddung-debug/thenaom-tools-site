@@ -338,6 +338,10 @@
   .fbox > summary .fl{font-size:13.5px; font-weight:700}
   .fbox > summary button{margin-left:auto; min-width:76px}
   .fbox > summary button.did, #rawBox > summary button.did{color:var(--ok-ink); border-color:var(--ok-ink)}
+  /* 칸 제목 줄의 ‘붙여넣기’ · ‘복사’ 두 버튼은 한 덩어리로 오른쪽에 붙고, 폰에서 줄이 넘치면 함께 아래 줄로 내려갑니다 */
+  .sbtns{display:flex; align-items:center; gap:6px; margin-left:auto; flex:none}
+  .fbox > summary .sbtns button, #rawBox > summary .sbtns button{margin-left:0}
+  .fbox > summary button.pst, #rawBox > summary button.pst{color:var(--accent); border-color:var(--accent)}
   .fbox > textarea{margin-top:4px}
   /* 쿠팡 링크 칸 */
   #linkBox{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:10px}
@@ -347,7 +351,10 @@
   .lk-in button{flex:none; min-height:38px}
   #cpMsg{margin:6px 0 0; line-height:1.5}
   #cpMsg.bad{color:var(--bad); font-weight:700}
-  #cpList{display:flex; flex-direction:column; gap:4px; margin-top:6px}
+  #cpPaste{width:100%; padding:10px; margin-bottom:8px; font-size:14px; font-weight:700; border-radius:10px; border:1px dashed var(--accent); color:var(--accent); background:var(--accent-bg)}
+  #cpDet{margin-top:4px}
+  #cpDet > summary{min-height:38px; display:flex; align-items:center; gap:6px; font-size:12.5px; font-weight:600; color:var(--sub); cursor:pointer}
+  #cpList{display:flex; flex-direction:column; gap:4px; margin-top:4px}
   .cprow{display:flex; align-items:center; gap:8px; padding:6px 8px; border:1px solid var(--line); border-radius:8px; background:var(--bg); font-size:12.5px}
   .cprow .cpl{flex:0 0 auto; font-weight:700; min-width:96px}
   .cprow .cpu{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--sub)}
@@ -358,6 +365,8 @@
     .lk-in button{min-height:46px; font-size:15px}
     .cprow{font-size:14px}
     .cprow button{min-height:40px; font-size:14px}
+    #cpPaste{min-height:50px; font-size:16px}
+    #cpDet > summary{min-height:44px; font-size:14px}
   }
   /* 한 번에 붙여넣기 */
   #pasteBtn{width:100%; padding:12px; font-size:14.5px; font-weight:700; border-radius:12px; border:1px dashed var(--accent); color:var(--accent); background:var(--accent-bg)}
@@ -556,7 +565,7 @@
     <div id="emptyMsg">왼쪽 목록에서 글을 고르거나 <b>+</b> 를 눌러 새 글을 시작하세요.</div>
     <div id="txtBody">
       <details id="rawBox">
-        <summary><span class="rl">원글</span><span class="tg e" id="rawTag">비어 있음</span><button type="button" class="ghost sm" id="cpy_raw">복사</button></summary>
+        <summary><span class="rl">원글</span><span class="tg e" id="rawTag">비어 있음</span><span class="sbtns"><button type="button" class="ghost sm pst" id="pst_raw">붙여넣기</button><button type="button" class="ghost sm" id="cpy_raw">복사</button></span></summary>
         <textarea id="src" spellcheck="false"></textarea>
         <div class="num-hint" id="numHint" hidden>
           <span id="numHintText"></span>
@@ -598,12 +607,16 @@
       </details>
       <div id="linkBox">
         <div class="lk-head"><b>쿠팡 링크</b><span class="tg e" id="cpTag">비어 있음</span></div>
+        <button type="button" class="ghost" id="cpPaste">📋 복사한 주소 붙여넣고 바로 링크 만들기</button>
         <div class="lk-in">
           <input type="text" id="cpUrl" placeholder="쿠팡 상품 페이지 주소를 붙여 넣으세요" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="쿠팡 상품 페이지 주소">
           <button type="button" class="ghost sm" id="cpGo">링크 만들기</button>
         </div>
         <p class="hint" id="cpMsg"></p>
-        <div id="cpList"></div>
+        <details id="cpDet" hidden>
+          <summary id="cpDetSum">칸마다 만든 링크 보기</summary>
+          <div id="cpList"></div>
+        </details>
       </div>
       <div id="fields">
         <button type="button" class="ghost" id="pasteBtn">📋 한 번에 붙여넣기 (설명 6칸 자동 채우기)</button>
@@ -3440,10 +3453,11 @@ function applyFieldOpen(){
     wrap.className = "fld fbox";
     wrap.id = "box_" + x.kind;
     wrap.innerHTML = `<summary><span class="fl">${x.label}</span><span class="tg e" id="tag_${x.kind}">비어 있음</span>`
-      + `<button type="button" class="ghost sm" id="cpy_${x.kind}">복사</button></summary>`
+      + `<span class="sbtns"><button type="button" class="ghost sm pst" id="pst_${x.kind}">붙여넣기</button>`
+      + `<button type="button" class="ghost sm" id="cpy_${x.kind}">복사</button></span></summary>`
       + `<textarea class="ta" id="fld_${x.kind}" placeholder="${x.label} 입력" aria-label="${x.label}"></textarea>`;
     host.appendChild(wrap);
-    const ta = wrap.querySelector("textarea"), btn = wrap.querySelector("button");
+    const ta = wrap.querySelector("textarea"), btn = wrap.querySelector("#cpy_" + x.kind), pbtn = wrap.querySelector("#pst_" + x.kind);
     wrap.querySelector("summary").addEventListener("click", e => { if(isWide()) e.preventDefault(); });
     wrap.addEventListener("toggle", () => {
       if(isWide()) return;
@@ -3463,8 +3477,34 @@ function applyFieldOpen(){
       e.preventDefault(); e.stopPropagation();       /* 복사 버튼을 눌러도 칸이 펴지거나 접히지 않게 */
       copyField(x.kind, x.label, (S.cur && S.cur.f[x.kind]) || "");
     });
+    pbtn.addEventListener("click", e => {
+      e.preventDefault(); e.stopPropagation();
+      pasteField(x, ta, wrap);
+    });
   });
 })();
+/* 복사해 둔 글을 읽어 옵니다. 브라우저가 막았거나 지원하지 않으면 null */
+async function readClip(){
+  try{
+    if(!(navigator.clipboard && navigator.clipboard.readText)) return null;
+    return String(await navigator.clipboard.readText() || "");
+  }catch(e){ return null; }
+}
+/* 칸 제목 줄의 ‘붙여넣기’: 복사해 둔 글을 그 칸에 바로 넣고 저장합니다 (이미 내용이 있으면 바꿀지 물어봅니다) */
+async function pasteField(x, ta, wrap){
+  const c = S.cur;
+  if(!c) return;
+  const t = await readClip();
+  if(t === null){ toast("이 브라우저에서는 자동으로 붙여 넣을 수 없어요. 칸을 눌러 직접 붙여 넣어 주세요", "bad"); wrap.open = true; ta.focus(); return; }
+  if(!t.trim()){ toast("복사해 둔 글이 없어요. 먼저 글을 복사해 주세요", "bad"); return; }
+  const old = c.f[x.kind] || "";
+  if(old.trim() && old !== t && !confirm(`‘${x.label}’에 이미 내용이 있어요. 복사해 둔 글로 바꿀까요?`)) return;
+  c.f[x.kind] = t;
+  if(S.cur === c){ ta.value = t; updateTag(x.kind); wrap.open = true; }
+  queueSave(c, {postFields:{[x.kind]: t}}, 300);
+  scheduleListRender();
+  toast(`${x.label}에 넣었어요 (${t.length.toLocaleString()}자)`);
+}
 /* ---------- 한 번에 붙여넣기: 제목 줄을 보고 설명 칸마다 나눠 넣기 ----------
    제목 줄 = 짧은 한 줄이 ‘인스타 캡션’ ‘인스타 고정 댓글’ ‘자동 DM’ ‘유튜브 (커뮤니티) 게시글’ ‘쿠팡 링크 댓글’ 등으로 시작.
    제목 아래에 ``` 로 감싼 칸이 있으면 그 안의 글만, 없으면 다음 제목 전까지의 글을 넣습니다.
@@ -3636,6 +3676,10 @@ function renderLinkBox(){
   m.textContent = st.busy ? "쿠팡에서 링크를 만드는 중…" : (st.note || CP_HELP);
   m.classList.toggle("bad", !st.busy && !!st.note && st.bad);
   const errs = st.errors || {};
+  const det = $("cpDet");
+  if(det._key !== c.key){ det._key = c.key; det.open = false; }       /* 다른 글을 열면 다시 접어 둡니다 */
+  det.hidden = !url;
+  $("cpDetSum").textContent = `칸마다 만든 링크 보기 · ${have}/${total}개`;
   $("cpList").innerHTML = !url ? "" : FIELDS.filter(x => LINK_TAGS[x.kind] && fieldOn(c, x)).map(x => {
     const tag = LINK_TAGS[x.kind], l = links[tag];
     const mid = l ? `<span class="cpu" title="${esc(l)}">${esc(l)}</span>`
@@ -3721,6 +3765,19 @@ $("cpList").addEventListener("click", async e => {
   toast(ok ? `${x ? x.label : "쿠팡"} 링크 복사됨` : "복사하지 못했어요. 링크를 길게 눌러 직접 복사해 주세요.", ok ? "" : "bad");
 });
 
+/* ‘복사한 쿠팡 주소 붙여넣고 바로 링크 만들기’: 복사해 둔 글에서 쿠팡 주소를 찾아 넣고 바로 만듭니다 */
+$("cpPaste").addEventListener("click", async () => {
+  const c = S.cur;
+  if(!c) return;
+  const t = await readClip();
+  if(t === null){ toast("이 브라우저에서는 자동으로 붙여 넣을 수 없어요. 아래 칸에 주소를 직접 붙여 넣어 주세요", "bad"); $("cpUrl").focus(); return; }
+  const url = pickUrl(t);
+  if(!url || !COUPANG_URL_RE.test(url)){ toast("복사해 둔 글에서 쿠팡 상품 주소를 못 찾았어요. 쿠팡에서 주소를 복사한 뒤 다시 눌러 주세요", "bad"); return; }
+  if(S.cur !== c) return;
+  $("cpUrl").value = url;
+  runCoupang(c, url, false);
+});
+
 /* ---------- 이 글 옵션: 인스타 고정 댓글 · 자동 DM 안 함 ---------- */
 function applyIgOff(){
   const c = S.cur;
@@ -3762,6 +3819,22 @@ $("src").addEventListener("input", () => {
   pasted = false;
 });
 $("src").addEventListener("blur", () => flushSoon(150));
+/* 원글 제목 줄의 ‘붙여넣기’: 복사해 둔 글을 바로 넣고, 직접 붙여 넣은 것과 똑같이 이미지를 만듭니다 */
+$("pst_raw").addEventListener("click", async e => {
+  e.preventDefault(); e.stopPropagation();
+  const c = S.cur;
+  if(!c || S.mode !== "work") return;
+  const t = await readClip();
+  if(t === null){ toast("이 브라우저에서는 자동으로 붙여 넣을 수 없어요. 원글 칸을 눌러 직접 붙여 넣어 주세요", "bad"); $("rawBox").open = true; $("src").focus(); return; }
+  if(!t.trim()){ toast("복사해 둔 글이 없어요. 먼저 글을 복사해 주세요", "bad"); return; }
+  const old = $("src").value || "";
+  if(old.trim() && old !== t && !confirm("원글에 이미 내용이 있어요. 복사해 둔 글로 바꿀까요?")) return;
+  if(S.cur !== c) return;
+  $("rawBox").open = true;
+  $("src").value = t; pasted = true;
+  $("src").dispatchEvent(new Event("input"));
+  toast(`원글에 넣었어요 (${t.length.toLocaleString()}자)`);
+});
 $("rawBox").addEventListener("toggle", () => { if(!isWide()){ S.rawOpen = $("rawBox").open; saveState(); } });
 
 /* 이 글 옵션(장 나누기·마지막 장 모양) */
