@@ -592,7 +592,7 @@
       <span class="split-lbl">인스타</span>
       <label class="ig-off"><input type="checkbox" id="igOff"> 고정 댓글 · 자동 DM 안 함</label>
     </div>
-    <p class="hint" id="igOffHint">체크하면 그 두 칸이 숨겨져요. 인스타 캡션과 ‘인스타 공유’는 그대로예요. 새 글은 같은 채널의 이전 글 설정을 따라가요.</p>
+    <p class="hint" id="igOffHint">체크하면 그 두 칸이 숨겨지고, 인스타 공유용 마지막 장(번호·안내 줄)도 따로 만들지 않아서 다운로드 이미지와 똑같아져요. 인스타 캡션은 그대로예요. 새 글은 같은 채널의 이전 글 설정을 따라가요.</p>
   </div>
         </details>
       </details>
@@ -1073,6 +1073,7 @@ FONTS.forEach((f,i)=>{
   fontSel.appendChild(o);
 });
 
+let igRender = {key:"", off:false};   /* 마지막으로 그린 글과 그때의 '인스타 고정 댓글 · 자동 DM 안 함' 상태 */
 let pages = [], canvases = [], blobs = [], igBlobs = [];   /* blobs = 유튜브용(다운로드), igBlobs = 인스타용(공유) */
 let textAlign = "left", wrapMode = "auto", currentTheme = "white";
 let logoImg = null, logoDataUrl = "";
@@ -2396,7 +2397,10 @@ async function render(){
   const dsig = designSignature(f);
   const n = snapPages.length;
   /* 인스타 공유용 마지막 장 (유튜브용과 다를 때만 한 장 더 만듭니다) → 목록 맨 끝(n번째 칸)에 미리보기 */
-  const withIg = needsIgLast(snapPages[n - 1]);
+  /* '인스타 고정 댓글 · 자동 DM 안 함'이 체크된 글은 인스타용 마지막 장도 따로 만들지 않습니다 (다운로드 = 인스타 공유 이미지) */
+  const igOffNow = S.mode === "work" && igOffOf(S.cur);
+  igRender = {key: S.cur ? S.cur.key : "", off: igOffNow};
+  const withIg = !igOffNow && needsIgLast(snapPages[n - 1]);
   const m = n + (withIg ? 1 : 0);
   const entries = new Array(m), todo = [];
   for(let i = 0; i < m; i++){
@@ -3724,6 +3728,8 @@ function applyIgOff(){
   const off = igOffOf(c);
   $("igOff").checked = off;
   IG_OFF_KINDS.forEach(k => { const b = $("box_" + k); if(b) b.hidden = off; });
+  /* 이미 그려 둔 같은 글이 체크 상태만 달라졌다면 인스타용 마지막 장을 넣거나 빼려고 다시 그립니다 */
+  if(S.mode === "work" && pages.length && igRender.key === c.key && igRender.off !== off) scheduleRender(false);
 }
 $("igOff").addEventListener("change", () => {
   const c = S.cur;
