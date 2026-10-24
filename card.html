@@ -100,6 +100,9 @@
   .split-row{display:flex; gap:8px; align-items:center;}
   .split-lbl{font-size:13px; font-weight:700; color:var(--sub); width:68px; flex-shrink:0;}
   .split-row select{flex:1 1 auto; width:auto; min-width:0; padding:8px 10px; font-size:13.5px; font-weight:600; background:var(--bg);}
+  .ig-off{display:flex; align-items:center; gap:8px; flex:1 1 auto; font-size:13.5px; font-weight:600; color:var(--ink); cursor:pointer; min-height:36px}
+  .ig-off input{width:20px; height:20px; margin:0; flex:none; accent-color:var(--accent)}
+  .split-box .hint{margin:0}
   .split-row input[type="text"]{flex:0 0 90px; min-width:0; width:90px; padding:8px 10px; font-size:13.5px; background:var(--bg);}
 
   /* 번호 감지 안내 줄 */
@@ -560,7 +563,7 @@
           <button type="button" class="ghost" id="numHintBtn">번호로 장 나누기</button>
         </div>
         <details id="optBox">
-          <summary>이 글 옵션 · 장 나누기 · 마지막 장 모양</summary>
+          <summary>이 글 옵션 · 장 나누기 · 마지막 장 · 인스타</summary>
 <div class="split-box">
     <div class="split-row">
       <span class="split-lbl">장 나누기</span>
@@ -585,6 +588,11 @@
         <option value="plain">일반 본문 (특수 레이아웃 끔)</option>
       </select>
     </div>
+    <div class="split-row">
+      <span class="split-lbl">인스타</span>
+      <label class="ig-off"><input type="checkbox" id="igOff"> 고정 댓글 · 자동 DM 안 함</label>
+    </div>
+    <p class="hint" id="igOffHint">체크하면 그 두 칸이 숨겨져요. 인스타 캡션과 ‘인스타 공유’는 그대로예요. 새 글은 같은 채널의 이전 글 설정을 따라가요.</p>
   </div>
         </details>
       </details>
@@ -2650,7 +2658,9 @@ const FIELDS = [
   {kind:"etc",                 label:"기타",             short:"기", legacy:true},
   /* 아래 둘은 화면에 칸으로 보이지 않고, 쿠팡 링크 칸의 내용을 글과 함께 저장하는 용도 */
   {kind:"coupang_url",         label:"쿠팡 상품 주소",   short:"",   hidden:true},
-  {kind:"coupang_links",       label:"만들어진 링크",    short:"",   hidden:true}
+  {kind:"coupang_links",       label:"만들어진 링크",    short:"",   hidden:true},
+  /* 글마다 저장되는 체크 값 ('1' = 인스타 고정 댓글 · 자동 DM 안 함). 내용이 아니라 설정이라 flag 로 표시 */
+  {kind:"ig_off",              label:"인스타 고정 댓글·자동 DM 안 함", short:"", hidden:true, flag:true}
 ];
 /* 칸마다 붙는 쿠팡 링크 이름표(subId). 새 채널이 생기면 여기에 한 줄만 더하면 됩니다. (영문 소문자·숫자만) */
 const LINK_TAGS = {
@@ -2661,6 +2671,10 @@ const LINK_TAGS = {
   instagram_caption:   "igcaption",
   threads_post:        "threads"
 };
+/* '인스타 고정 댓글 · 자동 DM 안 함' 체크(이 글 옵션) — 체크하면 아래 두 칸을 숨기고, 그 칸의 쿠팡 링크도 만들지 않습니다. */
+const IG_OFF_KINDS = ["instagram_pin", "auto_dm"];
+const igOffOf = c => !!(c && c.f && c.f.ig_off === "1");
+const fieldOn = (c, x) => !(igOffOf(c) && IG_OFF_KINDS.includes(x.kind));
 /* 한 번에 붙여넣기: 제목 줄을 보고 어느 칸인지 알아냅니다 (위에서부터 먼저 맞는 것) */
 const PASTE_HEADS = [
   {kind:"instagram_pin",       re:/^(인스타(그램)?\s*)?고정\s*댓글/},
@@ -2847,7 +2861,7 @@ function applyFields(c, fields){
   if("rawText" in (fields || {})) c.title = deriveTitle(c.rawText);
 }
 function contentSig(c){ return JSON.stringify([c.rawText, c.f, c.channelId, c.publishAt, c.doneAt, c.splitMode, c.lastPageType, c.splitDelim]); }
-function hasAny(c){ return !!(c && (c.id || (c.rawText || "").trim() || FIELDS.some(x => (c.f[x.kind] || "").trim()))); }
+function hasAny(c){ return !!(c && (c.id || (c.rawText || "").trim() || FIELDS.some(x => !x.flag && (c.f[x.kind] || "").trim()))); }
 function stateOf(c){ return c.doneAt ? "done" : (c.publishAt ? "plan" : "none"); }
 function findKey(key){ return S.contents.find(x => x.key === key) || (S.cur && S.cur.key === key ? S.cur : null); }
 function chById(id){ return S.channels.find(x => x.id === id) || null; }
@@ -3073,7 +3087,7 @@ function mergeServer(list, t0){
 /* ---------- 목록 ---------- */
 let listTimer = null, doneLimit = 100;
 function scheduleListRender(){ clearTimeout(listTimer); listTimer = setTimeout(renderList, 120); }
-function qstr(c){ return [c.title, c.rawText, chName(c), c.ownerId].concat(FIELDS.map(x => c.f[x.kind])).join(" ").toLowerCase(); }
+function qstr(c){ return [c.title, c.rawText, chName(c), c.ownerId].concat(FIELDS.map(x => x.flag ? "" : c.f[x.kind])).join(" ").toLowerCase(); }
 function renderChanFilter(){
   const sel = $("chanF");
   const orphan = S.isAdmin && S.contents.some(c => !channelFor(c));
@@ -3105,7 +3119,7 @@ function itemHtml(c){
   else when = c.createdAt ? esc(fmtDay(c.createdAt)) : "새 글";
   const owner = S.isAdmin && c.ownerId ? " · " + esc(c.ownerId) : "";
   const pend = OUT[c.key] ? " · 저장 대기" : "";
-  const tags = FIELDS.filter(x => !x.hidden && (!x.legacy || (c.f[x.kind] || "").trim()))
+  const tags = FIELDS.filter(x => !x.hidden && fieldOn(c, x) && (!x.legacy || (c.f[x.kind] || "").trim()))
     .map(x => `<span class="tg${(c.f[x.kind] || "").trim() ? "" : " e"}" title="${esc(x.label)}">${x.short}</span>`).join("");
   /* 선택 모드: 동그라미(완료) 대신 네모 체크칸, 글을 눌러도 열지 않고 고르기만 함 */
   if(S.selMode){
@@ -3284,6 +3298,16 @@ $("delBtn").onclick = async () => {
 };
 
 /* ---------- 글 열기 ---------- */
+/* 새 글의 '인스타 고정 댓글 · 자동 DM 안 함' 기본값 = 같은 채널에서 가장 최근에 만든 글의 설정 (글이 없으면 해제) */
+function prevIgOff(channelId, except){
+  let best = null, bt = -1;
+  S.contents.forEach(x => {
+    if(x === except || x.channelId !== channelId || !hasAny(x)) return;
+    const t = Date.parse(x.createdAt) || Date.parse(x.updatedAt) || 0;
+    if(best === null || t > bt){ best = x; bt = t; }
+  });
+  return best && igOffOf(best) ? "1" : "";
+}
 function newDraft(opt){
   opt = opt || {};
   if(!S.channels.length){
@@ -3296,6 +3320,7 @@ function newDraft(opt){
   const id = uuid();
   const c = {key:id, id:null, clientId:id, title:"", channelId:ch.id, channel:ch.name, rawText:"", f:emptyF(), extra:[],
     publishAt:"", doneAt:"", splitMode:"", lastPageType:"", splitDelim:"", createdAt:"", updatedAt:"", ownerId:S.uid};
+  c.f.ig_off = prevIgOff(ch.id, c);
   openContent(c, {focus:opt.focus !== false});
 }
 function focusSrc(){ setTimeout(() => { const s = $("src"); if(s){ $("rawBox").open = true; s.focus(); } }, 60); }
@@ -3347,6 +3372,7 @@ function fillDetail(){
     updateCopyBtn(x.kind);
   });
   renderLinkBox();
+  applyIgOff();
   $("rawBox").open = isWide() || !c.rawText || S.rawOpen;
   applyFieldOpen();
   updateDoneBtn();
@@ -3480,11 +3506,14 @@ function parsePasted(text){
 const labelOf = kind => (FIELDS.find(x => x.kind === kind) || {}).label || kind;
 function updatePasteHint(){
   const got = parsePasted($("pasteIn").value);
-  const ks = FIELDS.filter(x => x.kind in got);
+  const ks = FIELDS.filter(x => x.kind in got && fieldOn(S.cur, x));
+  const skip = FIELDS.filter(x => x.kind in got && !fieldOn(S.cur, x)).map(x => x.label).join(", ");
   $("pasteGo").disabled = !ks.length;
   $("pasteGo").textContent = ks.length ? `${ks.length}칸에 나눠 넣기` : "칸에 나눠 넣기";
   $("pasteHint").innerHTML = !$("pasteIn").value.trim() ? "붙여 넣으면 찾은 칸이 여기에 보여요."
     : ks.length ? "찾은 칸: " + ks.map(x => `<b>${esc(x.label)}</b> ${got[x.kind].length.toLocaleString()}자`).join(" · ")
+        + (skip ? ` · (${esc(skip)}은 이 글에서 안 쓰게 되어 있어 건너뛰어요)` : "")
+    : skip ? `${esc(skip)}은 이 글에서 안 쓰게 되어 있어 넣지 않아요. (‘이 글 옵션’에서 바꿀 수 있어요)`
     : "제목 줄(인스타 캡션 · 인스타 고정 댓글 · 자동 DM · 유튜브 게시글 · 쿠팡 링크 댓글 · 스레드 게시글)을 찾지 못했어요.";
 }
 function closePaste(){ $("pasteBox").hidden = true; $("pasteBtn").hidden = false; $("pasteIn").value = ""; }
@@ -3505,7 +3534,7 @@ $("pasteGo").addEventListener("click", () => {
   const c = S.cur;
   if(!c) return;
   const got = parsePasted($("pasteIn").value);
-  const ks = FIELDS.filter(x => x.kind in got);
+  const ks = FIELDS.filter(x => x.kind in got && fieldOn(c, x));
   if(!ks.length) return;
   const over = ks.filter(x => (c.f[x.kind] || "").trim() && c.f[x.kind] !== got[x.kind]);
   if(over.length && !confirm(`이미 내용이 있는 칸 ${over.length}개(${over.map(x => x.label).join(", ")})는 새 글로 바뀌어요. 넣을까요?`)) return;
@@ -3570,7 +3599,7 @@ const COUPANG_URL_RE = /^https?:\/\/([a-z0-9-]+\.)*coupang\.com\/\S+$/i;
 const CP_HELP = "설명 칸에 [링크]라고 써 두면, 복사할 때 그 칸 전용 쿠팡 링크로 바뀌어요.";
 const CPS = {};   /* 글마다: 만드는 중인지 · 못 만든 이름표 · 안내 문구 */
 const cps = c => CPS[c.key] || (CPS[c.key] = {busy:false, errors:null, note:"", bad:false});
-const linkTags = () => [...new Set(Object.values(LINK_TAGS))];
+const linkTags = c => [...new Set(Object.keys(LINK_TAGS).filter(k => fieldOn(c, {kind:k})).map(k => LINK_TAGS[k]))];
 const pickUrl = s => { const m = String(s || "").match(/https?:\/\/[^\s"'<>]+/i); return m ? m[0] : ""; };
 /* 저장된 링크 묶음 {이름표: 링크}. 상품 주소가 바뀌었는데 옛 링크가 남아 있으면 쓰지 않습니다. */
 function getLinkSet(c){
@@ -3592,7 +3621,7 @@ function renderLinkBox(){
   const c = S.cur;
   if(!c) return;
   const st = cps(c), url = c.f.coupang_url || "", links = getLinkSet(c);
-  const tags = linkTags(), total = tags.length, have = tags.filter(t => links[t]).length;
+  const tags = linkTags(c), total = tags.length, have = tags.filter(t => links[t]).length;
   const inp = $("cpUrl");
   if(document.activeElement !== inp) inp.value = url;
   const tg = $("cpTag");
@@ -3603,7 +3632,7 @@ function renderLinkBox(){
   m.textContent = st.busy ? "쿠팡에서 링크를 만드는 중…" : (st.note || CP_HELP);
   m.classList.toggle("bad", !st.busy && !!st.note && st.bad);
   const errs = st.errors || {};
-  $("cpList").innerHTML = !url ? "" : FIELDS.filter(x => LINK_TAGS[x.kind]).map(x => {
+  $("cpList").innerHTML = !url ? "" : FIELDS.filter(x => LINK_TAGS[x.kind] && fieldOn(c, x)).map(x => {
     const tag = LINK_TAGS[x.kind], l = links[tag];
     const mid = l ? `<span class="cpu" title="${esc(l)}">${esc(l)}</span>`
       : `<span class="cpu${st.busy ? "" : " bad"}">${esc(st.busy ? "만드는 중…" : (errs[tag] || "아직 없음"))}</span>`;
@@ -3641,7 +3670,7 @@ async function runCoupang(c, url, quiet){
   }
   const same = url === (c.f.coupang_url || "");
   const have = same ? getLinkSet(c) : {};
-  const need = linkTags().filter(t => !have[t]);    /* 같은 주소면 아직 없는 이름표만 만듭니다 */
+  const need = linkTags(c).filter(t => !have[t]);    /* 같은 주소면 아직 없는 이름표만 만듭니다 */
   if(!need.length){
     if(!quiet) st.note = "이 주소의 링크가 이미 모두 만들어져 있어요.";
     if(S.cur === c) renderLinkBox();
@@ -3688,6 +3717,26 @@ $("cpList").addEventListener("click", async e => {
   toast(ok ? `${x ? x.label : "쿠팡"} 링크 복사됨` : "복사하지 못했어요. 링크를 길게 눌러 직접 복사해 주세요.", ok ? "" : "bad");
 });
 
+/* ---------- 이 글 옵션: 인스타 고정 댓글 · 자동 DM 안 함 ---------- */
+function applyIgOff(){
+  const c = S.cur;
+  if(!c) return;
+  const off = igOffOf(c);
+  $("igOff").checked = off;
+  IG_OFF_KINDS.forEach(k => { const b = $("box_" + k); if(b) b.hidden = off; });
+}
+$("igOff").addEventListener("change", () => {
+  const c = S.cur;
+  if(!c || S.mode !== "work") return;
+  c.f.ig_off = $("igOff").checked ? "1" : "";
+  if(hasAny(c)) queueSave(c, {postFields:{ig_off:c.f.ig_off}}, 300);   /* 아직 빈 새 글이면 글이 만들어질 때 함께 저장됩니다 */
+  applyIgOff();
+  renderLinkBox();
+  scheduleListRender();
+  /* 체크를 풀었는데 쿠팡 주소가 이미 있으면, 새로 필요해진 링크(고정 댓글·자동 DM)만 조용히 만듭니다 */
+  if(!c.f.ig_off && (c.f.coupang_url || "")) runCoupang(c, c.f.coupang_url, true);
+});
+
 /* 원글: 고치는 대로 저장 + 이미지 다시 그리기 (붙여넣기는 바로) */
 let srcTimer = null, pasted = false;
 $("src").addEventListener("paste", () => { pasted = true; });
@@ -3729,6 +3778,7 @@ $("chanSel").addEventListener("change", () => {
   const c = S.cur, ch = chById($("chanSel").value);
   if(!c || !ch) return;
   c.channelId = ch.id; c.channel = ch.name;
+  if(!hasAny(c)) c.f.ig_off = prevIgOff(ch.id, c);
   LS.setRaw("cw_last_channel_" + S.uid, ch.id);
   applyDesignFor(c);
   runMake();
