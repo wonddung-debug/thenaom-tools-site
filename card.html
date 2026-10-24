@@ -323,7 +323,7 @@
   body.nosel #emptyMsg{display:block}
   body.nosel #dHead, body.nosel #txtBody{display:none !important}
   #txtBody{display:flex; flex-direction:column; gap:10px}
-  #rawBox{order:0} #fields{order:1} #acts{order:2}
+  #rawBox{order:0} #linkBox{order:0} #fields{order:1} #acts{order:2}
   #rawBox > summary, #optBox > summary{min-height:40px; display:flex; align-items:center; gap:6px; font-size:13.5px; font-weight:700; cursor:pointer; color:var(--ink)}
   #optBox > summary{font-weight:600; color:var(--sub); font-size:12.5px}
   #src{min-height:170px; height:220px; font-size:16px; padding:12px; border-radius:10px}
@@ -336,6 +336,26 @@
   .fbox > summary button{margin-left:auto; min-width:76px}
   .fbox > summary button.did, #rawBox > summary button.did{color:var(--ok-ink); border-color:var(--ok-ink)}
   .fbox > textarea{margin-top:4px}
+  /* 쿠팡 링크 칸 */
+  #linkBox{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:10px}
+  .lk-head{display:flex; align-items:center; gap:8px; margin-bottom:6px; font-size:13.5px}
+  .lk-in{display:flex; gap:6px}
+  .lk-in input{flex:1; min-width:0; padding:9px 10px; font-size:14px; border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--ink)}
+  .lk-in button{flex:none; min-height:38px}
+  #cpMsg{margin:6px 0 0; line-height:1.5}
+  #cpMsg.bad{color:var(--bad); font-weight:700}
+  #cpList{display:flex; flex-direction:column; gap:4px; margin-top:6px}
+  .cprow{display:flex; align-items:center; gap:8px; padding:6px 8px; border:1px solid var(--line); border-radius:8px; background:var(--bg); font-size:12.5px}
+  .cprow .cpl{flex:0 0 auto; font-weight:700; min-width:96px}
+  .cprow .cpu{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--sub)}
+  .cprow .cpu.bad{color:var(--bad)}
+  .cprow button{flex:none; padding:4px 10px; font-size:12px; min-height:30px}
+  @media (max-width:999px){
+    .lk-in input{min-height:46px; font-size:16px}
+    .lk-in button{min-height:46px; font-size:15px}
+    .cprow{font-size:14px}
+    .cprow button{min-height:40px; font-size:14px}
+  }
   /* 한 번에 붙여넣기 */
   #pasteBtn{width:100%; padding:12px; font-size:14.5px; font-weight:700; border-radius:12px; border:1px dashed var(--accent); color:var(--accent); background:var(--accent-bg)}
   #pasteBox{display:flex; flex-direction:column; gap:8px; padding:10px; border:1px solid var(--accent); border-radius:12px; background:var(--panel)}
@@ -424,7 +444,7 @@
     body.m-detail #top .ttl{display:none}
     #paneTxt, #txtBody{display:contents}
     #emptyMsg{display:none !important}
-    #rawBox{order:5} #fields{order:6} #acts{order:7}
+    #rawBox{order:5} #linkBox{order:5} #fields{order:6} #acts{order:7}
     body.newdoc #rawBox{order:2}
     #rawBox{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:0 10px 10px}
     body.newdoc #rawBox{border-color:var(--accent)}
@@ -568,10 +588,19 @@
   </div>
         </details>
       </details>
+      <div id="linkBox">
+        <div class="lk-head"><b>쿠팡 링크</b><span class="tg e" id="cpTag">비어 있음</span></div>
+        <div class="lk-in">
+          <input type="text" id="cpUrl" placeholder="쿠팡 상품 페이지 주소를 붙여 넣으세요" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="쿠팡 상품 페이지 주소">
+          <button type="button" class="ghost sm" id="cpGo">링크 만들기</button>
+        </div>
+        <p class="hint" id="cpMsg"></p>
+        <div id="cpList"></div>
+      </div>
       <div id="fields">
-        <button type="button" class="ghost" id="pasteBtn">📋 한 번에 붙여넣기 (설명 5칸 자동 채우기)</button>
+        <button type="button" class="ghost" id="pasteBtn">📋 한 번에 붙여넣기 (설명 6칸 자동 채우기)</button>
         <div id="pasteBox" hidden>
-          <textarea id="pasteIn" spellcheck="false" placeholder="AI가 만든 글을 통째로 붙여 넣으세요.&#10;제목 줄(인스타 캡션 · 인스타 고정 댓글 · 자동 DM · 유튜브 게시글 · 쿠팡 링크 댓글)을 보고 칸마다 나눠 넣어요."></textarea>
+          <textarea id="pasteIn" spellcheck="false" placeholder="AI가 만든 글을 통째로 붙여 넣으세요.&#10;제목 줄(인스타 캡션 · 인스타 고정 댓글 · 자동 DM · 유튜브 게시글 · 쿠팡 링크 댓글 · 스레드 게시글)을 보고 칸마다 나눠 넣어요."></textarea>
           <p class="hint" id="pasteHint">붙여 넣으면 찾은 칸이 여기에 보여요.</p>
           <div class="paste-acts">
             <button type="button" class="primary" id="pasteGo" disabled>칸에 나눠 넣기</button>
@@ -2482,7 +2511,13 @@ function shareImages(){
     alert("이 브라우저는 이미지 공유를 지원하지 않습니다. ‘다운로드’를 눌러 주세요.");
     return;
   }
-  const cap = (S.cur && S.cur.f && S.cur.f.instagram_caption || "").trim() ? plainCopy(S.cur.f.instagram_caption) : "";
+  let cap = "";
+  const capSrc = (S.cur && S.cur.f && S.cur.f.instagram_caption) || "";
+  if(capSrc.trim()){
+    const r = fillLinks(S.cur, "instagram_caption", capSrc);
+    if(r.missing) toast("인스타 설명에 [링크]가 있는데 쿠팡 링크가 아직 없어서, 설명은 복사하지 않았어요", "bad");
+    else cap = plainCopy(r.text);
+  }
   const p = navigator.share({files});      /* 누른 즉시 호출해야 공유창이 열립니다 */
   let capDone = false;
   const tryCopy = () => {
@@ -2611,15 +2646,29 @@ const FIELDS = [
   {kind:"instagram_caption",   label:"인스타 캡션",      short:"인"},
   {kind:"instagram_pin",       label:"인스타 고정 댓글", short:"고"},
   {kind:"auto_dm",             label:"자동 DM",          short:"DM"},
-  {kind:"etc",                 label:"기타",             short:"기", legacy:true}
+  {kind:"threads_post",        label:"스레드 게시글",    short:"스"},
+  {kind:"etc",                 label:"기타",             short:"기", legacy:true},
+  /* 아래 둘은 화면에 칸으로 보이지 않고, 쿠팡 링크 칸의 내용을 글과 함께 저장하는 용도 */
+  {kind:"coupang_url",         label:"쿠팡 상품 주소",   short:"",   hidden:true},
+  {kind:"coupang_links",       label:"만들어진 링크",    short:"",   hidden:true}
 ];
+/* 칸마다 붙는 쿠팡 링크 이름표(subId). 새 채널이 생기면 여기에 한 줄만 더하면 됩니다. (영문 소문자·숫자만) */
+const LINK_TAGS = {
+  youtube_description: "ytpost",
+  coupang_description: "ytcomment",
+  instagram_pin:       "igpin",
+  auto_dm:             "igdm",
+  instagram_caption:   "igcaption",
+  threads_post:        "threads"
+};
 /* 한 번에 붙여넣기: 제목 줄을 보고 어느 칸인지 알아냅니다 (위에서부터 먼저 맞는 것) */
 const PASTE_HEADS = [
   {kind:"instagram_pin",       re:/^(인스타(그램)?\s*)?고정\s*댓글/},
   {kind:"instagram_caption",   re:/^인스타(그램)?\s*(캡션|설명|본문|게시글)/},
   {kind:"auto_dm",             re:/^(인스타(그램)?\s*)?자동\s*DM|^DM\s*(내용|문구)?(\s|\(|$)/i},
   {kind:"youtube_description", re:/^유튜브\s*(커뮤니티\s*)?(게시글|게시물|설명|커뮤니티)/},
-  {kind:"coupang_description", re:/^쿠팡\s*(파트너스\s*)?(링크\s*)?(댓글|설명)/}
+  {kind:"coupang_description", re:/^쿠팡\s*(파트너스\s*)?(링크\s*)?(댓글|설명)/},
+  {kind:"threads_post",        re:/^(스레드|Threads)\s*(게시글|게시물|본문|설명|글)/i}
 ];
 const TABS3 = [["none","미지정"],["plan","예약"],["done","완료"]];
 const SAMPLE_TEXT = "채널 디자인 미리보기 (표지)\n\n두 번째 장 본문입니다.\n**강조할 말**은 이렇게 보여요.\n\n여러분의 생각은 어떠신가요?\n1. 첫 번째 선택지\n2. 두 번째 선택지\n3. 세 번째 선택지";
@@ -3056,7 +3105,7 @@ function itemHtml(c){
   else when = c.createdAt ? esc(fmtDay(c.createdAt)) : "새 글";
   const owner = S.isAdmin && c.ownerId ? " · " + esc(c.ownerId) : "";
   const pend = OUT[c.key] ? " · 저장 대기" : "";
-  const tags = FIELDS.filter(x => !x.legacy || (c.f[x.kind] || "").trim())
+  const tags = FIELDS.filter(x => !x.hidden && (!x.legacy || (c.f[x.kind] || "").trim()))
     .map(x => `<span class="tg${(c.f[x.kind] || "").trim() ? "" : " e"}" title="${esc(x.label)}">${x.short}</span>`).join("");
   /* 선택 모드: 동그라미(완료) 대신 네모 체크칸, 글을 눌러도 열지 않고 고르기만 함 */
   if(S.selMode){
@@ -3290,12 +3339,14 @@ function fillDetail(){
   updateCopyBtn("raw");
   updateNumHint();
   FIELDS.forEach(x => {
+    if(x.hidden) return;
     const ta = $("fld_" + x.kind);
     if(act !== ta){ ta.value = c.f[x.kind] || ""; autoGrow(ta); }
     if(x.legacy) $("box_" + x.kind).hidden = !(c.f[x.kind] || "").trim();   /* 기타: 예전 내용이 있을 때만 */
     updateTag(x.kind);
     updateCopyBtn(x.kind);
   });
+  renderLinkBox();
   $("rawBox").open = isWide() || !c.rawText || S.rawOpen;
   applyFieldOpen();
   updateDoneBtn();
@@ -3354,6 +3405,7 @@ function applyFieldOpen(){
 (function buildFields(){
   const host = $("fields");
   FIELDS.forEach(x => {
+    if(x.hidden) return;
     const wrap = document.createElement("details");
     wrap.className = "fld fbox";
     wrap.id = "box_" + x.kind;
@@ -3433,7 +3485,7 @@ function updatePasteHint(){
   $("pasteGo").textContent = ks.length ? `${ks.length}칸에 나눠 넣기` : "칸에 나눠 넣기";
   $("pasteHint").innerHTML = !$("pasteIn").value.trim() ? "붙여 넣으면 찾은 칸이 여기에 보여요."
     : ks.length ? "찾은 칸: " + ks.map(x => `<b>${esc(x.label)}</b> ${got[x.kind].length.toLocaleString()}자`).join(" · ")
-    : "제목 줄(인스타 캡션 · 인스타 고정 댓글 · 자동 DM · 유튜브 게시글 · 쿠팡 링크 댓글)을 찾지 못했어요.";
+    : "제목 줄(인스타 캡션 · 인스타 고정 댓글 · 자동 DM · 유튜브 게시글 · 쿠팡 링크 댓글 · 스레드 게시글)을 찾지 못했어요.";
 }
 function closePaste(){ $("pasteBox").hidden = true; $("pasteBtn").hidden = false; $("pasteIn").value = ""; }
 $("pasteBtn").addEventListener("click", async () => {
@@ -3474,7 +3526,14 @@ $("pasteGo").addEventListener("click", () => {
 const plainCopy = t => String(t || "").replace(/\*\*/g, "");
 async function copyField(kind, label, text){
   if(!S.cur) return;
-  const v = plainCopy(text);
+  let src = text;
+  if(LINK_TAGS[kind] && String(text || "").trim()){
+    /* 설명 칸의 [링크]를 이 칸 전용 쿠팡 링크로 바꿉니다. 링크가 아직 없으면 [링크] 글자가 그대로 올라가는 일을 막기 위해 복사하지 않습니다. */
+    const r = fillLinks(S.cur, kind, text);
+    if(r.missing){ toast("[링크]를 바꿀 쿠팡 링크가 아직 없어요. 위 ‘쿠팡 링크’ 칸에 상품 주소를 먼저 넣어 주세요", "bad"); return; }
+    src = r.text;
+  }
+  const v = plainCopy(src);
   if(!v.trim()){ toast(label + "이(가) 비어 있어요", "bad"); return; }
   const ok = await copyText(v);
   if(!ok){ toast("복사하지 못했어요. 글자를 길게 눌러 직접 복사해 주세요.", "bad"); return; }
@@ -3502,6 +3561,132 @@ async function copyText(text){
     return ok;
   }
 }
+
+/* ---------- 쿠팡 링크: 상품 주소 하나 → 칸마다 다른 이름표(subId)의 단축링크 ----------
+   설명 칸에 [링크]라고 써 두면, 복사하는 순간 그 칸 전용 링크로 바뀝니다.
+   링크는 서버(Apps Script)가 쿠팡에 요청해 만들고, 글과 함께 저장됩니다. */
+const LINK_RE = /\[\s*링크\s*\]/, LINK_RE_G = /\[\s*링크\s*\]/g;
+const COUPANG_URL_RE = /^https?:\/\/([a-z0-9-]+\.)*coupang\.com\/\S+$/i;
+const CP_HELP = "설명 칸에 [링크]라고 써 두면, 복사할 때 그 칸 전용 쿠팡 링크로 바뀌어요.";
+const CPS = {};   /* 글마다: 만드는 중인지 · 못 만든 이름표 · 안내 문구 */
+const cps = c => CPS[c.key] || (CPS[c.key] = {busy:false, errors:null, note:"", bad:false});
+const linkTags = () => [...new Set(Object.values(LINK_TAGS))];
+const pickUrl = s => { const m = String(s || "").match(/https?:\/\/[^\s"'<>]+/i); return m ? m[0] : ""; };
+/* 저장된 링크 묶음 {이름표: 링크}. 상품 주소가 바뀌었는데 옛 링크가 남아 있으면 쓰지 않습니다. */
+function getLinkSet(c){
+  if(!c || !c.f) return {};
+  let d = null;
+  try{ d = JSON.parse(c.f.coupang_links || "null"); }catch(e){ d = null; }
+  if(!d || d.url !== (c.f.coupang_url || "") || !d.links || typeof d.links !== "object") return {};
+  return d.links;
+}
+/* 칸 종류에 맞는 링크를 [링크] 자리에 넣습니다. missing=true 는 [링크]가 있는데 링크가 아직 없다는 뜻 */
+function fillLinks(c, kind, text){
+  const src = String(text || "");
+  if(!LINK_RE.test(src)) return {text:src, missing:false};
+  const tag = LINK_TAGS[kind], link = tag ? getLinkSet(c)[tag] : "";
+  if(!link) return {text:src, missing:true};
+  return {text:src.replace(LINK_RE_G, () => link), missing:false};
+}
+function renderLinkBox(){
+  const c = S.cur;
+  if(!c) return;
+  const st = cps(c), url = c.f.coupang_url || "", links = getLinkSet(c);
+  const tags = linkTags(), total = tags.length, have = tags.filter(t => links[t]).length;
+  const inp = $("cpUrl");
+  if(document.activeElement !== inp) inp.value = url;
+  const tg = $("cpTag");
+  tg.textContent = st.busy ? "만드는 중…" : (!url ? "비어 있음" : (have === total ? `만들어짐 · ${total}개` : `${have}/${total}개`));
+  tg.className = (!st.busy && url && have === total) ? "tg" : "tg e";
+  $("cpGo").disabled = st.busy;
+  const m = $("cpMsg");
+  m.textContent = st.busy ? "쿠팡에서 링크를 만드는 중…" : (st.note || CP_HELP);
+  m.classList.toggle("bad", !st.busy && !!st.note && st.bad);
+  const errs = st.errors || {};
+  $("cpList").innerHTML = !url ? "" : FIELDS.filter(x => LINK_TAGS[x.kind]).map(x => {
+    const tag = LINK_TAGS[x.kind], l = links[tag];
+    const mid = l ? `<span class="cpu" title="${esc(l)}">${esc(l)}</span>`
+      : `<span class="cpu${st.busy ? "" : " bad"}">${esc(st.busy ? "만드는 중…" : (errs[tag] || "아직 없음"))}</span>`;
+    return `<div class="cprow"><span class="cpl">${esc(x.label)}</span>${mid}`
+      + (l ? `<button type="button" class="ghost sm" data-tag="${esc(tag)}">복사</button>` : "") + `</div>`;
+  }).join("");
+}
+/* 입력칸의 주소를 읽어 링크 만들기를 시작 (quiet: 칸을 벗어날 때처럼 조용히) */
+function cpSubmit(quiet){
+  const c = S.cur;
+  if(!c) return;
+  const raw = $("cpUrl").value.trim();
+  if(!raw){ runCoupang(c, "", quiet); return; }
+  const url = pickUrl(raw);
+  if(!url || !COUPANG_URL_RE.test(url)){
+    const st = cps(c);
+    st.note = "쿠팡 상품 페이지 주소(coupang.com …)를 넣어 주세요."; st.bad = true;
+    renderLinkBox();
+    return;
+  }
+  if(url !== raw) $("cpUrl").value = url;     /* 공유 문구가 같이 붙어 있으면 주소만 남김 */
+  runCoupang(c, url, quiet);
+}
+async function runCoupang(c, url, quiet){
+  const st = cps(c);
+  if(st.busy) return;
+  st.note = ""; st.bad = false;
+  if(!url){                                    /* 입력칸을 비우면 저장된 주소·링크도 지움 */
+    if(!(c.f.coupang_url || "") && !(c.f.coupang_links || "")){ if(S.cur === c) renderLinkBox(); return; }
+    c.f.coupang_url = ""; c.f.coupang_links = ""; st.errors = null;
+    queueSave(c, {postFields:{coupang_url:"", coupang_links:""}}, 300);
+    scheduleListRender();
+    if(S.cur === c) renderLinkBox();
+    return;
+  }
+  const same = url === (c.f.coupang_url || "");
+  const have = same ? getLinkSet(c) : {};
+  const need = linkTags().filter(t => !have[t]);    /* 같은 주소면 아직 없는 이름표만 만듭니다 */
+  if(!need.length){
+    if(!quiet) st.note = "이 주소의 링크가 이미 모두 만들어져 있어요.";
+    if(S.cur === c) renderLinkBox();
+    return;
+  }
+  st.busy = true; st.errors = null;
+  if(!same){ c.f.coupang_url = url; c.f.coupang_links = ""; }
+  if(S.cur === c) renderLinkBox();
+  try{
+    const r = await callDb({action:"makeLinks", url, tags:need});
+    if(!r || !r.ok) throw new Error((r && r.error) || "링크를 만들지 못했습니다.");
+    const links = Object.assign({}, have, r.links || {});
+    c.f.coupang_url = url;
+    c.f.coupang_links = JSON.stringify({url, links});
+    st.errors = r.errors && Object.keys(r.errors).length ? r.errors : null;
+    queueSave(c, {postFields:{coupang_url:url, coupang_links:c.f.coupang_links}}, 300);
+    scheduleListRender();
+    const made = Object.keys(r.links || {}).length, bad = st.errors ? Object.keys(st.errors).length : 0;
+    if(bad){
+      st.note = `${bad}개는 만들지 못했어요: ${Object.values(st.errors)[0]} · ‘링크 만들기’를 다시 누르면 못 만든 것만 다시 시도해요.`; st.bad = true;
+    }else if(S.cur === c) toast(`쿠팡 링크 ${made}개를 만들었어요`);
+  }catch(e){
+    st.note = "링크를 만들지 못했어요: " + (e && e.message || e); st.bad = true;
+  }finally{
+    st.busy = false;
+    if(S.cur === c){
+      renderLinkBox();
+      const u = pickUrl($("cpUrl").value);       /* 만드는 사이에 주소를 바꿨다면 새 주소로 다시 */
+      if(u && u !== (c.f.coupang_url || "") && COUPANG_URL_RE.test(u)) runCoupang(c, u, true);
+    }
+  }
+}
+$("cpGo").addEventListener("click", () => cpSubmit(false));
+$("cpUrl").addEventListener("keydown", e => { if(e.key === "Enter"){ e.preventDefault(); cpSubmit(false); } });
+$("cpUrl").addEventListener("paste", () => setTimeout(() => cpSubmit(false), 0));
+$("cpUrl").addEventListener("change", () => cpSubmit(true));
+$("cpList").addEventListener("click", async e => {
+  const b = e.target.closest("button[data-tag]");
+  if(!b || !S.cur) return;
+  const link = getLinkSet(S.cur)[b.dataset.tag];
+  if(!link) return;
+  const x = FIELDS.find(f => LINK_TAGS[f.kind] === b.dataset.tag);
+  const ok = await copyText(link);
+  toast(ok ? `${x ? x.label : "쿠팡"} 링크 복사됨` : "복사하지 못했어요. 링크를 길게 눌러 직접 복사해 주세요.", ok ? "" : "bad");
+});
 
 /* 원글: 고치는 대로 저장 + 이미지 다시 그리기 (붙여넣기는 바로) */
 let srcTimer = null, pasted = false;
