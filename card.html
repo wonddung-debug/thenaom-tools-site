@@ -437,6 +437,10 @@
   .acct th, .acct td{border-bottom:1px solid var(--line); padding:7px 9px; text-align:center; white-space:nowrap}
   .acct th:first-child, .acct td:first-child{text-align:left; position:sticky; left:0; background:var(--panel)}
   .acct input{width:20px; height:20px; accent-color:var(--accent)}
+  .acct select{width:auto; min-width:66px; padding:5px 6px; font-size:13px}
+  .acct select.lv-u{font-weight:600}
+  .acct select.lv-d{font-weight:700; border-color:var(--accent)}
+  .acct .own{font-size:12px; color:var(--sub)}
 
   /* 알림 */
   #toast{position:fixed; left:50%; bottom:calc(18px + env(safe-area-inset-bottom,0px)); transform:translate(-50%,10px); max-width:92vw; display:flex; gap:10px; align-items:center; padding:10px 16px; border-radius:14px; background:#1f2937; color:#fff; font-size:13.5px; font-weight:700; opacity:0; pointer-events:none; transition:opacity .18s, transform .18s; z-index:400}
@@ -660,7 +664,7 @@
     <p class="msg" id="msg"></p>
   </section>
 
-<!-- 채널 디자인 (관리자) -->
+<!-- 채널 디자인 (관리자: 전체 / 그 밖의 아이디: 디자인 권한을 받은 채널 + 직접 만든 채널) -->
 <section id="designPane">
     <div class="dz-head">
       <div class="dz-row">
@@ -700,6 +704,7 @@
           <button type="button" class="ghost" id="addPresetBtn" style="flex:1;">+ 새 채널 추가</button>
           <button type="button" class="ghost" id="delPresetBtn">이 채널 삭제</button>
         </div>
+        <p class="hint" id="dzNote" hidden>여기서는 직접 만든 채널과, 관리자에게 ‘디자인’ 권한을 받은 채널만 고칠 수 있어요. 채널 이름 변경과 삭제는 관리자만 할 수 있어요. 같은 채널을 디자인할 수 있는 다른 아이디가 있으면, 저장한 디자인이 모두에게 똑같이 적용돼요.</p>
 
         <div class="grid2">
           <div>
@@ -985,7 +990,7 @@
       <!-- 6. 아이디별 채널 -->
       <div class="sec" data-tab="acc" hidden>
         <div class="sec-title">👥 아이디별 채널</div>
-        <p class="hint" style="margin:0 0 8px">체크한 채널의 글만 그 아이디에게 보입니다. 체크하면 바로 저장됩니다. 관리자는 모든 글을 봅니다.</p>
+        <p class="hint" style="margin:0 0 8px">칸마다 ‘—’ 없음 / ‘사용’ 글 쓰기·보기 / ‘디자인’ 사용 + 채널 디자인 수정 중에서 고르세요. 고르면 바로 저장됩니다. ‘디자인’은 여러 아이디에게 줄 수 있고, 누가 저장해도 그 채널 디자인은 모두에게 똑같이 적용돼요. 직접 만든 채널은 만든 아이디가 항상 디자인할 수 있어요. 관리자는 모든 글과 채널을 봅니다.</p>
         <div class="acc-wrap" id="accHost"></div>
         <div class="row-flex" style="margin-top:10px">
           <input type="text" id="accNew" placeholder="새 아이디" autocomplete="off" autocapitalize="off" style="max-width:220px">
@@ -1624,6 +1629,7 @@ fontSel.addEventListener("change", updateFontPrev);
 $("bodyBold").addEventListener("change", updateFontPrev);
 
 function showTab(t){
+  if(t === "acc" && !S.isAdmin) t = "ch";     /* 아이디별 채널 표는 관리자만 */
   document.querySelectorAll("#setTabs button").forEach(b=>b.classList.toggle("on", b.dataset.tab === t));
   document.querySelectorAll("#designPane .sec[data-tab]").forEach(s=>{ s.hidden = s.dataset.tab !== t; });
   if(t === "font") updateFontPrev();
@@ -2708,7 +2714,7 @@ const isWide = () => wideMQ.matches;
 
 const S = {
   uid:"", isAdmin:false, loaded:false,
-  contents:[], channels:[], chVer:"", access:{}, users:[],
+  contents:[], channels:[], chVer:"", access:{}, design:{}, designIds:[], users:[],
   cur:null, tab:"none", chanF:"", q:"", view:"list", mode:"work", rawOpen:false, dzTab:"ch",
   selMode:false, sel:new Set(), visKeys:[], fOpen:{}
 };
@@ -2892,7 +2898,7 @@ function writeCacheSoon(){ clearTimeout(cacheTimer); cacheTimer = setTimeout(wri
 function writeCacheNow(){
   clearTimeout(cacheTimer); cacheTimer = null;
   if(!S.uid) return;
-  LS.set(keyOf("cache"), {v:2, savedAt:Date.now(), isAdmin:S.isAdmin, contents:S.contents.map(stripC), access:S.access, users:S.users});
+  LS.set(keyOf("cache"), {v:2, savedAt:Date.now(), isAdmin:S.isAdmin, contents:S.contents.map(stripC), access:S.access, design:S.design, designIds:S.designIds, users:S.users});
 }
 function storeChannels(){ if(S.uid && !LS.set(keyOf("ch"), {chVer:S.chVer, channels:S.channels})) LS.set(keyOf("ch"), {chVer:"", channels:[]}); }
 function saveOut(){ if(S.uid) LS.set(keyOf("out"), OUT); }
@@ -3041,6 +3047,8 @@ function boot(silent){
       S.chVer = r.chVer || "";
       if(chChanged || !LS.get(keyOf("ch"), null)) storeChannels();
       if(r.access) S.access = r.access;
+      if(r.design) S.design = r.design;
+      if(Array.isArray(r.designIds)) S.designIds = r.designIds;
       if(r.users) S.users = r.users;
       const m = mergeServer(Array.isArray(r.contents) ? r.contents : [], t0);
       S.loaded = true;
@@ -3057,7 +3065,7 @@ function boot(silent){
         applyDesignFor(S.cur);
         runMake();
       }
-      if(S.mode === "design" && chChanged){ refreshDesignSelect(); renderAccess(); }
+      if(S.mode === "design") syncDesignAfterBoot();
       if(!S.cur && isWide() && S.mode === "work") newDraft({silent:true, focus:true});
     }catch(e){
       if(!silent || !S.loaded) toast("목록을 불러오지 못했어요: " + (e.message || e), "bad");
@@ -3121,7 +3129,7 @@ function renderChanFilter(){
 }
 function emptyText(q){
   if(!S.loaded) return "불러오는 중…";
-  if(!S.channels.length && !S.isAdmin) return "아직 지정받은 채널이 없어요. 관리자에게 채널을 지정받으세요.";
+  if(!S.channels.length) return S.isAdmin ? "채널이 없어요. ‘채널 디자인’에서 채널을 먼저 만드세요." : "아직 사용할 채널이 없어요. 위의 ‘채널 디자인’에서 새 채널을 만들거나, 관리자에게 채널을 지정받으세요.";
   if(q) return "검색 결과가 없어요.";
   return {none:"미지정 글이 없어요. + 를 눌러 새 글을 시작하세요.", plan:"올릴 날짜를 정한 글이 없어요.", done:"완료한 글이 없어요."}[S.tab];
 }
@@ -3328,7 +3336,7 @@ function prevIgOff(channelId, except){
 function newDraft(opt){
   opt = opt || {};
   if(!S.channels.length){
-    if(!opt.silent) toast(S.isAdmin ? "‘채널 디자인’에서 채널을 먼저 만드세요" : "지정받은 채널이 없어요. 관리자에게 채널을 지정받으세요", "bad");
+    if(!opt.silent) toast("‘채널 디자인’에서 채널을 먼저 만드세요 (관리자에게 채널을 지정받아도 됩니다)", "bad");
     return;
   }
   if(S.cur && !hasAny(S.cur) && !S.cur.id){ if(opt.focus !== false) focusSrc(); if(!isWide()) setView("detail", true); return; }
@@ -3969,53 +3977,79 @@ $("navPrev").onclick = () => navList(-1);
 $("navNext").onclick = () => navList(1);
 applyView();
 
-/* ---------- 채널 디자인 (관리자) ---------- */
-let dzIdx = 0, dzDirty = false;
+/* ---------- 채널 디자인 ----------
+   - 관리자: 모든 채널을 디자인하고, 채널 이름 변경·삭제·아이디별 권한 지정을 합니다.
+   - 그 밖의 아이디: 새 채널을 만들 수 있고, 직접 만든 채널과 ‘디자인’ 권한을 받은 채널만 디자인합니다. (이름 변경·삭제 불가)
+   - 채널 디자인은 모두가 같이 쓰는 1벌이라, 저장하면 그 채널을 쓰는 모든 아이디에게 똑같이 적용됩니다. */
+let dzCurId = "", dzDirty = false, dzBusy = false, newTry = null;
 function newChId(){ return "ch_" + uuid().slice(0, 12); }
+function dzList(){ return S.isAdmin ? S.channels : S.channels.filter(ch => S.designIds.includes(ch.id)); }
+function dzCur(){ return dzCurId ? (dzList().find(ch => ch.id === dzCurId) || null) : null; }
+function dbErr(r, fallback){ const e = new Error((r && r.error) || fallback); e.code = r && r.code; return e; }
 function syncAdminUI(){
-  $("btnDesign").hidden = !S.isAdmin;
-  if(!S.isAdmin && S.mode === "design"){ dzDirty = false; closeDesign(); }
+  $("btnDesign").hidden = false;                       /* 누구나 새 채널을 만들 수 있어서 항상 보입니다 */
+  const accBtn = document.querySelector('#setTabs button[data-tab="acc"]');
+  if(accBtn) accBtn.hidden = !S.isAdmin;
+  $("delPresetBtn").hidden = !S.isAdmin;
+  $("chName").readOnly = !S.isAdmin;
+  $("dzNote").hidden = S.isAdmin;
+  if(!S.isAdmin && S.dzTab === "acc"){ S.dzTab = "ch"; if(S.mode === "design") showTab("ch"); }
 }
 function refreshDesignSelect(){
-  const sel = $("presetSel");
+  const sel = $("presetSel"), list = dzList();
   sel.textContent = "";
-  S.channels.forEach((ch, i) => sel.add(new Option(ch.name, i)));
-  if(dzIdx >= S.channels.length) dzIdx = 0;
-  sel.value = dzIdx;
+  if(!dzCurId) sel.add(new Option(list.length ? "(채널을 골라 주세요)" : "(디자인할 채널이 없어요)", ""));
+  list.forEach(ch => sel.add(new Option(ch.name, ch.id)));
+  sel.value = dzCurId;
+  updateDzSave();
 }
 function updateDzSave(){
   const b = $("savePresetBtn");
   b.textContent = dzDirty ? "저장 •" : "저장";
   b.classList.toggle("hl", dzDirty);
+  b.disabled = dzBusy || !dzCurId;
+}
+/* 서버에서 새로 받아왔을 때: 고치던 채널이 그대로 있으면 편집 내용을 건드리지 않고, 사라졌거나 권한이 없어졌으면 다른 채널로 옮깁니다. */
+function syncDesignAfterBoot(){
+  if(S.mode !== "design") return;
+  if(dzCurId && !dzCur()){
+    toast("보던 채널의 디자인 권한이 바뀌었거나 채널이 삭제됐어요", "bad");
+    const first = dzList()[0];
+    loadDesign(first ? first.id : "");
+  }else refreshDesignSelect();
+  renderAccess();
 }
 function openDesign(){
-  if(!S.isAdmin || S.mode === "design") return;
+  if(S.mode === "design") return;
   S.mode = "design";
   document.body.classList.add("design");
-  if(!S.channels.length) S.channels = [Object.assign(defaultPresets()[0], {id:newChId(), name:"기본 채널"})];
+  syncAdminUI();
+  const list = dzList();
   const ch = channelFor(S.cur);
-  dzIdx = Math.max(0, ch ? S.channels.indexOf(ch) : 0);
-  refreshDesignSelect();
-  loadDesign(dzIdx);
+  const start = (ch && list.includes(ch)) ? ch : list[0];
+  loadDesign(start ? start.id : "");
   try{ history.pushState({cw:"design"}, ""); }catch(e){}
+  if(!S.isAdmin && S.dzTab === "acc") S.dzTab = "ch";
   showTab(S.dzTab || "ch");
   if(S.dzTab === "acc") renderAccess();
   if(!isWide()) window.scrollTo(0, 0);
 }
-function loadDesign(i){
-  dzIdx = i;
-  const ch = S.channels[i];
-  if(!ch) return;
-  applySettings(ch);
-  $("chName").value = ch.name || "";
+function loadDesign(id){
+  const ch = id ? (dzList().find(x => x.id === id) || null) : null;
+  /* 디자인할 채널이 하나도 없으면 기본 디자인으로 시작해서, ‘+ 새 채널 추가’로 만들게 합니다. */
+  const base = ch || Object.assign(defaultPresets()[0], {wmText:""});
+  dzCurId = ch ? ch.id : "";
+  applySettings(base);
+  $("chName").value = ch ? (ch.name || "") : "";
   const c = S.cur && (S.cur.rawText || "").trim() ? S.cur : null;
   $("src").value = c ? c.rawText : SAMPLE_TEXT;
-  $("splitMode").value = (c && c.splitMode) || ch.splitMode || "blank";
-  $("lastPageType").value = (c && c.lastPageType) || ch.lastPageType || "auto";
+  $("splitMode").value = (c && c.splitMode) || base.splitMode || "blank";
+  $("lastPageType").value = (c && c.lastPageType) || base.lastPageType || "auto";
   if(!$("lastPageType").value) $("lastPageType").value = "auto";
-  $("splitDelim").value = (c && c.splitDelim) || ch.splitDelim || "---";
+  $("splitDelim").value = (c && c.splitDelim) || base.splitDelim || "---";
   updateSplitUI();
-  dzDirty = false; updateDzSave();
+  dzDirty = false;
+  refreshDesignSelect();
   runMake();
 }
 function closeDesign(){
@@ -4038,9 +4072,10 @@ $("closeSettingsBtn").onclick = () => {
   else closeDesign();
 };
 $("presetSel").onchange = () => {
-  const i = Number($("presetSel").value);
-  if(dzDirty && !confirm("저장하지 않은 변경을 버리고 다른 채널로 갈까요?")){ $("presetSel").value = dzIdx; return; }
-  loadDesign(i);
+  const id = $("presetSel").value;
+  if(!id) return;
+  if(dzDirty && !confirm("저장하지 않은 변경을 버리고 다른 채널로 갈까요?")){ $("presetSel").value = dzCurId; return; }
+  loadDesign(id);
 };
 (function watchDesignEdits(){
   const dz = $("designPane");
@@ -4063,85 +4098,126 @@ $("presetSel").onchange = () => {
     if(S.dzTab === "acc") renderAccess();
   });
 })();
-async function pushChannels(list, okMsg){
-  const btn = $("savePresetBtn");
-  btn.disabled = true;
+
+/* 서버가 돌려준 채널 목록·권한을 화면에 반영 */
+function applyChannelResult(r){
+  if(Array.isArray(r.channels)) S.channels = r.channels;
+  S.chVer = r.chVer || "";
+  if(Array.isArray(r.designIds)) S.designIds = r.designIds;
+  if(r.access) S.access = r.access;
+  if(r.design) S.design = r.design;
+  storeChannels(); writeCacheSoon();
+}
+/* 채널 하나만 저장 (다른 채널은 건드리지 않습니다) */
+async function pushOne(preset, isNew, okMsg){
+  dzBusy = true; updateDzSave();
   setSaveSt("saving");
   try{
-    const r = await callDb({action:"saveChannels", presets:list});
-    if(!r || !r.ok) throw new Error((r && r.error) || "저장하지 못했습니다.");
-    S.channels = r.channels || list;
-    S.chVer = r.chVer || "";
-    if(r.access) S.access = r.access;
-    storeChannels();
-    dzDirty = false; updateDzSave();
+    const r = await callDb({action:"saveChannel", preset, isNew:!!isNew});
+    if(!r || !r.ok) throw dbErr(r, "저장하지 못했습니다.");
+    applyChannelResult(r);
+    dzDirty = false;
     refreshDesignSelect();
     renderAccess();
     renderChanFilter();
     renderList();
     toast(okMsg);
-    return true;
+    return r.channelId || preset.id;
   }catch(e){
     toast("채널 저장 실패: " + (e.message || e), "bad");
-    return false;
+    if(e && (e.code === "FORBIDDEN" || e.code === "NOT_FOUND")) boot(true);     /* 권한이 바뀌었을 수 있으니 새로 확인 */
+    return "";
   }finally{
-    btn.disabled = false;
+    dzBusy = false; updateDzSave();
     setSaveSt("ok");
   }
 }
 $("savePresetBtn").onclick = async () => {
-  const old = S.channels[dzIdx];
-  if(!old) return;
-  const name = ($("chName").value || "").trim().slice(0, 40) || old.name;
-  if(S.channels.some((x, i) => i !== dzIdx && x.name === name)){ toast("같은 이름의 채널이 이미 있어요", "bad"); return; }
+  const old = dzCur();
+  if(!old || dzBusy) return;
+  const name = S.isAdmin ? (($("chName").value || "").trim().slice(0, 40) || old.name) : old.name;      /* 이름은 관리자만 바꿈 */
+  if(S.channels.some(x => x.id !== old.id && x.name === name)){ toast("같은 이름의 채널이 이미 있어요", "bad"); return; }
   const s = collectCurrentSettings(name);
   ["splitMode", "splitDelim", "lastPageType"].forEach(k => { if(old[k] !== undefined) s[k] = old[k]; });
-  s.id = old.id || newChId();
-  const next = S.channels.slice();
-  next[dzIdx] = s;
-  await pushChannels(next, `‘${name}’ 채널 디자인을 저장했어요`);
+  s.id = old.id;
+  await pushOne(s, false, `‘${name}’ 채널 디자인을 저장했어요`);
 };
 $("addPresetBtn").onclick = async () => {
+  if(dzBusy) return;
   const name = (prompt("새 채널 이름을 입력하세요.\n(지금 화면의 디자인을 복사해서 시작합니다)", "") || "").trim().slice(0, 40);
   if(!name) return;
   if(S.channels.some(x => x.name === name)){ toast("같은 이름의 채널이 이미 있어요", "bad"); return; }
+  const fresh = !dzCurId;                                   /* 디자인할 채널이 없어 기본 디자인에서 시작한 경우 */
   const s = collectCurrentSettings(name);
-  s.id = newChId();
-  if(await pushChannels(S.channels.concat([s]), `‘${name}’ 채널을 추가했어요`)){
-    refreshDesignSelect();
-    loadDesign(S.channels.length - 1);
-    refreshDesignSelect();
-  }
+  if(fresh && !s.wmText) s.wmText = name;
+  if(!newTry || newTry.name !== name) newTry = {name, id:newChId()};     /* 응답이 늦어 다시 눌러도 같은 채널로 처리 */
+  s.id = newTry.id;
+  const id = await pushOne(s, true, `‘${name}’ 채널을 추가했어요`);
+  if(id){ newTry = null; loadDesign(id); }
 };
 $("delPresetBtn").onclick = async () => {
+  if(!S.isAdmin || dzBusy) return;
+  const ch = dzCur();
+  if(!ch) return;
   if(S.channels.length <= 1){ alert("채널은 최소 1개는 있어야 합니다."); return; }
-  const ch = S.channels[dzIdx];
   const used = S.contents.filter(c => c.channelId === ch.id).length;
   if(!confirm(`‘${ch.name}’ 채널을 삭제할까요?` + (used ? `\n이 채널의 글 ${used}개는 관리자만 보게 됩니다.` : ""))) return;
-  if(await pushChannels(S.channels.filter((_, i) => i !== dzIdx), `‘${ch.name}’ 채널을 삭제했어요`)){
-    dzIdx = 0; refreshDesignSelect(); loadDesign(0);
+  dzBusy = true; updateDzSave();
+  setSaveSt("saving");
+  try{
+    const r = await callDb({action:"deleteChannel", id:ch.id});
+    if(!r || !r.ok) throw dbErr(r, "삭제하지 못했습니다.");
+    applyChannelResult(r);
+    dzDirty = false;
+    const first = dzList()[0];
+    loadDesign(first ? first.id : "");
+    renderAccess(); renderChanFilter(); renderList();
+    toast(`‘${ch.name}’ 채널을 삭제했어요`);
+  }catch(e){
+    toast("채널 삭제 실패: " + (e.message || e), "bad");
+  }finally{
+    dzBusy = false; updateDzSave();
+    setSaveSt("ok");
   }
 };
 
-/* 아이디별 채널 (표에서 체크 → 바로 저장) */
+/* 아이디별 채널 (표에서 고르면 바로 저장) — 관리자 전용
+   칸마다: 없음 / 사용(글 쓰기·보기) / 디자인(사용 + 채널 디자인 수정). 직접 만든 채널은 만든 아이디가 항상 디자인할 수 있어요. */
 let accTimer = null;
+function levelOf(u, id){
+  if((S.design[u] || []).includes(id)) return "d";
+  if((S.access[u] || []).includes(id)) return "u";
+  return "n";
+}
 function renderAccess(){
   const host = $("accHost");
   if(!host || !S.isAdmin) return;
-  const users = [...new Set((S.users || []).concat(Object.keys(S.access || {})))].filter(Boolean).sort();
+  const users = [...new Set((S.users || []).concat(Object.keys(S.access || {}), Object.keys(S.design || {})))].filter(Boolean).sort();
   if(!S.channels.length){ host.innerHTML = `<p class="hint" style="padding:10px">채널이 없습니다.</p>`; return; }
   if(!users.length){ host.innerHTML = `<p class="hint" style="padding:10px">아직 아이디가 없어요. 아래에서 추가하세요.</p>`; return; }
+  const cell = (u, ch) => {
+    if(normId(ch.createdBy) === u) return `<td><span class="own" title="이 아이디가 직접 만든 채널이라 항상 디자인할 수 있어요">만든 채널</span></td>`;
+    const lv = levelOf(u, ch.id);
+    return `<td><select class="lvl lv-${lv}" data-u="${esc(u)}" data-ch="${esc(ch.id)}" aria-label="${esc(u)} · ${esc(ch.name)}">`
+      + `<option value="n"${lv === "n" ? " selected" : ""}>—</option>`
+      + `<option value="u"${lv === "u" ? " selected" : ""}>사용</option>`
+      + `<option value="d"${lv === "d" ? " selected" : ""}>디자인</option></select></td>`;
+  };
   host.innerHTML = `<table class="acct"><thead><tr><th>아이디</th>${S.channels.map(ch => `<th>${esc(ch.name)}</th>`).join("")}</tr></thead><tbody>`
-    + users.map(u => `<tr><td>${esc(u)}</td>${S.channels.map(ch => `<td><input type="checkbox" data-u="${esc(u)}" data-ch="${esc(ch.id)}" aria-label="${esc(u)} · ${esc(ch.name)}"${(S.access[u] || []).includes(ch.id) ? " checked" : ""}></td>`).join("")}</tr>`).join("")
+    + users.map(u => `<tr><td>${esc(u)}</td>${S.channels.map(ch => cell(u, ch)).join("")}</tr>`).join("")
     + `</tbody></table>`;
 }
 $("accHost").addEventListener("change", e => {
-  const cb = e.target.closest('input[type="checkbox"]');
-  if(!cb) return;
-  const u = cb.dataset.u, id = cb.dataset.ch;
-  const set = new Set(S.access[u] || []);
-  if(cb.checked) set.add(id); else set.delete(id);
-  S.access[u] = [...set];
+  const sel = e.target.closest("select.lvl");
+  if(!sel) return;
+  const u = sel.dataset.u, id = sel.dataset.ch, lv = sel.value;
+  const use = new Set(S.access[u] || []), des = new Set(S.design[u] || []);
+  use.delete(id); des.delete(id);
+  if(lv === "u" || lv === "d") use.add(id);
+  if(lv === "d") des.add(id);
+  S.access[u] = [...use];
+  S.design[u] = [...des];
+  sel.className = "lvl lv-" + lv;
   $("accSt").textContent = "저장 대기…";
   clearTimeout(accTimer);
   accTimer = setTimeout(saveAccessNow, 700);
@@ -4150,18 +4226,20 @@ $("accAdd").onclick = () => {
   const u = normId($("accNew").value);
   if(!u) return;
   if(!S.access[u]) S.access[u] = [];
+  if(!S.design[u]) S.design[u] = [];
   if(!S.users.includes(u)) S.users.push(u);
   $("accNew").value = "";
   renderAccess();
-  $("accSt").textContent = `‘${u}’ 추가됨 · 채널을 체크하면 저장됩니다`;
+  $("accSt").textContent = `‘${u}’ 추가됨 · 채널을 고르면 저장됩니다`;
 };
 $("accNew").addEventListener("keydown", e => { if(e.key === "Enter"){ e.preventDefault(); $("accAdd").click(); } });
 async function saveAccessNow(){
   $("accSt").textContent = "저장 중…";
   try{
-    const r = await callDb({action:"saveAccess", access:{users:S.access}});
-    if(!r || !r.ok) throw new Error((r && r.error) || "저장하지 못했습니다.");
+    const r = await callDb({action:"saveAccess", access:{users:S.access, design:S.design}});
+    if(!r || !r.ok) throw dbErr(r, "저장하지 못했습니다.");
     S.access = r.access || S.access;
+    S.design = r.design || S.design;
     S.chVer = r.chVer || S.chVer;
     storeChannels(); writeCacheSoon();
     $("accSt").textContent = "✓ 저장됨";
@@ -4280,6 +4358,8 @@ function startApp(){
     S.contents = cache.contents.map(fixCached);
     S.isAdmin = !!cache.isAdmin;
     S.access = cache.access && typeof cache.access === "object" ? cache.access : {};
+    S.design = cache.design && typeof cache.design === "object" ? cache.design : {};
+    S.designIds = Array.isArray(cache.designIds) ? cache.designIds : [];
     S.users = Array.isArray(cache.users) ? cache.users : [];
     S.loaded = true;
   }
