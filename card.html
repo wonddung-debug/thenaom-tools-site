@@ -100,8 +100,10 @@
   .split-row{display:flex; gap:8px; align-items:center;}
   .split-lbl{font-size:13px; font-weight:700; color:var(--sub); width:68px; flex-shrink:0;}
   .split-row select{flex:1 1 auto; width:auto; min-width:0; padding:8px 10px; font-size:13.5px; font-weight:600; background:var(--bg);}
-  .ig-off{display:flex; align-items:center; gap:8px; flex:1 1 auto; font-size:13.5px; font-weight:600; color:var(--ink); cursor:pointer; min-height:36px}
-  .ig-off input{width:20px; height:20px; margin:0; flex:none; accent-color:var(--accent)}
+  /* 쓰는 칸 체크 (이 글 옵션 · 채널 디자인 ‘설명 칸’) */
+  .fo-grid{display:grid; grid-template-columns:1fr; gap:2px 12px; flex:1 1 auto; min-width:0}
+  .fo-item{display:flex; align-items:center; gap:8px; font-size:13.5px; font-weight:600; color:var(--ink); cursor:pointer; min-height:36px}
+  .fo-item input{width:20px; height:20px; margin:0; flex:none; accent-color:var(--accent)}
   .split-box .hint{margin:0}
   .split-row input[type="text"]{flex:0 0 90px; min-width:0; width:90px; padding:8px 10px; font-size:13.5px; background:var(--bg);}
 
@@ -306,7 +308,7 @@
   .ib b{display:block; font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
   .ib small{display:block; font-size:12px; color:var(--sub); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
   .late{color:var(--bad); font-weight:700}
-  .tgs{display:flex; gap:4px; margin-top:6px}
+  .tgs{display:flex; flex-wrap:wrap; gap:4px; margin-top:6px}
   .tg{display:inline-block; font-size:11px; font-weight:600; padding:1px 6px; border-radius:4px; background:var(--ok-bg); color:var(--ok-ink); border:1px solid transparent; white-space:nowrap}
   .tg.e{background:transparent; color:var(--sub); border-color:var(--line); font-weight:500}
   .ck{position:relative; width:22px; height:22px; flex:none; margin-top:1px; border-radius:50%; border:2px solid var(--sub); background:transparent; padding:0; cursor:pointer}
@@ -326,7 +328,8 @@
   body.nosel #emptyMsg{display:block}
   body.nosel #dHead, body.nosel #txtBody{display:none !important}
   #txtBody{display:flex; flex-direction:column; gap:10px}
-  #rawBox{order:0} #linkBox{order:0} #fields{order:1} #acts{order:2}
+  /* 위에서부터: 원글 → 설명 7칸 → 한 번에 붙여넣기 → 쿠팡 링크 → 완료·삭제 */
+  #loadMsg{order:0} #rawBox{order:1} #fields{order:2} #pasteWrap{order:3} #linkBox{order:4} #acts{order:5}
   #rawBox > summary, #optBox > summary{min-height:40px; display:flex; align-items:center; gap:6px; font-size:13.5px; font-weight:700; cursor:pointer; color:var(--ink)}
   #optBox > summary{font-weight:600; color:var(--sub); font-size:12.5px}
   #src{min-height:170px; height:220px; font-size:16px; padding:12px; border-radius:10px}
@@ -369,6 +372,7 @@
     #cpDet > summary{min-height:44px; font-size:14px}
   }
   /* 한 번에 붙여넣기 */
+  #pasteWrap{display:flex; flex-direction:column; gap:8px}
   #pasteBtn{width:100%; padding:12px; font-size:14.5px; font-weight:700; border-radius:12px; border:1px dashed var(--accent); color:var(--accent); background:var(--accent-bg)}
   #pasteBox{display:flex; flex-direction:column; gap:8px; padding:10px; border:1px solid var(--accent); border-radius:12px; background:var(--panel)}
   #pasteIn{min-height:160px; height:200px; font-size:15px; padding:10px; border-radius:10px; resize:vertical}
@@ -388,6 +392,14 @@
   #acts .primary{flex:1; padding:13px 10px; font-size:15.5px}
   #acts .primary.isdone{background:var(--panel); color:var(--ink); border-color:var(--line)}
   #delBtn{flex:0 0 30%; padding:13px 10px; font-size:15.5px; font-weight:700; border-radius:12px; color:var(--bad); border-color:var(--bad)}
+
+  /* 글을 열 때 내용을 불러오는 동안 */
+  #loadMsg{display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; padding:14px 12px; border:1px dashed var(--accent); border-radius:12px; background:var(--accent-bg); color:var(--accent); font-size:14px; font-weight:700; text-align:center}
+  body.cloading #rawBox, body.cloading #fields, body.cloading #pasteWrap, body.cloading #linkBox, body.cloading #acts, body.cloading #dHead{opacity:.45; pointer-events:none}
+  /* 다운로드 · 인스타 공유 결과 줄 (복사됨 표시) */
+  .act-msg{margin:6px 0 2px; padding:9px 12px; border-radius:10px; font-size:13.5px; font-weight:700; line-height:1.5; background:var(--ok-bg); color:var(--ok-ink); word-break:keep-all}
+  .act-msg.info{background:var(--accent-bg); color:var(--accent)}
+  .act-msg.bad{background:transparent; border:1px solid var(--bad); color:var(--bad)}
 
   /* 큰 새 글 버튼 · 여러 개 골라 삭제 */
   #newBig{display:block; width:100%; margin:10px 0 2px; padding:13px; font-size:16px; font-weight:700; border-radius:12px; background:var(--accent); color:#fff; border:1px solid var(--accent); cursor:pointer}
@@ -422,6 +434,9 @@
   #topActions button{flex:1; padding:12px 8px; font-size:15px}
   #viewBar[hidden] + #topActions{display:none}
   body.design #topActions{display:none}
+  #viewBar[hidden] ~ #topMsg{display:none}
+  #bottomActions[hidden] + #botMsg{display:none}
+  body.design #topMsg, body.design #botMsg{display:none}
 
   /* 채널 디자인 */
   #designPane{display:none}
@@ -441,6 +456,7 @@
   .acct select.lv-u{font-weight:600}
   .acct select.lv-d{font-weight:700; border-color:var(--accent)}
   .acct .own{font-size:12px; color:var(--sub)}
+  .acct .accdel{margin-left:8px; padding:2px 8px; min-height:26px; font-size:11.5px; color:var(--bad); border-color:var(--bad)}
 
   /* 알림 */
   #toast{position:fixed; left:50%; bottom:calc(18px + env(safe-area-inset-bottom,0px)); transform:translate(-50%,10px); max-width:92vw; display:flex; gap:10px; align-items:center; padding:10px 16px; border-radius:14px; background:#1f2937; color:#fff; font-size:13.5px; font-weight:700; opacity:0; pointer-events:none; transition:opacity .18s, transform .18s; z-index:400}
@@ -455,12 +471,13 @@
     body.m-detail:not(.design) #backBtn{display:inline-block; min-height:42px; padding:0 18px; font-size:17px; font-weight:800; border-radius:12px; background:var(--accent); color:#fff; border-color:var(--accent)}
     /* 이미지 위·아래 다운로드 · 인스타 공유 버튼을 크게 */
     #topActions button, #bottomActions button{min-height:54px; font-size:17px}
+    .act-msg{font-size:15px}
     /* 목록에서 당겨서 새로고침할 때 브라우저 기본 동작과 겹치지 않게 */
     body.m-list{overscroll-behavior-y:contain}
     body.m-detail #top .ttl{display:none}
     #paneTxt, #txtBody{display:contents}
     #emptyMsg{display:none !important}
-    #rawBox{order:5} #linkBox{order:5} #fields{order:6} #acts{order:7}
+    #loadMsg{order:4} #rawBox{order:5} #fields{order:6} #pasteWrap{order:7} #linkBox{order:8} #acts{order:9}
     body.newdoc #rawBox{order:2}
     #rawBox{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:0 10px 10px}
     body.newdoc #rawBox{border-color:var(--accent)}
@@ -513,6 +530,7 @@
     body.design #colList, body.design #dHead, body.design #paneTxt{display:none}
     body.design #designPane{grid-column:1 / 3; grid-row:1 / 3}
     .dz-head{position:sticky; top:-10px; z-index:5}
+    .fo-grid{grid-template-columns:1fr 1fr}
   }
 </style>
 </head>
@@ -568,6 +586,7 @@
   <section id="paneTxt">
     <div id="emptyMsg">왼쪽 목록에서 글을 고르거나 <b>+</b> 를 눌러 새 글을 시작하세요.</div>
     <div id="txtBody">
+      <div id="loadMsg" hidden><span id="loadTxt"></span><button type="button" class="ghost sm" id="loadRetry" hidden>다시 불러오기</button></div>
       <details id="rawBox">
         <summary><span class="rl">원글</span><span class="tg e" id="rawTag">비어 있음</span><span class="sbtns"><button type="button" class="ghost sm pst" id="pst_raw">붙여넣기</button><button type="button" class="ghost sm" id="cpy_raw">복사</button></span></summary>
         <textarea id="src" spellcheck="false"></textarea>
@@ -576,7 +595,7 @@
           <button type="button" class="ghost" id="numHintBtn">번호로 장 나누기</button>
         </div>
         <details id="optBox">
-          <summary>이 글 옵션 · 장 나누기 · 마지막 장 · 인스타</summary>
+          <summary>이 글 옵션 · 장 나누기 · 마지막 장 · 쓰는 칸</summary>
 <div class="split-box">
     <div class="split-row">
       <span class="split-lbl">장 나누기</span>
@@ -601,14 +620,26 @@
         <option value="plain">일반 본문 (특수 레이아웃 끔)</option>
       </select>
     </div>
-    <div class="split-row">
-      <span class="split-lbl">인스타</span>
-      <label class="ig-off"><input type="checkbox" id="igOff"> 고정 댓글 · 자동 DM 안 함</label>
+    <div class="split-row" style="align-items:flex-start">
+      <span class="split-lbl" style="padding-top:8px">쓰는 칸</span>
+      <div class="fo-grid" id="foGrid"></div>
     </div>
-    <p class="hint" id="igOffHint">체크하면 그 두 칸이 숨겨지고, 인스타 공유용 마지막 장(번호·안내 줄)도 따로 만들지 않아서 다운로드 이미지와 똑같아져요. 인스타 캡션은 그대로예요. 새 글은 같은 채널의 이전 글 설정을 따라가요.</p>
+    <p class="hint" id="foHint">체크한 칸만 이 글에서 써요. 체크를 빼면 그 칸이 숨겨지고, 그 칸의 쿠팡 링크도 만들지 않고, ‘한 번에 붙여넣기’에서도 건너뛰어요. ‘인스타 자동 DM’을 빼면 인스타 공유용 마지막 장(번호·안내 줄)도 따로 만들지 않아서 다운로드 이미지와 똑같아져요. 새 글은 그 채널의 기본값(채널 디자인 → 설명 칸)으로 시작해요.</p>
   </div>
         </details>
       </details>
+      <div id="fields"></div>
+      <div id="pasteWrap">
+        <button type="button" class="ghost" id="pasteBtn">📋 한 번에 붙여넣기 (설명 7칸 자동 채우기)</button>
+        <div id="pasteBox" hidden>
+          <textarea id="pasteIn" spellcheck="false" placeholder="AI가 만든 글을 통째로 붙여 넣으세요.&#10;제목 줄(유튜브 게시글 · 유튜브 고정 댓글 · 인스타 캡션 · 인스타 고정 댓글 · 인스타 자동 DM · 스레드 게시글 · 스레드 댓글)을 보고 칸마다 나눠 넣어요."></textarea>
+          <p class="hint" id="pasteHint">붙여 넣으면 찾은 칸이 여기에 보여요.</p>
+          <div class="paste-acts">
+            <button type="button" class="primary" id="pasteGo" disabled>칸에 나눠 넣기</button>
+            <button type="button" class="ghost" id="pasteNo">닫기</button>
+          </div>
+        </div>
+      </div>
       <div id="linkBox">
         <div class="lk-head"><b>쿠팡 링크</b><span class="tg e" id="cpTag">비어 있음</span></div>
         <button type="button" class="ghost" id="cpPaste">📋 복사한 주소 붙여넣고 바로 링크 만들기</button>
@@ -621,17 +652,6 @@
           <summary id="cpDetSum">칸마다 만든 링크 보기</summary>
           <div id="cpList"></div>
         </details>
-      </div>
-      <div id="fields">
-        <button type="button" class="ghost" id="pasteBtn">📋 한 번에 붙여넣기 (설명 6칸 자동 채우기)</button>
-        <div id="pasteBox" hidden>
-          <textarea id="pasteIn" spellcheck="false" placeholder="AI가 만든 글을 통째로 붙여 넣으세요.&#10;제목 줄(인스타 캡션 · 인스타 고정 댓글 · 자동 DM · 유튜브 게시글 · 쿠팡 링크 댓글 · 스레드 게시글)을 보고 칸마다 나눠 넣어요."></textarea>
-          <p class="hint" id="pasteHint">붙여 넣으면 찾은 칸이 여기에 보여요.</p>
-          <div class="paste-acts">
-            <button type="button" class="primary" id="pasteGo" disabled>칸에 나눠 넣기</button>
-            <button type="button" class="ghost" id="pasteNo">닫기</button>
-          </div>
-        </div>
       </div>
       <div id="acts">
         <button type="button" class="primary" id="doneBtn">작업 완료</button>
@@ -651,6 +671,7 @@
       <button type="button" class="primary" id="tbSave" title="유튜브용 (원래 이미지)">다운로드</button>
       <button type="button" class="primary accent" id="tbShare" title="인스타용 (마지막 장에 1·2 숫자와 안내 줄)">인스타 공유</button>
     </div>
+    <p class="act-msg" id="topMsg" role="status" aria-live="polite" hidden></p>
     <div id="lastRow" hidden>
       <b>마지막 장</b>
       <select id="lastQuick" aria-label="마지막 장 모양"></select>
@@ -661,6 +682,7 @@
       <button type="button" class="primary" id="saveAll">유튜브용 다운로드</button>
       <button type="button" class="primary accent" id="shareAll">인스타 공유</button>
     </div>
+    <p class="act-msg" id="botMsg" role="status" aria-live="polite" hidden></p>
     <p class="msg" id="msg"></p>
   </section>
 
@@ -679,6 +701,7 @@
         <button type="button" data-tab="font">글꼴·효과</button>
         <button type="button" data-tab="wrap">줄바꿈</button>
         <button type="button" data-tab="misc">번호·기타</button>
+        <button type="button" data-tab="flds">설명 칸</button>
         <button type="button" data-tab="acc">아이디별 채널</button>
       </div>
     </div>
@@ -969,7 +992,7 @@
             <input type="number" id="igNumSize" value="76" step="2" min="30" max="160"></div>
         </div>
         <div class="row-flex" id="igNumCustomRow" style="margin-top:8px;"><span style="font-size:12.5px;font-weight:600;">직접 고른 색</span><input type="color" id="igNumCustom" value="#ff6b6b"></div>
-        <p class="hint">‘인스타 공유’로 보낼 때만 마지막 투표 장(VS · A vs B · 1.2.3. 선택지)에 들어가요. VS 장에는 위·아래에 1·2 숫자도 붙어요. 선택지가 3개 이상이면 문구 속 ‘1 또는 2’는 ‘1~4’처럼 자동으로 바뀌어요. ‘다운로드’(유튜브용)는 원래 이미지 그대로예요.</p>
+        <p class="hint">‘인스타 공유’로 보낼 때만 마지막 투표 장(VS · A vs B · 1.2.3. 선택지)에 들어가요. VS 장에는 위·아래에 1·2 숫자도 붙어요. 선택지가 3개 이상이면 문구 속 ‘1 또는 2’는 ‘1~4’처럼 자동으로 바뀌어요. ‘다운로드’(유튜브용)는 원래 이미지 그대로예요. ‘인스타 자동 DM’ 칸을 쓰지 않는 글에서는 이 마지막 장을 따로 만들지 않아요.</p>
       </div>
 
       <!-- 5. 최대 장수 제한 -->
@@ -987,10 +1010,17 @@
         </div>
       </div>
 
+      <!-- 설명 칸 기본값 (이 채널의 새 글이 시작할 때 쓰는 칸) -->
+      <div class="sec" data-tab="flds" hidden>
+        <div class="sec-title">☑️ 쓰는 설명 칸 (이 채널의 기본값)</div>
+        <div class="fo-grid" id="dfGrid"></div>
+        <p class="hint">체크한 칸만 이 채널의 새 글에서 쓰는 칸으로 시작해요. 글마다 ‘이 글 옵션 → 쓰는 칸’에서 따로 바꿀 수 있어요. 아직 기본값을 정한 적 없는 예전 채널은 그 채널의 가장 최근 글 설정으로 시작해요. 바꾼 뒤에는 위의 ‘저장’을 눌러야 적용돼요.</p>
+      </div>
+
       <!-- 6. 아이디별 채널 -->
       <div class="sec" data-tab="acc" hidden>
         <div class="sec-title">👥 아이디별 채널</div>
-        <p class="hint" style="margin:0 0 8px">칸마다 ‘—’ 없음 / ‘사용’ 글 쓰기·보기 / ‘디자인’ 사용 + 채널 디자인 수정 중에서 고르세요. 고르면 바로 저장됩니다. ‘디자인’은 여러 아이디에게 줄 수 있고, 누가 저장해도 그 채널 디자인은 모두에게 똑같이 적용돼요. 직접 만든 채널은 만든 아이디가 항상 디자인할 수 있어요. 관리자는 모든 글과 채널을 봅니다.</p>
+        <p class="hint" style="margin:0 0 8px">칸마다 ‘—’ 없음 / ‘사용’ 글 쓰기·보기 / ‘디자인’ 사용 + 채널 디자인 수정 중에서 고르세요. 고르면 바로 저장됩니다. ‘디자인’은 여러 아이디에게 줄 수 있고, 누가 저장해도 그 채널 디자인은 모두에게 똑같이 적용돼요. 직접 만든 채널은 만든 아이디가 항상 디자인할 수 있어요. 관리자는 모든 글과 채널을 봅니다. 아이디 옆 ‘삭제’를 누르면 그 아이디의 채널 지정만 없애고 이 목록에서 지워요. 채널과 글은 그대로 남아요.</p>
         <div class="acc-wrap" id="accHost"></div>
         <div class="row-flex" style="margin-top:10px">
           <input type="text" id="accNew" placeholder="새 아이디" autocomplete="off" autocapitalize="off" style="max-width:220px">
@@ -1091,7 +1121,7 @@ FONTS.forEach((f,i)=>{
   fontSel.appendChild(o);
 });
 
-let igRender = {key:"", off:false};   /* 마지막으로 그린 글과 그때의 '인스타 고정 댓글 · 자동 DM 안 함' 상태 */
+let igRender = {key:"", off:false};   /* 마지막으로 그린 글과 그때의 '인스타 자동 DM 안 씀' 상태 */
 let pages = [], canvases = [], blobs = [], igBlobs = [];   /* blobs = 유튜브용(다운로드), igBlobs = 인스타용(공유) */
 let textAlign = "left", wrapMode = "auto", currentTheme = "white";
 let logoImg = null, logoDataUrl = "";
@@ -1180,7 +1210,8 @@ function collectCurrentSettings(name){
     saveDelay: Number($("saveDelay").value) || 1.4,
     splitMode: $("splitMode").value,
     splitDelim: $("splitDelim").value,
-    lastPageType: $("lastPageType").value
+    lastPageType: $("lastPageType").value,
+    offFields: OFFABLE.filter(k => { const b = $("dfo_" + k); return !!b && !b.checked; })   /* 채널 기본값: 안 쓰는 설명 칸 */
   };
 }
 
@@ -1234,6 +1265,9 @@ function applySettings(p){
   $("splitDelim").value = p.splitDelim ?? "---";
   $("lastPageType").value = p.lastPageType ?? "auto";
   Object.keys(EXTRA).forEach(k=>{ $(k).value = p[k] ?? EXTRA[k]; });
+  /* 쓰는 설명 칸 기본값: 저장된 값이 없는 예전 채널은 ‘새 글이 지금 시작하는 값’(가장 최근 글 설정)을 보여 줍니다 */
+  const offList = Array.isArray(p.offFields) ? p.offFields : defaultOffFor(p, null);
+  OFFABLE.forEach(k => { const b = $("dfo_" + k); if(b) b.checked = !offList.includes(k); });
   updateIgNumUI();
   updateFontPrev();
   updateSplitUI();
@@ -2416,7 +2450,7 @@ async function render(){
   const dsig = designSignature(f);
   const n = snapPages.length;
   /* 인스타 공유용 마지막 장 (유튜브용과 다를 때만 한 장 더 만듭니다) → 목록 맨 끝(n번째 칸)에 미리보기 */
-  /* '인스타 고정 댓글 · 자동 DM 안 함'이 체크된 글은 인스타용 마지막 장도 따로 만들지 않습니다 (다운로드 = 인스타 공유 이미지) */
+  /* '인스타 자동 DM'을 안 쓰는 글은 인스타용 마지막 장(번호·안내 줄)도 따로 만들지 않습니다 (다운로드 = 인스타 공유 이미지) */
   const igOffNow = S.mode === "work" && igOffOf(S.cur);
   igRender = {key: S.cur ? S.cur.key : "", off: igOffNow};
   const withIg = !igOffNow && needsIgLast(snapPages[n - 1]);
@@ -2505,8 +2539,11 @@ let saving = false;
 async function saveAllImages(btn){
   if(saving || !blobs.length) return;
   saving = true;
-  /* 다운로드를 누른 바로 그 순간에 유튜브 게시글을 먼저 복사합니다 (폰은 누른 순간에만 복사가 허용돼요) */
-  copyField("youtube_description", "유튜브 게시글", (S.cur && S.cur.f && S.cur.f.youtube_description) || "");
+  const c = S.cur;
+  /* 다운로드를 누른 바로 그 순간에 유튜브 게시글을 먼저 복사합니다 (폰은 누른 순간에만 복사가 허용돼요).
+     결과(복사됨 / 못 함)는 이미지 위·아래의 결과 줄에 계속 남깁니다. */
+  const ytOn = !!c && fieldOn(c, {kind:"youtube_description"});
+  const copyP = ytOn ? copyField("youtube_description", "유튜브 게시글", (c.f && c.f.youtube_description) || "", {quiet:true}) : null;
   const snapBlobs = [...blobs];
   const n = snapBlobs.length;
   /* 첫 이미지 저장 시각을 한 번만 정해서 전체 장에 똑같이 사용 */
@@ -2516,11 +2553,20 @@ async function saveAllImages(btn){
   btns.forEach(b => b.disabled = true);
   for(let i = 0; i < n; i++){
     btn.textContent = `저장 중 ${i+1}/${n}`;
+    setActMsg(`이미지 저장 중… ${i+1}/${n}`, "info");
     download(snapBlobs[i], fname(i, n, stamp));
     if(i < n - 1) await new Promise(r=>setTimeout(r, delayMs));
   }
   btn.textContent = `${n}장 저장 완료`;
   markUsed("dl");
+  const cr = copyP ? await Promise.race([copyP, new Promise(r => setTimeout(() => r({ok:false, bad:true, line:"유튜브 게시글 복사 결과를 확인하지 못했어요"}), 4000))]) : null;
+  let line, bad = false;
+  if(!copyP) line = "유튜브 게시글 칸을 쓰지 않는 글이라 복사는 건너뛰었어요";
+  else if(cr.ok) line = "✓ " + cr.line;
+  else{ bad = true; line = cr.line; }
+  line += ` · 이미지 ${n}장 저장 완료`;
+  setActMsg(line, bad ? "bad" : "");
+  toast(line, bad ? "bad" : "");
   setTimeout(()=>{
     $("saveAll").textContent = `유튜브용 다운로드 (${blobs.length}장)`;
     updateShareMarks();
@@ -2530,38 +2576,76 @@ async function saveAllImages(btn){
 }
 
 /* 공유: 인스타용 이미지(마지막 투표 장만 1·2 숫자 + 안내 줄)를 공유창으로 보내고,
-   인스타 설명이 있으면 같이 복사해 둡니다(인스타에서 바로 붙여넣기). */
+   인스타 캡션이 있으면 같이 복사해 둡니다(인스타에서 바로 붙여넣기). 결과는 이미지 위·아래 결과 줄에 남깁니다. */
 function shareImages(){
   if(!igBlobs.length) return;
+  const c = S.cur;
   const snapBlobs = [...igBlobs];
   const n = snapBlobs.length;
   const stamp = makeStamp();
   const baseTime = Date.now() - (n * 2000);
   const files = snapBlobs.map((b, i) => new File([b], fname(i, n, stamp), {type:"image/png", lastModified: baseTime + (i * 2000)}));
   if(!(navigator.canShare && navigator.canShare({files}))){
-    alert("이 브라우저는 이미지 공유를 지원하지 않습니다. ‘다운로드’를 눌러 주세요.");
+    setActMsg("이 브라우저는 이미지 공유를 지원하지 않아요. ‘다운로드’를 눌러 이미지를 저장해 주세요", "bad");
+    toast("이 브라우저는 이미지 공유를 지원하지 않아요", "bad");
     return;
   }
-  let cap = "";
-  const capSrc = (S.cur && S.cur.f && S.cur.f.instagram_caption) || "";
-  if(capSrc.trim()){
-    const r = fillLinks(S.cur, "instagram_caption", capSrc);
-    if(r.missing) toast("인스타 설명에 [링크]가 있는데 쿠팡 링크가 아직 없어서, 설명은 복사하지 않았어요", "bad");
-    else cap = plainCopy(r.text);
+  const capKind = "instagram_caption", capLabel = "인스타 캡션";
+  let cap = "", capNote = "", capBad = false;
+  if(c && !fieldOn(c, {kind:capKind})){
+    capNote = "인스타 캡션 칸을 쓰지 않는 글이라 복사는 건너뛰었어요";
+  }else{
+    const capSrc = (c && c.f && c.f[capKind]) || "";
+    if(!capSrc.trim()){ capNote = "인스타 캡션이 비어 있어서 복사할 게 없어요"; capBad = true; }
+    else{
+      const r = fillLinks(c, capKind, capSrc);
+      if(r.missing){ capNote = "인스타 캡션에 [링크]가 있는데 쿠팡 링크가 아직 없어서 복사하지 않았어요"; capBad = true; }
+      else cap = plainCopy(r.text);
+    }
   }
-  const p = navigator.share({files});      /* 누른 즉시 호출해야 공유창이 열립니다 */
-  let capDone = false;
+  if(!cap.trim() && !capNote){ cap = ""; capNote = "인스타 캡션이 비어 있어서 복사할 게 없어요"; capBad = true; }
+  let p;
+  try{ p = navigator.share({files}); }          /* 누른 즉시 호출해야 공유창이 열립니다 */
+  catch(e){ p = Promise.reject(e); }
+  let capDone = false, ended = false;
+  const markCap = () => {
+    if(!c) return;
+    (COPIED[c.key] = COPIED[c.key] || {})[capKind] = Date.now();
+    saveCopied();
+    if(S.cur === c) updateCopyBtn(capKind);      /* 인스타 캡션 칸에도 ‘✓ 복사함’ 표시 */
+  };
   const tryCopy = () => {
     if(!cap || capDone || !(navigator.clipboard && navigator.clipboard.writeText)) return Promise.resolve(false);
-    return navigator.clipboard.writeText(cap).then(()=>{ capDone = true; return true; }, ()=>false);
+    return navigator.clipboard.writeText(cap).then(()=>{ capDone = true; markCap(); return true; }, ()=>false);
   };
-  tryCopy();
-  p.then(()=>{
+  const capLen = () => cap.length.toLocaleString();
+  setActMsg(cap ? "공유창을 여는 중… 인스타 캡션을 복사하는 중" : "공유창을 여는 중…", "info");
+  const copyP = Promise.race([tryCopy(), new Promise(r => setTimeout(() => r(false), 4000))]);   /* 첫 복사 — 끝날 때까지(최대 4초) 기다린 뒤에 결과 문구를 정합니다 */
+  copyP.then(ok => {
+    if(ok && !ended) setActMsg(`✓ ${capLabel} ${capLen()}자 복사됨 · 공유창에서 인스타를 골라 주세요`, "");
+  });
+  p.then(async ()=>{
+    ended = true;
     markUsed("sh");
-    tryCopy().then(()=>{ if(capDone) toast(`인스타 설명 ${cap.length.toLocaleString()}글자 복사됨`); });
-  }).catch(e=>{
-    if(e && e.name === "AbortError") return;
-    toast("공유하지 못했어요: " + (e && e.message || e), "bad");
+    await copyP;
+    if(cap && !capDone) await tryCopy();          /* 공유창이 닫힌 뒤 한 번 더 시도 */
+    let line, bad = false;
+    if(capDone) line = `✓ ${capLabel} ${capLen()}자 복사됨`;
+    else if(cap){ line = `${capLabel}을 복사하지 못했어요 · 캡션 칸의 ‘복사’ 버튼으로 복사해 주세요`; bad = true; }
+    else{ line = capNote; bad = capBad; }
+    line += ` · 이미지 ${n}장을 공유창으로 보냈어요`;
+    setActMsg(line, bad ? "bad" : "");
+    toast(line, bad ? "bad" : "");
+  }, async e=>{
+    ended = true;
+    await copyP;                                  /* 복사가 끝난 뒤의 결과로 문구를 정합니다 */
+    if(e && e.name === "AbortError"){
+      setActMsg(capDone ? `공유는 취소했어요 · ${capLabel} ${capLen()}자는 복사돼 있어요` : "공유를 취소했어요", "info");
+      return;
+    }
+    const why = (e && e.message) || String(e);
+    setActMsg(`공유하지 못했어요: ${why}` + (capDone ? ` (${capLabel}은 복사돼 있어요)` : ""), "bad");
+    toast("공유하지 못했어요: " + why, "bad");
   });
 }
 
@@ -2672,18 +2756,21 @@ const VIEW_KEY = "card_view_mode";
 /* 설명 칸 (올리는 순서대로). 서버는 영어 소문자 이름의 칸이면 무엇이든 그대로 저장합니다.
    기타(etc)는 예전 글 호환용 — 내용이 들어 있는 글에서만 보입니다. */
 const FIELDS = [
-  {kind:"youtube_description", label:"유튜브 게시글",    short:"유"},
-  {kind:"coupang_description", label:"쿠팡 링크 댓글",   short:"쿠"},
-  {kind:"instagram_caption",   label:"인스타 캡션",      short:"인"},
-  {kind:"instagram_pin",       label:"인스타 고정 댓글", short:"고"},
-  {kind:"auto_dm",             label:"자동 DM",          short:"DM"},
-  {kind:"threads_post",        label:"스레드 게시글",    short:"스"},
-  {kind:"etc",                 label:"기타",             short:"기", legacy:true},
+  {kind:"youtube_description", label:"유튜브 게시글",                  short:"유"},
+  {kind:"coupang_description", label:"유튜브 고정 댓글 (쿠팡 링크)",    short:"유댓"},
+  {kind:"instagram_caption",   label:"인스타 캡션",                    short:"인"},
+  {kind:"instagram_pin",       label:"인스타 고정 댓글",                short:"고"},
+  {kind:"auto_dm",             label:"인스타 자동 DM (쿠팡 링크)",       short:"DM"},
+  {kind:"threads_post",        label:"스레드 게시글",                   short:"스"},
+  {kind:"threads_comment",     label:"스레드 댓글 (쿠팡 링크)",          short:"스댓"},
+  {kind:"etc",                 label:"기타",                           short:"기", legacy:true},
   /* 아래 둘은 화면에 칸으로 보이지 않고, 쿠팡 링크 칸의 내용을 글과 함께 저장하는 용도 */
   {kind:"coupang_url",         label:"쿠팡 상품 주소",   short:"",   hidden:true},
   {kind:"coupang_links",       label:"만들어진 링크",    short:"",   hidden:true},
-  /* 글마다 저장되는 체크 값 ('1' = 인스타 고정 댓글 · 자동 DM 안 함). 내용이 아니라 설정이라 flag 로 표시 */
-  {kind:"ig_off",              label:"인스타 고정 댓글·자동 DM 안 함", short:"", hidden:true, flag:true}
+  /* 글마다 저장되는 설정 값 (내용이 아니라 설정이라 flag 로 표시)
+     off_fields = 이 글에서 안 쓰는 칸 목록(JSON). ig_off = 예전 ‘인스타 고정 댓글·자동 DM 안 함’ 체크('1') — 예전 글 호환용 */
+  {kind:"ig_off",              label:"(예전) 인스타 고정 댓글·자동 DM 안 함", short:"", hidden:true, flag:true},
+  {kind:"off_fields",          label:"안 쓰는 설명 칸",   short:"", hidden:true, flag:true}
 ];
 /* 칸마다 붙는 쿠팡 링크 이름표(subId). 새 채널이 생기면 여기에 한 줄만 더하면 됩니다. (영문 소문자·숫자만) */
 const LINK_TAGS = {
@@ -2692,19 +2779,36 @@ const LINK_TAGS = {
   instagram_pin:       "igpin",
   auto_dm:             "igdm",
   instagram_caption:   "igcaption",
-  threads_post:        "threads"
+  threads_post:        "threads",
+  threads_comment:     "threadscomment"
 };
-/* '인스타 고정 댓글 · 자동 DM 안 함' 체크(이 글 옵션) — 체크하면 아래 두 칸을 숨기고, 그 칸의 쿠팡 링크도 만들지 않습니다. */
-const IG_OFF_KINDS = ["instagram_pin", "auto_dm"];
-const igOffOf = c => !!(c && c.f && c.f.ig_off === "1");
-const fieldOn = (c, x) => !(igOffOf(c) && IG_OFF_KINDS.includes(x.kind));
+/* ‘쓰는 칸’ 체크: 글마다 안 쓰는 칸 목록을 저장합니다. 안 쓰는 칸은 숨기고, 그 칸의 쿠팡 링크도 만들지 않고, 한 번에 붙여넣기에서도 건너뜁니다.
+   채널마다 기본값(채널 디자인 ‘설명 칸’)이 있어 새 글은 그 값으로 시작하고, 글마다 바꿀 수 있어요. */
+const OFFABLE = FIELDS.filter(x => !x.hidden && !x.legacy).map(x => x.kind);
+function offListOf(c){
+  if(!c) return [];
+  if(c.full === false) return Array.isArray(c.off) ? c.off : [];       /* 아직 내용을 안 받은 글은 목록이 알려 준 값 */
+  const f = c.f || {};
+  const raw = String(f.off_fields || "").trim();
+  if(raw){
+    try{ const a = JSON.parse(raw); if(Array.isArray(a)) return a.filter(k => OFFABLE.includes(k)); }catch(e){}
+  }
+  return f.ig_off === "1" ? ["instagram_pin", "auto_dm"] : [];           /* 예전 ‘고정 댓글·자동 DM 안 함’ */
+}
+const isOff = (c, kind) => offListOf(c).includes(kind);
+const fieldOn = (c, x) => !isOff(c, x.kind);
+/* 자동 DM 을 안 쓰는 글은 인스타 공유용 마지막 장(번호·안내 줄)도 따로 만들지 않습니다 */
+const igOffOf = c => isOff(c, "auto_dm");
+/* 이 칸에 글이 들어 있는지 (내용을 아직 안 받은 글은 목록이 알려 준 값으로) */
+const hasField = (c, kind) => c.full === false ? (c.fl || []).includes(kind) : !!String((c.f && c.f[kind]) || "").trim();
 /* 한 번에 붙여넣기: 제목 줄을 보고 어느 칸인지 알아냅니다 (위에서부터 먼저 맞는 것) */
 const PASTE_HEADS = [
+  {kind:"threads_comment",     re:/^(스레드|Threads)\s*(고정\s*)?댓글/i},
+  {kind:"coupang_description", re:/^유튜브\s*(커뮤니티\s*)?(고정\s*)?댓글|^쿠팡\s*(파트너스\s*)?(링크\s*)?(댓글|설명)/},
   {kind:"instagram_pin",       re:/^(인스타(그램)?\s*)?고정\s*댓글/},
   {kind:"instagram_caption",   re:/^인스타(그램)?\s*(캡션|설명|본문|게시글)/},
   {kind:"auto_dm",             re:/^(인스타(그램)?\s*)?자동\s*DM|^DM\s*(내용|문구)?(\s|\(|$)/i},
   {kind:"youtube_description", re:/^유튜브\s*(커뮤니티\s*)?(게시글|게시물|설명|커뮤니티)/},
-  {kind:"coupang_description", re:/^쿠팡\s*(파트너스\s*)?(링크\s*)?(댓글|설명)/},
   {kind:"threads_post",        re:/^(스레드|Threads)\s*(게시글|게시물|본문|설명|글)/i}
 ];
 const TABS3 = [["none","미지정"],["plan","예약"],["done","완료"]];
@@ -2716,7 +2820,9 @@ const S = {
   uid:"", isAdmin:false, loaded:false,
   contents:[], channels:[], chVer:"", access:{}, design:{}, designIds:[], users:[],
   cur:null, tab:"none", chanF:"", q:"", view:"list", mode:"work", rawOpen:false, dzTab:"ch",
-  selMode:false, sel:new Set(), visKeys:[], fOpen:{}
+  selMode:false, sel:new Set(), visKeys:[], fOpen:{},
+  removed:[],                 /* 관리자가 지운 아이디 (목록에서 숨김) */
+  srvQ:"", srvIds:new Set()   /* 서버에서 찾은 검색 결과 (원글·설명 안의 글자까지) */
 };
 let OUT = {};          /* 아직 서버에 못 보낸 수정 (글 key → {id, fields, v}) — 폰에 바로 기록 */
 let COPIED = {};       /* 글마다 복사·다운로드·공유한 표시 */
@@ -2863,17 +2969,36 @@ function fromServer(s, key){
   return {key, id:s.id, clientId:s.clientId || "", title:s.title || "", channelId:s.channelId || "", channel:s.channel || "",
     rawText:s.rawText || "", f:pp.f, extra:pp.extra, publishAt:s.publishAt || "", doneAt:s.doneAt || "",
     splitMode:s.splitMode || "", lastPageType:s.lastPageType || "", splitDelim:s.splitDelim || "",
-    createdAt:s.createdAt || "", updatedAt:s.updatedAt || "", ownerId:s.ownerId || ""};
+    createdAt:s.createdAt || "", updatedAt:s.updatedAt || "", ownerId:s.ownerId || "", full:true, stale:false};
 }
+/* 가벼운 목록 한 줄 → 글. 내용(원글·설명)은 글을 열 때 따로 받아 옵니다. fl = 글이 들어 있는 칸, off = 안 쓰는 칸 */
+function liteFromServer(s, key){
+  return {key, id:s.id, clientId:s.clientId || "", title:s.title || "", channelId:s.channelId || "", channel:s.channel || "",
+    rawText:"", f:emptyF(), extra:[], publishAt:s.publishAt || "", doneAt:s.doneAt || "",
+    splitMode:"", lastPageType:"", splitDelim:"",
+    createdAt:s.createdAt || "", updatedAt:s.updatedAt || "", ownerId:s.ownerId || "",
+    full:false, stale:false, fl:Array.isArray(s.fl) ? s.fl : [], off:Array.isArray(s.off) ? s.off : []};
+}
+const filledOf = c => FIELDS.filter(x => !x.hidden && hasField(c, x.kind)).map(x => x.kind);
 function fixCached(c){
   c.f = Object.assign(emptyF(), c.f || {});
   c.extra = Array.isArray(c.extra) ? c.extra : [];
+  if(c.full === undefined) c.full = true;            /* 예전 저장본의 글은 모두 내용이 들어 있었어요 */
+  c.rawText = c.rawText || "";
+  c.splitMode = c.splitMode || ""; c.lastPageType = c.lastPageType || ""; c.splitDelim = c.splitDelim || "";
+  if(c.full === false){ c.fl = Array.isArray(c.fl) ? c.fl : []; c.off = Array.isArray(c.off) ? c.off : []; }
+  else{ delete c.fl; delete c.off; }
   return c;
 }
-function stripC(c){
-  return {key:c.key, id:c.id, clientId:c.clientId, title:c.title, channelId:c.channelId, channel:c.channel, rawText:c.rawText,
-    f:c.f, extra:c.extra, publishAt:c.publishAt, doneAt:c.doneAt, splitMode:c.splitMode, lastPageType:c.lastPageType,
-    splitDelim:c.splitDelim, createdAt:c.createdAt, updatedAt:c.updatedAt, ownerId:c.ownerId};
+/* 폰에 기억할 모양. keep=true 면 내용까지, 아니면 목록용 정보만 (폰 저장 공간을 아끼려고) */
+function stripC(c, keep){
+  const base = {key:c.key, id:c.id, clientId:c.clientId, title:c.title, channelId:c.channelId, channel:c.channel,
+    publishAt:c.publishAt, doneAt:c.doneAt, createdAt:c.createdAt, updatedAt:c.updatedAt, ownerId:c.ownerId,
+    stale:!!c.stale, openedAt:c.openedAt || 0};
+  if(keep && c.full !== false){
+    return Object.assign(base, {full:true, rawText:c.rawText, f:c.f, extra:c.extra, splitMode:c.splitMode, lastPageType:c.lastPageType, splitDelim:c.splitDelim});
+  }
+  return Object.assign(base, {full:false, fl:filledOf(c), off:offListOf(c)});
 }
 function applyFields(c, fields){
   Object.keys(fields || {}).forEach(k => {
@@ -2898,7 +3023,18 @@ function writeCacheSoon(){ clearTimeout(cacheTimer); cacheTimer = setTimeout(wri
 function writeCacheNow(){
   clearTimeout(cacheTimer); cacheTimer = null;
   if(!S.uid) return;
-  LS.set(keyOf("cache"), {v:2, savedAt:Date.now(), isAdmin:S.isAdmin, contents:S.contents.map(stripC), access:S.access, design:S.design, designIds:S.designIds, users:S.users});
+  /* 최근에 연 글 몇 개만 내용까지 기억하고 나머지는 목록 정보만 (폰 저장 공간이 모자라면 더 줄입니다) */
+  for(const n of [40, 12, 0]){
+    const ok = LS.set(keyOf("cache"), {v:3, savedAt:Date.now(), isAdmin:S.isAdmin, contents:cacheSnapshot(n), access:S.access, design:S.design, designIds:S.designIds, users:S.users, removed:S.removed});
+    if(ok) return;
+  }
+}
+function cacheSnapshot(n){
+  const pin = new Set();
+  S.contents.forEach(c => { if(OUT[c.key] || !c.id || c === S.cur) pin.add(c.key); });   /* 못 보낸 수정 · 새 글 · 열어 둔 글은 늘 내용까지 */
+  S.contents.filter(c => c.full !== false && !pin.has(c.key))
+    .sort((a, b) => (b.openedAt || 0) - (a.openedAt || 0)).slice(0, n).forEach(c => pin.add(c.key));
+  return S.contents.map(c => stripC(c, pin.has(c.key)));
 }
 function storeChannels(){ if(S.uid && !LS.set(keyOf("ch"), {chVer:S.chVer, channels:S.channels})) LS.set(keyOf("ch"), {chVer:"", channels:[]}); }
 function saveOut(){ if(S.uid) LS.set(keyOf("out"), OUT); }
@@ -2982,6 +3118,7 @@ function flush(opt){
         /* 저장되는 사이에 지운 새 글이면 서버에서도 지웁니다 */
         if(wasNew && sc.id && c && !S.contents.includes(c) && S.cur !== c){ delete OUT[key]; callDb({action:"delete", id:sc.id}).catch(()=>{}); }
         saveOut();
+        if(!wasNew && c) absorbSaved(c, sc);      /* 다른 기기가 같이 고친 칸이 있으면 함께 맞춤 */
       }catch(err){
         const code = err && err.code || "";
         if(code === "NOT_FOUND"){
@@ -3037,7 +3174,7 @@ function boot(silent){
     try{
       await Promise.race([flush(), new Promise(r => setTimeout(r, 15000))]).catch(()=>{});
       const t0 = Date.now();
-      const r = await callDb({action:"boot", chVer:S.chVer});
+      const r = await callDb({action:"boot", chVer:S.chVer, lite:1});      /* lite: 목록만 가볍게 (글 내용은 열 때 받아 옴) */
       if(uidAtStart !== S.uid) return;
       if(!r || !r.ok) throw new Error((r && r.error) || "목록을 불러오지 못했습니다.");
       lastBootAt = Date.now();
@@ -3050,7 +3187,8 @@ function boot(silent){
       if(r.design) S.design = r.design;
       if(Array.isArray(r.designIds)) S.designIds = r.designIds;
       if(r.users) S.users = r.users;
-      const m = mergeServer(Array.isArray(r.contents) ? r.contents : [], t0);
+      if(Array.isArray(r.removed)) S.removed = r.removed;
+      const m = mergeServer(Array.isArray(r.contents) ? r.contents : [], t0, !!r.lite);
       S.loaded = true;
       writeCacheNow();
       syncAdminUI();
@@ -3065,8 +3203,10 @@ function boot(silent){
         applyDesignFor(S.cur);
         runMake();
       }
+      if(m.curStale && S.cur && S.cur.id) refreshCur(S.cur);       /* 열려 있는 글을 다른 기기에서 고쳤다면 최신 내용으로 */
       if(S.mode === "design") syncDesignAfterBoot();
       if(!S.cur && isWide() && S.mode === "work") newDraft({silent:true, focus:true});
+      schedulePrefetch();
     }catch(e){
       if(!silent || !S.loaded) toast("목록을 불러오지 못했어요: " + (e.message || e), "bad");
       if(!S.loaded){ S.loaded = true; renderList(); }
@@ -3076,29 +3216,52 @@ function boot(silent){
   })();
   return booted;
 }
-/* 서버 목록과 폰에 있던 목록을 합칩니다. 아직 못 보낸 수정은 폰 쪽이 이깁니다. */
-function mergeServer(list, t0){
+/* 서버 목록과 폰에 있던 목록을 합칩니다. 아직 못 보낸 수정은 폰 쪽이 이깁니다.
+   lite=true 면 서버가 가벼운 목록(제목·날짜·채워진 칸)만 보낸 것이라, 글 내용은 열 때 따로 받습니다.
+   이미 내용을 갖고 있는 글은 서버 쪽이 더 최신일 때만 ‘다시 받아야 함(stale)’으로 표시합니다. */
+function mergeServer(list, t0, lite){
   const T = v => Date.parse(v) || 0;
   const byId = new Map(), byCid = new Map();
   const all = S.cur && !S.contents.includes(S.cur) ? S.contents.concat([S.cur]) : S.contents;
   all.forEach(c => { if(c.id) byId.set(c.id, c); if(c.clientId) byCid.set(c.clientId, c); });
   const next = [], seen = new Set();
-  let curChanged = false;
+  const keep = c => { next.push(c); seen.add(c.key); };
+  let curChanged = false, curStale = false;
+  const adoptMeta = (c, s) => {
+    c.clientId = s.clientId || c.clientId || "";
+    c.title = s.title || ""; c.channelId = s.channelId || ""; c.channel = s.channel || "";
+    c.publishAt = s.publishAt || ""; c.doneAt = s.doneAt || "";
+    c.createdAt = s.createdAt || c.createdAt || ""; c.updatedAt = s.updatedAt || c.updatedAt || "";
+    c.ownerId = s.ownerId || c.ownerId || "";
+  };
   list.forEach(s => {
     const old = byId.get(s.id) || (s.clientId ? byCid.get(s.clientId) : null);
+    if(lite){
+      if(!old){ keep(liteFromServer(s, s.id)); return; }
+      const pend = OUT[old.key];
+      if(!old.id) old.id = s.id;
+      if(pend && !pend.id) pend.id = s.id;
+      const isFull = old.full !== false;
+      const srvNewer = T(s.updatedAt) > T(old.updatedAt), localNewer = T(old.updatedAt) > T(s.updatedAt);
+      if(!pend && !localNewer) adoptMeta(old, s);          /* 못 보낸 수정이 있거나 폰 쪽이 더 최신이면 폰 값 유지 */
+      if(isFull){ if(srvNewer) old.stale = true; }
+      else{ old.fl = Array.isArray(s.fl) ? s.fl : []; old.off = Array.isArray(s.off) ? s.off : []; }
+      if(old === S.cur && old.stale) curStale = true;
+      keep(old);
+      return;
+    }
+    /* 예전 서버: 글 전체가 한꺼번에 옴 */
     const fresh = fromServer(s, old ? old.key : s.id);
     const pend = OUT[fresh.key];
     if(pend){ applyFields(fresh, pend.fields); if(!pend.id) pend.id = fresh.id; }
-    else if(old && T(old.updatedAt) > T(fresh.updatedAt)){ next.push(old); seen.add(old.key); return; }   /* 폰 쪽이 더 최신 */
+    else if(old && T(old.updatedAt) > T(fresh.updatedAt)){ keep(old); return; }   /* 폰 쪽이 더 최신 */
     if(old){
       if(old === S.cur && contentSig(old) !== contentSig(fresh)) curChanged = true;
       Object.assign(old, fresh);
-      next.push(old); seen.add(old.key);
-    }else{
-      next.push(fresh); seen.add(fresh.key);
-    }
+      keep(old);
+    }else keep(fresh);
   });
-  S.contents.forEach(c => { if(!seen.has(c.key) && (!c.id || (c._idAt && c._idAt >= (t0 || 0) - 2000))){ next.push(c); seen.add(c.key); } });
+  S.contents.forEach(c => { if(!seen.has(c.key) && (!c.id || (c._idAt && c._idAt >= (t0 || 0) - 2000))) keep(c); });
   Object.keys(OUT).forEach(k => { if(!seen.has(k) && !(S.cur && S.cur.key === k && !S.cur.id)) delete OUT[k]; });
   saveOut();
   const curGone = !!(S.cur && S.cur.id && !seen.has(S.cur.key) && !(S.cur._idAt && S.cur._idAt >= (t0 || 0) - 2000));
@@ -3106,7 +3269,121 @@ function mergeServer(list, t0){
   const keys = new Set(next.map(c => c.key));
   Object.keys(COPIED).forEach(k => { if(!keys.has(k)) delete COPIED[k]; });
   saveCopied();
-  return {curChanged, curGone};
+  return {curChanged, curStale: curStale && !curGone, curGone};
+}
+
+/* ---------- 글 내용 받아 오기 (목록은 가볍게, 내용은 열 때) ---------- */
+/* 서버에서 받은 글 전체 내용을 이 글에 넣습니다. 아직 못 보낸 내 수정은 그 위에 다시 얹습니다. */
+function applyFull(c, s){
+  const T = v => Date.parse(v) || 0;
+  const pend = OUT[c.key];
+  if(c.full !== false && !pend && T(c.updatedAt) > T(s.updatedAt)) return false;      /* 폰 쪽이 더 최신 */
+  const fresh = fromServer(s, c.key);
+  if(pend) applyFields(fresh, pend.fields);
+  Object.assign(c, fresh);
+  delete c.fl; delete c.off;
+  return true;
+}
+/* 저장 응답(서버가 합친 최신 내용)을 받았을 때: 다른 기기가 같이 고친 부분이 있으면 화면에도 반영 */
+function absorbSaved(c, sc){
+  if(!c || c.full === false || !sc || sc.rawText === undefined || !Array.isArray(sc.posts)) return;
+  const before = contentSig(c);
+  if(!applyFull(c, sc)) return;
+  if(contentSig(c) !== before) afterFullLoaded(c, {});
+}
+/* 글 ID 여러 개(최대 12)의 내용을 한 번에 받습니다. 돌려주는 값: {ok, gone:[없어졌거나 권한 없는 ID], msg} */
+async function loadFull(ids){
+  const want = (ids || []).filter(Boolean).slice(0, 12);
+  const res = {ok:false, gone:[], msg:""};
+  if(!want.length){ res.ok = true; return res; }
+  try{
+    const r = await callDb({action:"getMany", ids:want});
+    if(!r || !r.ok) throw new Error((r && r.error) || "글 내용을 불러오지 못했습니다.");
+    const byId = new Map();
+    S.contents.forEach(x => { if(x.id) byId.set(x.id, x); });
+    if(S.cur && S.cur.id && !byId.has(S.cur.id)) byId.set(S.cur.id, S.cur);
+    (Array.isArray(r.contents) ? r.contents : []).forEach(sc => { const c = byId.get(sc.id); if(c) applyFull(c, sc); });
+    res.gone = Array.isArray(r.missing) ? r.missing : [];
+    res.ok = true;
+  }catch(e){ res.msg = (e && e.message) || String(e); }
+  return res;
+}
+/* 내용을 받은 뒤 화면 갱신 (열려 있는 글이면 칸·이미지를 다시 채움) */
+function afterFullLoaded(c, o){
+  o = o || {};
+  writeCacheSoon();
+  scheduleListRender();
+  if(S.cur !== c || S.mode !== "work") return;
+  document.body.classList.toggle("newdoc", !c.rawText);
+  fillDetail();
+  applyDesignFor(c);
+  if(o.scroll != null && !isWide()) pendingScroll = o.scroll;
+  if(c.rawText) runMake(); else { pages = []; render(); }
+  markActive();
+}
+/* 내용을 받는 동안: 칸을 흐리게 하고 못 고치게 막습니다 (빈 칸에 쓰다가 내용이 덮이는 일 방지) */
+const LOCK_IDS = ["dHead", "rawBox", "fields", "pasteWrap", "linkBox", "acts"];
+function setCLoading(text, canRetry){
+  const on = !!text;
+  document.body.classList.toggle("cloading", on);
+  $("loadMsg").hidden = !on;
+  $("loadTxt").textContent = text || "";
+  $("loadRetry").hidden = !on || !canRetry;
+  LOCK_IDS.forEach(id => { const el = $(id); if(!el) return; if(on) el.setAttribute("inert", ""); else el.removeAttribute("inert"); });
+}
+/* 내용이 없는 글을 열었을 때 */
+async function startLoad(c, opt){
+  if(c._loading) return;
+  c._loading = true;
+  setCLoading("글을 불러오는 중…", false);
+  let r;
+  try{ r = await loadFull([c.id]); }finally{ c._loading = false; }
+  if(S.cur !== c) return;
+  if(r.ok && r.gone.includes(c.id)){ setCLoading(""); removeLocal(c, "이 글을 찾을 수 없어요 (삭제됐거나 채널 권한이 바뀜)"); return; }
+  if(!r.ok || c.full === false){ setCLoading("글을 불러오지 못했어요" + (r.msg ? ": " + r.msg : ""), true); return; }
+  setCLoading("");
+  afterFullLoaded(c, {scroll: opt && opt.restore ? opt.scroll : null});
+  if(opt && opt.focus) focusSrc();
+}
+/* 내용은 있지만 다른 기기에서 고친 글: 보이는 건 그대로 두고 뒤에서 최신으로 */
+async function refreshCur(c){
+  if(!c.id || c._loading) return;
+  c._loading = true;
+  let r;
+  try{ r = await loadFull([c.id]); }finally{ c._loading = false; }
+  if(!r.ok || S.cur !== c) return;
+  if(r.gone.includes(c.id)){ removeLocal(c, "열려 있던 글이 목록에서 사라졌어요 (삭제됐거나 채널 권한이 바뀜)"); return; }
+  afterFullLoaded(c, {});
+}
+$("loadRetry").onclick = () => { const c = S.cur; if(c && c.id && c.full === false) startLoad(c, {}); };
+/* 목록 맨 위 글 몇 개는 미리 받아 둡니다 (눌렀을 때 바로 열리게) */
+let pfTimer = null, pfBusy = false;
+function schedulePrefetch(){ clearTimeout(pfTimer); pfTimer = setTimeout(prefetchTop, 700); }
+async function prefetchTop(){
+  if(pfBusy || !S.uid || S.mode !== "work" || navigator.onLine === false) return;
+  const now = Date.now(), want = [];
+  for(const k of (S.visKeys || [])){
+    if(want.length >= 8) break;
+    const c = S.contents.find(x => x.key === k);
+    if(c && c.id && c.full === false && !c._loading && !(c._pf && now - c._pf < 120000)) want.push(c);
+  }
+  if(!want.length) return;
+  pfBusy = true;
+  want.forEach(c => { c._pf = now; });
+  try{ await loadFull(want.map(c => c.id)); }catch(e){}
+  pfBusy = false;
+  writeCacheSoon();
+}
+/* 다운로드 · 인스타 공유 결과 줄 — 이미지 위·아래 두 곳에 같은 글을 보여 줘서 복사됐는지 바로 알 수 있게 합니다 */
+function setActMsg(text, kind){
+  ["topMsg", "botMsg"].forEach(id => {
+    const el = $(id);
+    if(!el) return;
+    el.textContent = text || "";
+    el.hidden = !text;
+    el.classList.toggle("bad", kind === "bad");
+    el.classList.toggle("info", kind === "info");
+  });
 }
 
 /* ---------- 목록 ---------- */
@@ -3144,8 +3421,8 @@ function itemHtml(c){
   else when = c.createdAt ? esc(fmtDay(c.createdAt)) : "새 글";
   const owner = S.isAdmin && c.ownerId ? " · " + esc(c.ownerId) : "";
   const pend = OUT[c.key] ? " · 저장 대기" : "";
-  const tags = FIELDS.filter(x => !x.hidden && fieldOn(c, x) && (!x.legacy || (c.f[x.kind] || "").trim()))
-    .map(x => `<span class="tg${(c.f[x.kind] || "").trim() ? "" : " e"}" title="${esc(x.label)}">${x.short}</span>`).join("");
+  const tags = FIELDS.filter(x => !x.hidden && fieldOn(c, x) && (!x.legacy || hasField(c, x.kind)))
+    .map(x => `<span class="tg${hasField(c, x.kind) ? "" : " e"}" title="${esc(x.label)}">${x.short}</span>`).join("");
   /* 선택 모드: 동그라미(완료) 대신 네모 체크칸, 글을 눌러도 열지 않고 고르기만 함 */
   if(S.selMode){
     const pk = S.sel.has(c.key);
@@ -3164,7 +3441,8 @@ function renderList(){
   if(!S.uid) return;
   const q = S.q.trim().toLowerCase();
   const base = S.contents.filter(c =>
-    (!S.chanF || (S.chanF === "__none" ? !channelFor(c) : c.channelId === S.chanF)) && (!q || qstr(c).includes(q)));
+    (!S.chanF || (S.chanF === "__none" ? !channelFor(c) : c.channelId === S.chanF))
+    && (!q || qstr(c).includes(q) || (S.srvQ === q && !!c.id && S.srvIds.has(c.id))));
   const cnt = {none:0, plan:0, done:0};
   base.forEach(c => cnt[stateOf(c)]++);
   $("tabs3").innerHTML = TABS3.map(([k, l]) => `<button type="button" data-tab="${k}" class="${S.tab === k ? "on" : ""}" aria-pressed="${S.tab === k}">${l} ${cnt[k]}</button>`).join("");
@@ -3275,10 +3553,28 @@ $("tabs3").addEventListener("click", e => {
   if(!b) return;
   S.tab = b.dataset.tab; doneLimit = 100;
   if(S.sel) S.sel.clear();
-  renderList(); saveState();
+  renderList(); saveState(); schedulePrefetch();
 });
-$("q").addEventListener("input", () => { S.q = $("q").value; scheduleListRender(); });
-$("chanF").addEventListener("change", () => { S.chanF = $("chanF").value; renderList(); saveState(); });
+/* 검색: 제목 · 이미 받아 둔 글은 바로 찾고, 원글·설명 안의 글자는 서버에서 찾아서 더합니다 */
+let srvQTimer = null, srvQSeq = 0;
+$("q").addEventListener("input", () => {
+  S.q = $("q").value; scheduleListRender();
+  clearTimeout(srvQTimer);
+  const q = S.q.trim().toLowerCase();
+  if(q.length < 2){ srvQSeq++; S.srvQ = ""; S.srvIds = new Set(); return; }
+  srvQTimer = setTimeout(() => serverSearch(q), 450);
+});
+async function serverSearch(q){
+  if(S.contents.every(c => c.full !== false)) return;       /* 모두 내용이 있으면 바로 찾아져서 서버에 물을 필요 없음 */
+  const seq = ++srvQSeq;
+  try{
+    const r = await callDb({action:"search", q});
+    if(seq !== srvQSeq || S.q.trim().toLowerCase() !== q || !r || !r.ok) return;
+    S.srvQ = q; S.srvIds = new Set(Array.isArray(r.ids) ? r.ids : []);
+    renderList();
+  }catch(e){}
+}
+$("chanF").addEventListener("change", () => { S.chanF = $("chanF").value; renderList(); saveState(); schedulePrefetch(); });
 $("newBtn").onclick = () => newDraft({focus:true});
 
 /* ---------- 작업 완료 ---------- */
@@ -3323,15 +3619,18 @@ $("delBtn").onclick = async () => {
 };
 
 /* ---------- 글 열기 ---------- */
-/* 새 글의 '인스타 고정 댓글 · 자동 DM 안 함' 기본값 = 같은 채널에서 가장 최근에 만든 글의 설정 (글이 없으면 해제) */
-function prevIgOff(channelId, except){
+/* 새 글이 시작할 때 안 쓰는 칸 = 그 채널의 기본값(채널 디자인 → 설명 칸).
+   기본값을 정한 적 없는 예전 채널은 그 채널에서 가장 최근에 만든 글의 설정을 따라갑니다 (글이 없으면 모두 씀) */
+function defaultOffFor(ch, except){
+  if(ch && Array.isArray(ch.offFields)) return ch.offFields.filter(k => OFFABLE.includes(k));
+  const id = ch && ch.id;
   let best = null, bt = -1;
-  S.contents.forEach(x => {
-    if(x === except || x.channelId !== channelId || !hasAny(x)) return;
+  if(id) S.contents.forEach(x => {
+    if(x === except || x.channelId !== id || !hasAny(x)) return;
     const t = Date.parse(x.createdAt) || Date.parse(x.updatedAt) || 0;
     if(best === null || t > bt){ best = x; bt = t; }
   });
-  return best && igOffOf(best) ? "1" : "";
+  return best ? offListOf(best) : [];
 }
 function newDraft(opt){
   opt = opt || {};
@@ -3344,8 +3643,8 @@ function newDraft(opt){
   const ch = chById(last) || (S.chanF && chById(S.chanF)) || S.channels[0];
   const id = uuid();
   const c = {key:id, id:null, clientId:id, title:"", channelId:ch.id, channel:ch.name, rawText:"", f:emptyF(), extra:[],
-    publishAt:"", doneAt:"", splitMode:"", lastPageType:"", splitDelim:"", createdAt:"", updatedAt:"", ownerId:S.uid};
-  c.f.ig_off = prevIgOff(ch.id, c);
+    publishAt:"", doneAt:"", splitMode:"", lastPageType:"", splitDelim:"", createdAt:"", updatedAt:"", ownerId:S.uid, full:true};
+  c.f.off_fields = JSON.stringify(defaultOffFor(ch, c));
   openContent(c, {focus:opt.focus !== false});
 }
 function focusSrc(){ setTimeout(() => { const s = $("src"); if(s){ $("rawBox").open = true; s.focus(); } }, 60); }
@@ -3355,10 +3654,12 @@ function openContent(c, opt){
   if(S.cur && S.cur !== c) flushSoon(80);
   const same = S.cur === c;
   S.cur = c;
-  if(!same){ fontRetries = 0; S.fOpen = {}; closePaste(); }
+  c.openedAt = Date.now();                               /* 폰에 내용까지 기억해 둘 글을 고를 때 쓰는 ‘최근에 연 순서’ */
+  if(!same){ fontRetries = 0; S.fOpen = {}; closePaste(); setActMsg(""); setCLoading(""); }
   if(S.selMode){ S.selMode = false; S.sel.clear(); updateSelUI(); }
   document.body.classList.remove("nosel");
-  document.body.classList.toggle("newdoc", !c.rawText);
+  const needLoad = !!c.id && c.full === false;           /* 목록만 받아 둔 글: 내용을 받아 와야 함 */
+  document.body.classList.toggle("newdoc", !c.rawText && !needLoad);
   if(!same && !opt.restore) S.rawOpen = false;
   fillDetail();
   applyDesignFor(c);
@@ -3370,7 +3671,11 @@ function openContent(c, opt){
   if(isWide() && !same && !opt.restore){ $("paneImg").scrollTop = 0; $("paneTxt").scrollTop = 0; }
   markActive();
   saveState();
-  if(opt.focus) focusSrc();
+  if(needLoad) startLoad(c, opt);
+  else{
+    if(opt.focus) focusSrc();
+    if(c.id && c.stale) refreshCur(c);                   /* 다른 기기에서 고친 글: 보이는 건 그대로 두고 뒤에서 최신으로 */
+  }
 }
 function fillDetail(){
   const c = S.cur;
@@ -3397,7 +3702,7 @@ function fillDetail(){
     updateCopyBtn(x.kind);
   });
   renderLinkBox();
-  applyIgOff();
+  applyOffFields();
   $("rawBox").open = isWide() || !c.rawText || S.rawOpen;
   applyFieldOpen();
   updateDoneBtn();
@@ -3514,7 +3819,7 @@ async function pasteField(x, ta, wrap){
   toast(`${x.label}에 넣었어요 (${t.length.toLocaleString()}자)`);
 }
 /* ---------- 한 번에 붙여넣기: 제목 줄을 보고 설명 칸마다 나눠 넣기 ----------
-   제목 줄 = 짧은 한 줄이 ‘인스타 캡션’ ‘인스타 고정 댓글’ ‘자동 DM’ ‘유튜브 (커뮤니티) 게시글’ ‘쿠팡 링크 댓글’ 등으로 시작.
+   제목 줄 = 짧은 한 줄이 ‘유튜브 게시글’ ‘유튜브 고정 댓글’ ‘인스타 캡션’ ‘인스타 고정 댓글’ ‘인스타 자동 DM’ ‘스레드 게시글’ ‘스레드 댓글’ 등으로 시작.
    제목 아래에 ``` 로 감싼 칸이 있으면 그 안의 글만, 없으면 다음 제목 전까지의 글을 넣습니다.
    첫 제목 앞의 인사말, 맨 끝의 ‘* 메모’ 줄은 넣지 않습니다. */
 function headKind(line){
@@ -3565,8 +3870,8 @@ function updatePasteHint(){
   $("pasteHint").innerHTML = !$("pasteIn").value.trim() ? "붙여 넣으면 찾은 칸이 여기에 보여요."
     : ks.length ? "찾은 칸: " + ks.map(x => `<b>${esc(x.label)}</b> ${got[x.kind].length.toLocaleString()}자`).join(" · ")
         + (skip ? ` · (${esc(skip)}은 이 글에서 안 쓰게 되어 있어 건너뛰어요)` : "")
-    : skip ? `${esc(skip)}은 이 글에서 안 쓰게 되어 있어 넣지 않아요. (‘이 글 옵션’에서 바꿀 수 있어요)`
-    : "제목 줄(인스타 캡션 · 인스타 고정 댓글 · 자동 DM · 유튜브 게시글 · 쿠팡 링크 댓글 · 스레드 게시글)을 찾지 못했어요.";
+    : skip ? `${esc(skip)}은 이 글에서 안 쓰게 되어 있어 넣지 않아요. (‘이 글 옵션 → 쓰는 칸’에서 바꿀 수 있어요)`
+    : "제목 줄(유튜브 게시글 · 유튜브 고정 댓글 · 인스타 캡션 · 인스타 고정 댓글 · 인스타 자동 DM · 스레드 게시글 · 스레드 댓글)을 찾지 못했어요.";
 }
 function closePaste(){ $("pasteBox").hidden = true; $("pasteBtn").hidden = false; $("pasteIn").value = ""; }
 $("pasteBtn").addEventListener("click", async () => {
@@ -3605,23 +3910,41 @@ $("pasteGo").addEventListener("click", () => {
 
 /* 복사할 때 **강조** 기호는 빼고 글자만 복사합니다. 알림은 아래 한 줄(몇 글자)만 띄웁니다. */
 const plainCopy = t => String(t || "").replace(/\*\*/g, "");
-async function copyField(kind, label, text){
-  if(!S.cur) return;
+/* 복사하고 결과를 돌려줍니다: {ok, bad, len, line}. opt.quiet 면 알림(토스트)은 띄우지 않고 호출한 쪽이 결과 줄을 만듭니다. */
+async function copyField(kind, label, text, opt){
+  opt = opt || {};
+  const res = {ok:false, bad:false, len:0, line:""};
+  const c = S.cur;
+  if(!c) return res;
   let src = text;
   if(LINK_TAGS[kind] && String(text || "").trim()){
     /* 설명 칸의 [링크]를 이 칸 전용 쿠팡 링크로 바꿉니다. 링크가 아직 없으면 [링크] 글자가 그대로 올라가는 일을 막기 위해 복사하지 않습니다. */
-    const r = fillLinks(S.cur, kind, text);
-    if(r.missing){ toast("[링크]를 바꿀 쿠팡 링크가 아직 없어요. 위 ‘쿠팡 링크’ 칸에 상품 주소를 먼저 넣어 주세요", "bad"); return; }
+    const r = fillLinks(c, kind, text);
+    if(r.missing){
+      res.bad = true; res.line = `${label}에 [링크]가 있는데 쿠팡 링크가 아직 없어서 복사하지 않았어요`;
+      if(!opt.quiet) toast("[링크]를 바꿀 쿠팡 링크가 아직 없어요. 아래 ‘쿠팡 링크’ 칸에 상품 주소를 먼저 넣어 주세요", "bad");
+      return res;
+    }
     src = r.text;
   }
   const v = plainCopy(src);
-  if(!v.trim()){ toast(label + "이(가) 비어 있어요", "bad"); return; }
+  if(!v.trim()){
+    res.bad = true; res.line = `${label}이(가) 비어 있어서 복사할 게 없어요`;
+    if(!opt.quiet) toast(label + "이(가) 비어 있어요", "bad");
+    return res;
+  }
   const ok = await copyText(v);
-  if(!ok){ toast("복사하지 못했어요. 글자를 길게 눌러 직접 복사해 주세요.", "bad"); return; }
-  (COPIED[S.cur.key] = COPIED[S.cur.key] || {})[kind] = Date.now();
+  if(!ok){
+    res.bad = true; res.line = `${label}을(를) 복사하지 못했어요`;
+    if(!opt.quiet) toast("복사하지 못했어요. 글자를 길게 눌러 직접 복사해 주세요.", "bad");
+    return res;
+  }
+  (COPIED[c.key] = COPIED[c.key] || {})[kind] = Date.now();
   saveCopied();
-  updateCopyBtn(kind);
-  toast(`${label} ${v.length.toLocaleString()}글자 복사됨`);
+  if(S.cur === c) updateCopyBtn(kind);
+  res.ok = true; res.len = v.length; res.line = `${label} ${v.length.toLocaleString()}자 복사됨`;
+  if(!opt.quiet) toast(`${label} ${v.length.toLocaleString()}글자 복사됨`);
+  return res;
 }
 $("cpy_raw").addEventListener("click", e => {
   e.preventDefault(); e.stopPropagation();       /* 버튼을 눌러도 원글 칸이 접히지 않게 */
@@ -3786,26 +4109,47 @@ $("cpPaste").addEventListener("click", async () => {
   runCoupang(c, url, false);
 });
 
-/* ---------- 이 글 옵션: 인스타 고정 댓글 · 자동 DM 안 함 ---------- */
-function applyIgOff(){
+/* ---------- 이 글 옵션: 쓰는 칸 ----------
+   체크한 칸만 보이고, 체크를 뺀 칸은 숨겨지며 그 칸의 쿠팡 링크도 만들지 않고 한 번에 붙여넣기에서도 건너뜁니다. */
+function buildFieldChecks(hostId, prefix){
+  const host = $(hostId);
+  host.textContent = "";
+  OFFABLE.forEach(k => {
+    const x = FIELDS.find(f => f.kind === k);
+    const lb = document.createElement("label");
+    lb.className = "fo-item";
+    const cb = document.createElement("input");
+    cb.type = "checkbox"; cb.id = prefix + k; cb.dataset.kind = k; cb.checked = true;
+    const sp = document.createElement("span");
+    sp.textContent = x.label;
+    lb.append(cb, sp);
+    host.appendChild(lb);
+  });
+}
+buildFieldChecks("foGrid", "fo_");      /* 글마다 */
+buildFieldChecks("dfGrid", "dfo_");     /* 채널 기본값 (채널 디자인 → 설명 칸) */
+function applyOffFields(){
   const c = S.cur;
   if(!c) return;
-  const off = igOffOf(c);
-  $("igOff").checked = off;
-  IG_OFF_KINDS.forEach(k => { const b = $("box_" + k); if(b) b.hidden = off; });
-  /* 이미 그려 둔 같은 글이 체크 상태만 달라졌다면 인스타용 마지막 장을 넣거나 빼려고 다시 그립니다 */
-  if(S.mode === "work" && pages.length && igRender.key === c.key && igRender.off !== off) scheduleRender(false);
+  const off = offListOf(c);
+  OFFABLE.forEach(k => {
+    const cb = $("fo_" + k); if(cb) cb.checked = !off.includes(k);
+    const b = $("box_" + k); if(b) b.hidden = off.includes(k);
+  });
+  /* 이미 그려 둔 같은 글의 ‘자동 DM 쓰는지’가 달라졌다면 인스타용 마지막 장을 넣거나 빼려고 다시 그립니다 */
+  if(S.mode === "work" && pages.length && igRender.key === c.key && igRender.off !== igOffOf(c)) scheduleRender(false);
 }
-$("igOff").addEventListener("change", () => {
+$("foGrid").addEventListener("change", () => {
   const c = S.cur;
   if(!c || S.mode !== "work") return;
-  c.f.ig_off = $("igOff").checked ? "1" : "";
-  if(hasAny(c)) queueSave(c, {postFields:{ig_off:c.f.ig_off}}, 300);   /* 아직 빈 새 글이면 글이 만들어질 때 함께 저장됩니다 */
-  applyIgOff();
+  const off = OFFABLE.filter(k => { const cb = $("fo_" + k); return !!cb && !cb.checked; });
+  c.f.off_fields = JSON.stringify(off);
+  if(hasAny(c)) queueSave(c, {postFields:{off_fields:c.f.off_fields}}, 300);   /* 아직 빈 새 글이면 글이 만들어질 때 함께 저장됩니다 */
+  applyOffFields();
   renderLinkBox();
   scheduleListRender();
-  /* 체크를 풀었는데 쿠팡 주소가 이미 있으면, 새로 필요해진 링크(고정 댓글·자동 DM)만 조용히 만듭니다 */
-  if(!c.f.ig_off && (c.f.coupang_url || "")) runCoupang(c, c.f.coupang_url, true);
+  /* 새로 쓰게 된 칸의 쿠팡 링크가 모자라면 조용히 만듭니다 */
+  if(c.f.coupang_url || "") runCoupang(c, c.f.coupang_url, true);
 });
 
 /* 원글: 고치는 대로 저장 + 이미지 다시 그리기 (붙여넣기는 바로) */
@@ -3865,7 +4209,7 @@ $("chanSel").addEventListener("change", () => {
   const c = S.cur, ch = chById($("chanSel").value);
   if(!c || !ch) return;
   c.channelId = ch.id; c.channel = ch.name;
-  if(!hasAny(c)) c.f.ig_off = prevIgOff(ch.id, c);
+  if(!hasAny(c)) c.f.off_fields = JSON.stringify(defaultOffFor(ch, c));
   LS.setRaw("cw_last_channel_" + S.uid, ch.id);
   applyDesignFor(c);
   runMake();
@@ -4192,7 +4536,8 @@ function levelOf(u, id){
 function renderAccess(){
   const host = $("accHost");
   if(!host || !S.isAdmin) return;
-  const users = [...new Set((S.users || []).concat(Object.keys(S.access || {}), Object.keys(S.design || {})))].filter(Boolean).sort();
+  const gone = new Set(S.removed || []);
+  const users = [...new Set((S.users || []).concat(Object.keys(S.access || {}), Object.keys(S.design || {})))].filter(u => u && !gone.has(u)).sort();
   if(!S.channels.length){ host.innerHTML = `<p class="hint" style="padding:10px">채널이 없습니다.</p>`; return; }
   if(!users.length){ host.innerHTML = `<p class="hint" style="padding:10px">아직 아이디가 없어요. 아래에서 추가하세요.</p>`; return; }
   const cell = (u, ch) => {
@@ -4204,7 +4549,7 @@ function renderAccess(){
       + `<option value="d"${lv === "d" ? " selected" : ""}>디자인</option></select></td>`;
   };
   host.innerHTML = `<table class="acct"><thead><tr><th>아이디</th>${S.channels.map(ch => `<th>${esc(ch.name)}</th>`).join("")}</tr></thead><tbody>`
-    + users.map(u => `<tr><td>${esc(u)}</td>${S.channels.map(ch => cell(u, ch)).join("")}</tr>`).join("")
+    + users.map(u => `<tr><td>${esc(u)}<button type="button" class="ghost sm accdel" data-u="${esc(u)}" title="이 아이디만 지우기 (채널과 글은 그대로)">삭제</button></td>${S.channels.map(ch => cell(u, ch)).join("")}</tr>`).join("")
     + `</tbody></table>`;
 }
 $("accHost").addEventListener("change", e => {
@@ -4225,21 +4570,42 @@ $("accHost").addEventListener("change", e => {
 $("accAdd").onclick = () => {
   const u = normId($("accNew").value);
   if(!u) return;
+  const wasGone = (S.removed || []).includes(u);
+  if(wasGone) S.removed = S.removed.filter(x => x !== u);       /* 지웠던 아이디를 다시 넣으면 지움 목록에서 뺍니다 */
   if(!S.access[u]) S.access[u] = [];
   if(!S.design[u]) S.design[u] = [];
   if(!S.users.includes(u)) S.users.push(u);
   $("accNew").value = "";
   renderAccess();
-  $("accSt").textContent = `‘${u}’ 추가됨 · 채널을 고르면 저장됩니다`;
+  if(wasGone){ clearTimeout(accTimer); saveAccessNow(); }
+  else $("accSt").textContent = `‘${u}’ 추가됨 · 채널을 고르면 저장됩니다`;
 };
+/* 아이디 삭제: 그 아이디의 사용·디자인 지정을 없애고 목록에서 숨깁니다. 채널과 글은 그대로 둡니다. */
+$("accHost").addEventListener("click", e => {
+  const b = e.target.closest("button.accdel");
+  if(!b) return;
+  const u = normId(b.dataset.u);
+  if(!u) return;
+  if(!confirm(`아이디 ‘${u}’를 삭제할까요?
+
+· 이 아이디의 채널 지정(사용·디자인)이 모두 없어지고, 이 목록에서 사라져요.
+· 채널과 글은 그대로 남아요.`)) return;
+  delete S.access[u]; delete S.design[u];
+  S.users = (S.users || []).filter(x => x !== u);
+  if(!(S.removed || []).includes(u)) S.removed = (S.removed || []).concat([u]);
+  renderAccess();
+  clearTimeout(accTimer);
+  saveAccessNow();
+});
 $("accNew").addEventListener("keydown", e => { if(e.key === "Enter"){ e.preventDefault(); $("accAdd").click(); } });
 async function saveAccessNow(){
   $("accSt").textContent = "저장 중…";
   try{
-    const r = await callDb({action:"saveAccess", access:{users:S.access, design:S.design}});
+    const r = await callDb({action:"saveAccess", access:{users:S.access, design:S.design, removed:S.removed}});
     if(!r || !r.ok) throw dbErr(r, "저장하지 못했습니다.");
     S.access = r.access || S.access;
     S.design = r.design || S.design;
+    if(Array.isArray(r.removed)) S.removed = r.removed;
     S.chVer = r.chVer || S.chVer;
     storeChannels(); writeCacheSoon();
     $("accSt").textContent = "✓ 저장됨";
@@ -4361,6 +4727,7 @@ function startApp(){
     S.design = cache.design && typeof cache.design === "object" ? cache.design : {};
     S.designIds = Array.isArray(cache.designIds) ? cache.designIds : [];
     S.users = Array.isArray(cache.users) ? cache.users : [];
+    S.removed = Array.isArray(cache.removed) ? cache.removed : [];
     S.loaded = true;
   }
   Object.keys(OUT).forEach(k => { const c = S.contents.find(x => x.key === k); if(c) applyFields(c, OUT[k].fields); });
@@ -4376,7 +4743,7 @@ function startApp(){
   const c = st.curKey ? S.contents.find(x => x.key === st.curKey) : null;
   if(c && (isWide() || st.view === "detail")){
     if(!isWide()) pendingScroll = st.scroll || 0;
-    openContent(c, {restore:true});
+    openContent(c, {restore:true, scroll:st.scroll || 0});
   }else{
     setView("list");
     if(!isWide() && listScrollY) requestAnimationFrame(() => window.scrollTo(0, listScrollY));
