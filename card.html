@@ -311,6 +311,9 @@
   .tgs{display:flex; flex-wrap:wrap; gap:4px; margin-top:6px}
   .tg{display:inline-block; font-size:11px; font-weight:600; padding:1px 6px; border-radius:4px; background:var(--ok-bg); color:var(--ok-ink); border:1px solid transparent; white-space:nowrap}
   .tg.e{background:transparent; color:var(--sub); border-color:var(--line); font-weight:500}
+  .tg.un{background:#FFEDD5; color:#9A3412; border-color:#FDBA74; font-weight:700}
+  .hint.un{color:#9A3412}
+  .cprow .cpl small.un{color:#9A3412; font-weight:700}
   .ck{position:relative; width:22px; height:22px; flex:none; margin-top:1px; border-radius:50%; border:2px solid var(--sub); background:transparent; padding:0; cursor:pointer}
   .ck::after{content:""; position:absolute; inset:-11px}
   .ck::before{content:""; position:absolute; left:50%; top:50%; width:5px; height:10px; border:solid transparent; border-width:0 2px 2px 0; transform:translate(-50%,-62%) rotate(45deg)}
@@ -1041,7 +1044,7 @@
         <input type="text" id="cpIdIg" maxlength="30" placeholder="예: storypunchdm" autocomplete="off" autocapitalize="off" spellcheck="false">
         <label class="fo-item"><input type="checkbox" id="cpOkIg"><span>쿠팡 웹에 이 아이디를 등록했어요</span></label>
         <p class="hint" id="cpMsgIg"></p>
-        <p class="hint" id="cpNote">규칙: 영문 대소문자·숫자만, 8~20자 (밑줄·공백·한글 불가). 소문자로 통일하면 헷갈리지 않아요. 쿠팡 파트너스 웹 ‘채널 아이디 관리’에서 먼저 만든 뒤 여기에 똑같이 적고 체크하세요. 체크하기 전에는 링크를 만들 수 없어요. 두 아이디는 서로 달라야 하고, 다른 채널과 겹치면 안 돼요. 쿠팡 계정은 채널마다 따로 정할 수 있어요 (계정별 쿠팡 키는 Apps Script 스크립트 속성에 넣어요). 바꾼 뒤에는 위의 ‘저장’을 눌러야 적용돼요. 이 칸은 관리자만 바꿀 수 있어요.</p>
+        <p class="hint" id="cpNote">규칙: 영문 대소문자·숫자만, 8~20자 (밑줄·공백·한글 불가). 소문자로 통일하면 헷갈리지 않아요. 쿠팡 파트너스 웹 ‘채널 아이디 관리’에서 먼저 만든 뒤 여기에 똑같이 적고 체크하세요. 아이디를 비워 두거나 체크하지 않으면 ‘미지정 링크’(아이디 없는 일반 링크)로 나가요. 링크는 똑같이 열리지만 채널별 수익은 구분되지 않아요. 글에는 ‘미지정’ 표시가 붙어요. 두 아이디는 서로 달라야 하고, 다른 채널과 겹치면 안 돼요. 쿠팡 계정은 채널마다 따로 정할 수 있어요 (계정별 쿠팡 키는 Apps Script 스크립트 속성에 넣어요). 바꾼 뒤에는 위의 ‘저장’을 눌러야 적용돼요. 이 칸은 관리자만 바꿀 수 있어요.</p>
       </div>
 
       <!-- 6. 아이디별 채널 -->
@@ -1239,11 +1242,11 @@ function updateCpMsg(){
     const el = $(m.k === "yt" ? "cpMsgYt" : "cpMsgIg");
     let t = "", bad = false;
     const p = cpIdProblem(v);
-    if(!v){ t = ok ? "아이디를 먼저 적어 주세요" : "아직 비어 있어요 · 이 채널은 " + m.label + "를 만들 수 없어요"; bad = ok; }
+    if(!v){ t = ok ? "아이디를 먼저 적어 주세요" : "비어 있어요 · 이 채널의 " + m.label + "는 ‘미지정 링크’(아이디 없는 일반 링크)로 나가요"; bad = ok; }
     else if(p){ t = "✗ " + p; bad = true; }
     else if(yt && ig && yt.toLowerCase() === ig.toLowerCase()){ t = "✗ 유튜브용과 인스타용 아이디가 같아요. 서로 달라야 해요"; bad = true; }
-    else if(!ok){ t = "쿠팡 웹에 등록한 뒤 위 체크를 눌러야 링크를 만들 수 있어요"; }
-    else t = "✓ 링크를 만들 수 있어요";
+    else if(!ok){ t = "쿠팡 웹에 등록한 뒤 위 체크를 눌러야 이 아이디로 나가요 (체크 전에는 ‘미지정 링크’로 나가요)"; }
+    else t = "✓ 이 아이디로 링크가 나가요";
     el.textContent = t;
     el.style.color = bad ? "var(--bad)" : "";
     el.style.fontWeight = bad ? "700" : "";
@@ -3081,7 +3084,7 @@ function liteFromServer(s, key){
     rawText:"", f:emptyF(), extra:[], publishAt:s.publishAt || "", doneAt:s.doneAt || "",
     splitMode:"", lastPageType:"", splitDelim:"",
     createdAt:s.createdAt || "", updatedAt:s.updatedAt || "", ownerId:s.ownerId || "",
-    full:false, stale:false, fl:Array.isArray(s.fl) ? s.fl : [], off:Array.isArray(s.off) ? s.off : []};
+    full:false, stale:false, fl:Array.isArray(s.fl) ? s.fl : [], off:Array.isArray(s.off) ? s.off : [], un:s.un ? 1 : 0};
 }
 const filledOf = c => FIELDS.filter(x => !x.hidden && hasField(c, x.kind)).map(x => x.kind);
 function fixCached(c){
@@ -3090,8 +3093,8 @@ function fixCached(c){
   if(c.full === undefined) c.full = true;            /* 예전 저장본의 글은 모두 내용이 들어 있었어요 */
   c.rawText = c.rawText || "";
   c.splitMode = c.splitMode || ""; c.lastPageType = c.lastPageType || ""; c.splitDelim = c.splitDelim || "";
-  if(c.full === false){ c.fl = Array.isArray(c.fl) ? c.fl : []; c.off = Array.isArray(c.off) ? c.off : []; }
-  else{ delete c.fl; delete c.off; }
+  if(c.full === false){ c.fl = Array.isArray(c.fl) ? c.fl : []; c.off = Array.isArray(c.off) ? c.off : []; c.un = c.un ? 1 : 0; }
+  else{ delete c.fl; delete c.off; delete c.un; }
   return c;
 }
 /* 폰에 기억할 모양. keep=true 면 내용까지, 아니면 목록용 정보만 (폰 저장 공간을 아끼려고) */
@@ -3102,7 +3105,7 @@ function stripC(c, keep){
   if(keep && c.full !== false){
     return Object.assign(base, {full:true, rawText:c.rawText, f:c.f, extra:c.extra, splitMode:c.splitMode, lastPageType:c.lastPageType, splitDelim:c.splitDelim});
   }
-  return Object.assign(base, {full:false, fl:filledOf(c), off:offListOf(c)});
+  return Object.assign(base, {full:false, fl:filledOf(c), off:offListOf(c), un:unOf(c)});
 }
 function applyFields(c, fields){
   Object.keys(fields || {}).forEach(k => {
@@ -3349,7 +3352,7 @@ function mergeServer(list, t0, lite){
       const srvNewer = T(s.updatedAt) > T(old.updatedAt), localNewer = T(old.updatedAt) > T(s.updatedAt);
       if(!pend && !localNewer) adoptMeta(old, s);          /* 못 보낸 수정이 있거나 폰 쪽이 더 최신이면 폰 값 유지 */
       if(isFull){ if(srvNewer) old.stale = true; }
-      else{ old.fl = Array.isArray(s.fl) ? s.fl : []; old.off = Array.isArray(s.off) ? s.off : []; }
+      else{ old.fl = Array.isArray(s.fl) ? s.fl : []; old.off = Array.isArray(s.off) ? s.off : []; old.un = s.un ? 1 : 0; }
       if(old === S.cur && old.stale) curStale = true;
       keep(old);
       return;
@@ -3526,7 +3529,8 @@ function itemHtml(c){
   const owner = S.isAdmin && c.ownerId ? " · " + esc(c.ownerId) : "";
   const pend = OUT[c.key] ? " · 저장 대기" : "";
   const tags = FIELDS.filter(x => !x.hidden && fieldOn(c, x) && (!x.legacy || hasField(c, x.kind)))
-    .map(x => `<span class="tg${hasField(c, x.kind) ? "" : " e"}" title="${esc(x.label)}">${x.short}</span>`).join("");
+    .map(x => `<span class="tg${hasField(c, x.kind) ? "" : " e"}" title="${esc(x.label)}">${x.short}</span>`).join("")
+    + (unOf(c) ? `<span class="tg un" title="아이디 없는 쿠팡 링크(미지정 링크)로 나가는 글이에요">미지정 링크</span>` : "");
   /* 선택 모드: 동그라미(완료) 대신 네모 체크칸, 글을 눌러도 열지 않고 고르기만 함 */
   if(S.selMode){
     const pk = S.sel.has(c.key);
@@ -4084,13 +4088,13 @@ const chCp = c => { const ch = channelFor(c); return ch && ch.coupang && typeof 
 const mediaLabel = k => (CP_MEDIA.find(m => m.k === k) || {}).label || k;
 /* 이 글에서 쓰는 칸들이 필요로 하는 매체 (쓰지 않는 칸은 빼요) */
 const mediaNeeded = c => CP_MEDIA.map(m => m.k).filter(k => Object.keys(LINK_MEDIA).some(f => LINK_MEDIA[f] === k && fieldOn(c, {kind:f})));
-/* 그 매체의 링크를 지금 만들 수 있는 상태인지: 빈 글자면 가능, 아니면 이유 */
-function cpReady(c, m){
+/* 그 매체의 링크가 ‘미지정 링크’(아이디 없는 일반 링크)로 나갈 이유: 빈 글자면 아이디가 정해져 있다는 뜻 */
+function cpUnReason(c, m){
   const cfg = chCp(c);
-  if(!cfg || !String(cfg[m] || "").trim()) return `이 채널에 ${mediaLabel(m)}용 쿠팡 아이디가 아직 없어요`;
+  if(!cfg || !String(cfg[m] || "").trim()) return `${mediaLabel(m)}용 쿠팡 아이디가 정해지지 않았어요`;
   const p = cpIdProblem(cfg[m]);
   if(p) return `${mediaLabel(m)} 아이디가 올바르지 않아요 (${p})`;
-  if(!cfg[m + "Ok"]) return `${mediaLabel(m)} 아이디(${cfg[m]})를 쿠팡 웹에 등록했다는 체크가 아직 없어요`;
+  if(!cfg[m + "Ok"]) return `${mediaLabel(m)} 아이디(${cfg[m]})를 쿠팡 웹에 등록했다는 체크가 없어요`;
   return "";
 }
 const pickUrl = s => { const m = String(s || "").match(/https?:\/\/[^\s"'<>]+/i); return m ? m[0] : ""; };
@@ -4100,18 +4104,29 @@ function cpDoc(c){
   try{ const d = JSON.parse(c.f.coupang_links || "null"); return d && typeof d === "object" && d.links && typeof d.links === "object" ? d : null; }catch(e){ return null; }
 }
 const cpIsLegacy = c => { const d = cpDoc(c); return !!d && d.v !== 2 && Object.keys(d.links).length > 0; };
-/* 지금 쓸 수 있는 링크 {yt, ig}. 상품 주소가 바뀌었거나, 채널의 아이디가 그 사이 바뀌었으면 그 링크는 쓰지 않습니다. */
+/* 지금 쓸 수 있는 링크 {yt, ig}. 상품 주소가 바뀌었거나, 채널의 아이디가 그 사이 바뀌었으면 그 링크는 쓰지 않습니다.
+   아이디 링크: 저장된 아이디가 채널의 지금 아이디와 같을 때만 · 미지정 링크(저장된 아이디가 빈 글자): 지금도 미지정일 때만 */
 function getLinkSet(c){
   const d = cpDoc(c), out = {};
   if(!d || d.v !== 2 || d.url !== (c.f.coupang_url || "")) return out;
-  const cfg = chCp(c);
-  if(!cfg) return out;
+  const cfg = chCp(c) || emptyCp();            /* 채널에 쿠팡 설정이 아예 없어도 ‘미지정 링크’는 쓸 수 있어요 */
   CP_MEDIA.forEach(m => {
-    const l = d.links[m.k], id = d.ids && d.ids[m.k];
-    if(l && id && cfg[m.k] && String(id).toLowerCase() === String(cfg[m.k]).toLowerCase()) out[m.k] = l;
+    const l = d.links[m.k], id = d.ids && d.ids[m.k], unNow = !!cpUnReason(c, m.k);
+    if(!l) return;
+    if(id){ if(!unNow && cfg[m.k] && String(id).toLowerCase() === String(cfg[m.k]).toLowerCase()) out[m.k] = l; }
+    else if(unNow) out[m.k] = l;
   });
   return out;
 }
+/* 지금 쓸 수 있는 링크 중 ‘미지정 링크’인 매체들 */
+function cpUnMedia(c){
+  const d = cpDoc(c);
+  if(!d) return [];
+  const ls = getLinkSet(c);
+  return Object.keys(ls).filter(k => !(d.ids && d.ids[k]));
+}
+/* 목록 한 줄에 ‘미지정’ 표시를 붙일지 (목록용 가벼운 글은 서버가 알려 준 un 값을 씁니다) */
+function unOf(c){ return c.full === false ? (c.un ? 1 : 0) : (c.f && c.f.coupang_links ? cpUnMedia(c).length : 0); }
 /* 칸 종류에 맞는 링크를 [링크] 자리에 넣습니다. missing=true 는 [링크]가 있는데 링크가 아직 없다는 뜻 */
 function fillLinks(c, kind, text){
   const src = String(text || "");
@@ -4120,12 +4135,18 @@ function fillLinks(c, kind, text){
   if(!link) return {text:src, missing:true};
   return {text:src.replace(LINK_RE_G, () => link), missing:false};
 }
-/* 링크 칸 아래에 띄울 안내 (아이디 문제 → 예전 링크 안내 순) */
+/* 링크 칸 아래에 띄울 안내 (미지정 링크 안내 → 아이디가 바뀐 링크 → 예전 링크 안내 순) */
 function cpNoteFor(c){
-  const meds = mediaNeeded(c);
-  const bad = meds.map(m => cpReady(c, m)).filter(Boolean);
-  if(bad.length) return {t: bad[0] + ". " + (S.isAdmin ? "채널 디자인 → ‘쿠팡 아이디’ 탭에서 정해 주세요." : "관리자에게 알려 주세요."), bad:true};
-  if((c.f.coupang_url || "") && cpIsLegacy(c) && !meds.every(m => getLinkSet(c)[m]))
+  const meds = mediaNeeded(c), url = c.f.coupang_url || "";
+  const unNow = meds.filter(m => cpUnReason(c, m));
+  if(url && unNow.length){
+    const who = S.isAdmin ? "채널 디자인 → ‘쿠팡 아이디’ 탭에서 정하면" : "관리자가 쿠팡 아이디를 정하면";
+    return {t:`‘미지정 링크’로 나가요 (${unNow.map(mediaLabel).join(" · ")}): 아이디 없는 일반 링크라서 링크는 똑같이 열리지만 채널별 수익은 구분되지 않아요. ${who} 구분돼요.`, bad:false, un:true};
+  }
+  const d = cpDoc(c), ls = getLinkSet(c);
+  if(url && d && d.v === 2 && meds.some(m => d.links[m] && !ls[m]))
+    return {t:"채널의 쿠팡 아이디가 바뀌어서 이전에 만든 링크는 쓸 수 없어요. ‘링크 만들기’를 누르면 새 링크로 바뀌어요. 이미 올린 글의 링크는 그대로 남아요.", bad:false};
+  if(url && cpIsLegacy(c) && !meds.every(m => ls[m]))
     return {t:"이 글의 링크는 예전 방식(등록되지 않은 이름표)으로 만들어져 있어요. ‘링크 만들기’를 누르면 새 아이디 링크로 바뀌어요. 이미 올린 글의 링크는 그대로 남아요.", bad:false};
   return null;
 }
@@ -4137,24 +4158,30 @@ function renderLinkBox(){
   const inp = $("cpUrl");
   if(document.activeElement !== inp) inp.value = url;
   const tg = $("cpTag");
-  tg.textContent = st.busy ? "만드는 중…" : (!url ? "비어 있음" : (have === total ? `만들어짐 · ${total}개` : `${have}/${total}개`));
-  tg.className = (!st.busy && url && have === total) ? "tg" : "tg e";
+  const unN = cpUnMedia(c).length;
+  tg.textContent = st.busy ? "만드는 중…" : (!url ? "비어 있음" : (have === total ? `만들어짐 · ${total}개${unN ? ` · 미지정 ${unN}개` : ""}` : `${have}/${total}개${unN ? ` · 미지정 ${unN}개` : ""}`));
+  tg.className = (!st.busy && url && have === total) ? (unN ? "tg un" : "tg") : "tg e";
   $("cpGo").disabled = st.busy;
   const m = $("cpMsg"), nf = cpNoteFor(c);
-  m.textContent = st.busy ? "쿠팡에서 링크를 만드는 중…" : (st.note || (nf && nf.t) || CP_HELP);
-  m.classList.toggle("bad", !st.busy && ((!!st.note && st.bad) || (!st.note && !!nf && nf.bad)));
+  const note = (st.note && (st.bad || Date.now() - (st.noteAt || 0) < 6000)) ? st.note : "";     /* 오류 안내는 계속, 알림성 안내는 잠깐만 */
+  m.textContent = st.busy ? "쿠팡에서 링크를 만드는 중…" : (note || (nf && nf.t) || CP_HELP);
+  m.classList.toggle("bad", !st.busy && ((!!note && st.bad) || (!note && !!nf && nf.bad)));
+  m.classList.toggle("un", !st.busy && !note && !!nf && !!nf.un);
   const errs = st.errors || {};
   const cfg = chCp(c) || emptyCp();
   const det = $("cpDet");
   if(det._key !== c.key){ det._key = c.key; det.open = false; }       /* 다른 글을 열면 다시 접어 둡니다 */
   det.hidden = !url;
-  $("cpDetSum").textContent = `만든 링크 보기 · ${have}/${total}개`;
+  $("cpDetSum").textContent = `만든 링크 보기 · ${have}/${total}개${unN ? ` · 미지정 ${unN}개` : ""}`;
+  const unSet = cpUnMedia(c);
   $("cpList").innerHTML = !url ? "" : meds.map(k => {
     const l = links[k], x = CP_MEDIA.find(z => z.k === k);
-    const why = errs[k] || cpReady(c, k) || "아직 없음";
+    const why = errs[k] || "아직 없음";
+    const isUn = !!l && unSet.includes(k);
     const mid = l ? `<span class="cpu" title="${esc(l)}">${esc(l)}</span>`
       : `<span class="cpu${st.busy ? "" : " bad"}">${esc(st.busy ? "만드는 중…" : why)}</span>`;
-    return `<div class="cprow"><span class="cpl" title="${esc(x.where)}">${esc(x.label)}<small>${esc(cfg[k] || "")}</small></span>${mid}`
+    const sm = l ? (isUn ? `<small class="un">미지정</small>` : `<small>${esc((cpDoc(c) && cpDoc(c).ids && cpDoc(c).ids[k]) || cfg[k] || "")}</small>`) : `<small>${esc(cfg[k] || "")}</small>`;
+    return `<div class="cprow"><span class="cpl" title="${esc(x.where)}">${esc(x.label)}${sm}</span>${mid}`
       + (l ? `<button type="button" class="ghost sm" data-m="${esc(k)}">복사</button>` : "") + `</div>`;
   }).join("");
 }
@@ -4189,13 +4216,10 @@ async function runCoupang(c, url, quiet){
   const same = url === (c.f.coupang_url || "");
   const have = same ? getLinkSet(c) : {};
   const meds = mediaNeeded(c);
-  const blocked = {};
-  meds.forEach(k => { const why = cpReady(c, k); if(why) blocked[k] = why; });
-  const need = meds.filter(k => !have[k] && !blocked[k]);    /* 같은 주소면 아직 없는 링크만 만듭니다 */
+  const prevDoc = same ? cpDoc(c) : null;
+  const need = meds.filter(k => !have[k]);    /* 같은 주소면 아직 없는 링크만 만듭니다 (아이디가 없는 매체는 ‘미지정 링크’로 만들어요) */
   if(!need.length){
-    const left = meds.filter(k => !have[k]);
-    if(left.length){ st.errors = blocked; if(!quiet){ st.note = (blocked[left[0]] || "만들 수 있는 링크가 없어요") + "."; st.bad = true; } }
-    else if(!quiet) st.note = "이 주소의 링크가 이미 모두 만들어져 있어요.";
+    if(!quiet){ st.note = "이 주소의 링크가 이미 모두 만들어져 있어요."; st.noteAt = Date.now(); }
     if(S.cur === c) renderLinkBox();
     return;
   }
@@ -4207,19 +4231,19 @@ async function runCoupang(c, url, quiet){
   try{
     const r = await callDb({action:"makeLinks", url, channelId:ch.id, media:need});
     if(!r || !r.ok) throw new Error((r && r.error) || "링크를 만들지 못했습니다.");
-    const links = {}, ids = {}, cfg = chCp(c) || emptyCp();
-    Object.keys(have).forEach(k => { links[k] = have[k]; ids[k] = cfg[k]; });
-    Object.keys(r.links || {}).forEach(k => { links[k] = r.links[k]; ids[k] = (r.ids && r.ids[k]) || cfg[k]; });
+    const links = {}, ids = {};
+    Object.keys(have).forEach(k => { links[k] = have[k]; ids[k] = (prevDoc && prevDoc.ids && prevDoc.ids[k]) || ""; });     /* 이미 있는 링크는 만든 때의 아이디(미지정이면 빈 글자) 그대로 */
+    Object.keys(r.links || {}).forEach(k => { links[k] = r.links[k]; ids[k] = (r.ids && r.ids[k]) || ""; });                /* 서버가 아이디 없이 만든 링크는 빈 글자 = 미지정 */
     c.f.coupang_url = url;
     c.f.coupang_links = JSON.stringify({v:2, url, channelId:ch.id, ids, links});
-    const errs = Object.assign({}, blocked, r.errors || {});
+    const errs = Object.assign({}, r.errors || {});
     st.errors = Object.keys(errs).length ? errs : null;
     queueSave(c, {postFields:{coupang_url:url, coupang_links:c.f.coupang_links}}, 300);
     scheduleListRender();
-    const made = Object.keys(r.links || {}).length, bad = st.errors ? Object.keys(st.errors).length : 0;
+    const made = Object.keys(r.links || {}).length, bad = st.errors ? Object.keys(st.errors).length : 0, unMade = Object.keys(r.links || {}).filter(k => !ids[k]).length;
     if(bad){
       st.note = `${bad}개는 만들지 못했어요: ${Object.values(st.errors)[0]} · ‘링크 만들기’를 다시 누르면 못 만든 것만 다시 시도해요.`; st.bad = true;
-    }else if(S.cur === c) toast(`쿠팡 링크 ${made}개를 만들었어요`);
+    }else if(S.cur === c) toast(`쿠팡 링크 ${made}개를 만들었어요${unMade ? ` (미지정 ${unMade}개)` : ""}`);
   }catch(e){
     st.note = "링크를 만들지 못했어요: " + (e && e.message || e); st.bad = true;
   }finally{
