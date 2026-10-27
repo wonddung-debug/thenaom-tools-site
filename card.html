@@ -327,11 +327,9 @@
   .ck.d{background:#1f7a4d; border-color:#1f7a4d}
   .ck.d::before{border-color:#fff}
 
-  /* 글 머리: 채널 · 올릴 날짜 */
+  /* 글 머리: 채널 */
   #dHead{display:flex; gap:6px; align-items:center}
   #dHead select{flex:1 1 50%; min-width:0}
-  #dHead input[type="datetime-local"]{flex:1 1 50%; min-width:0; padding:8px; font-size:14px; border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--ink)}
-  #dtClr{flex:none; width:34px; padding:0}
 
   /* 원글 · 설명 */
   #emptyMsg{display:none; padding:60px 10px; text-align:center; color:var(--sub); font-size:14px}
@@ -399,10 +397,29 @@
   #rawBox > summary .rl{font-size:13.5px; font-weight:700}
   #rawBox > summary button{margin-left:auto; min-width:76px}
   textarea.ta{min-height:148px; height:148px; resize:none; overflow-y:auto; font-size:15px; padding:10px; border-radius:10px}
-  #acts{display:flex; gap:8px; margin-top:4px}
-  #acts .primary{flex:1; padding:13px 10px; font-size:15.5px}
+  #acts{display:flex; gap:6px; margin-top:4px; flex-wrap:wrap}
+  #acts button{flex:1 1 22%; min-width:0; padding:13px 6px; font-size:15px; font-weight:700; border-radius:12px; white-space:nowrap}
   #acts .primary.isdone{background:var(--panel); color:var(--ink); border-color:var(--line)}
-  #delBtn{flex:0 0 30%; padding:13px 10px; font-size:15.5px; font-weight:700; border-radius:12px; color:var(--bad); border-color:var(--bad)}
+  #holdBtn.ishold{background:var(--accent-bg); color:var(--accent); border-color:var(--accent)}
+  #rvBtn{color:var(--accent); border-color:var(--accent)}
+  #delBtn{color:var(--bad); border-color:var(--bad)}
+  /* 후기 글: 연결된 원글 / 원글: 달린 후기 */
+  #rvBox{border:1px solid var(--accent); background:var(--accent-bg); border-radius:12px; padding:10px 12px}
+  #rvBox .rv-head{display:flex; gap:8px; align-items:center}
+  #rvBox .rv-head b{flex:1 1 auto; min-width:0; font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  #rvBox summary{margin-top:6px; font-size:13px; font-weight:700; color:var(--accent); cursor:pointer; min-height:34px; display:flex; align-items:center}
+  #rvText{max-height:260px; overflow:auto; white-space:pre-wrap; word-break:break-word; font-size:14px; line-height:1.55; padding:8px 10px; border-radius:8px; background:var(--panel); border:1px solid var(--line)}
+  #rvList{display:flex; flex-wrap:wrap; gap:6px; align-items:center; padding:8px 10px; border:1px dashed var(--accent); border-radius:12px; font-size:13px; font-weight:700; color:var(--accent)}
+  #rvList button{max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  #rvBox{order:0} #rvList{order:0}
+  .tg.rv{background:var(--accent); color:#fff; font-weight:700}
+  .tg.rvn{background:var(--accent-bg); color:var(--accent); border-color:var(--accent); font-weight:700}
+  .tg.hd{background:#E0E7FF; color:#3730A3; border-color:#A5B4FC; font-weight:700}
+  /* 채널 디자인: 일반 글 | 후기 */
+  #rvSwitch .seg{flex:0 0 auto}
+  body.dzrev #setTabs button:not([data-tab="misc"]):not([data-tab="flds"]){display:none}
+  body.dzrev #designPane .sec:not([data-rv]){display:none !important}
+  body.dzrev #rvSeg button[data-val="rev"]{background:var(--accent); color:#fff}
 
   /* 글을 열 때 내용을 불러오는 동안 */
   #loadMsg{display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; padding:14px 12px; border:1px dashed var(--accent); border-radius:12px; background:var(--accent-bg); color:var(--accent); font-size:14px; font-weight:700; text-align:center}
@@ -423,9 +440,11 @@
   .sk.on::before{content:""; position:absolute; left:50%; top:50%; width:6px; height:11px; border:solid #fff; border-width:0 2.5px 2.5px 0; transform:translate(-50%,-62%) rotate(45deg)}
   .it.picked{border-color:var(--bad); box-shadow:inset 0 0 0 1px var(--bad)}
   #selDel{display:flex; gap:8px; margin-top:10px}
-  #selDel button{padding:14px 10px; font-size:16px; font-weight:700; border-radius:12px; cursor:pointer}
+  #selDel button{padding:14px 6px; font-size:15px; font-weight:700; border-radius:12px; cursor:pointer; white-space:nowrap}
+  #selHoldGo{flex:1; background:var(--accent); color:#fff; border:1px solid var(--accent)}
+  #selHoldGo:disabled, #selDelGo:disabled{opacity:.5}
   #selDelGo{flex:1; background:var(--bad); color:#fff; border:1px solid var(--bad)}
-  #selDelNo{flex:0 0 28%}
+  #selDelNo{flex:0 0 22%}
   .card.ig{border-color:var(--accent)}
   .card.ig .badge-num{background:var(--accent); color:#fff}
 
@@ -488,8 +507,9 @@
     body.m-detail #top .ttl{display:none}
     #paneTxt, #txtBody{display:contents}
     #emptyMsg{display:none !important}
-    #loadMsg{order:4} #rawBox{order:5} #fields{order:6} #pasteWrap{order:7} #linkBox{order:8} #acts{order:9}
+    #loadMsg{order:4} #rvBox{order:4} #rvList{order:4} #rawBox{order:5} #fields{order:6} #pasteWrap{order:7} #linkBox{order:8} #acts{order:9}
     body.newdoc #rawBox{order:2}
+    body.newdoc #rvBox, body.newdoc #rvList{order:2}
     #rawBox{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:0 10px 10px}
     body.newdoc #rawBox{border-color:var(--accent)}
     .srow input, .srow select, #dHead select, #dHead input[type="datetime-local"]{min-height:42px; font-size:16px}
@@ -571,7 +591,7 @@
       <input type="search" id="q" placeholder="검색" aria-label="글 검색" autocomplete="off">
       <select id="chanF" aria-label="채널로 거르기" hidden></select>
       <button type="button" class="ghost" id="newBtn" aria-label="새 글" title="새 글">+</button>
-      <button type="button" class="ghost" id="selBtn" title="여러 개 골라서 삭제">선택</button>
+      <button type="button" class="ghost" id="selBtn" title="여러 개 골라서 보류·삭제">선택</button>
     </div>
     <div class="tabs3" id="tabs3"></div>
     <div id="selHead" hidden>
@@ -581,16 +601,15 @@
     <div id="items"><div class="empty">불러오는 중…</div></div>
     <button type="button" id="newBig">+ 새 글 작성</button>
     <div id="selDel" hidden>
-      <button type="button" id="selDelGo" disabled>선택한 0개 삭제</button>
+      <button type="button" id="selHoldGo" disabled>보류로 · 0개</button>
+      <button type="button" id="selDelGo" disabled>삭제 · 0개</button>
       <button type="button" class="ghost" id="selDelNo">취소</button>
     </div>
   </aside>
 
-  <!-- 가운데 위: 채널 · 올릴 날짜 -->
+  <!-- 가운데 위: 채널 -->
   <div id="dHead">
     <select id="chanSel" aria-label="채널"></select>
-    <input type="datetime-local" id="dtIn" aria-label="올릴 날짜">
-    <button type="button" class="ghost sm" id="dtClr" aria-label="올릴 날짜 지우기" title="올릴 날짜 지우기">✕</button>
   </div>
 
   <!-- 가운데: 원글 · 설명 -->
@@ -598,6 +617,13 @@
     <div id="emptyMsg">왼쪽 목록에서 글을 고르거나 <b>+</b> 를 눌러 새 글을 시작하세요.</div>
     <div id="txtBody">
       <div id="loadMsg" hidden><span id="loadTxt"></span><button type="button" class="ghost sm" id="loadRetry" hidden>다시 불러오기</button></div>
+      <!-- 후기 글: 연결된 원글 -->
+      <div id="rvBox" hidden>
+        <div class="rv-head"><span class="tg rv">후기</span><b id="rvTitle">원글</b><button type="button" class="ghost sm" id="rvOpen">원글 열기</button></div>
+        <details id="rvDet"><summary>원글 내용 보기</summary><div id="rvText"></div></details>
+      </div>
+      <!-- 원글: 이 글에 달린 후기 -->
+      <div id="rvList" hidden></div>
       <details id="rawBox">
         <summary><span class="rl">원글</span><span class="tg e" id="rawTag">비어 있음</span><span class="sbtns"><button type="button" class="ghost sm pst" id="pst_raw">붙여넣기</button><button type="button" class="ghost sm" id="cpy_raw">복사</button></span></summary>
         <textarea id="src" spellcheck="false"></textarea>
@@ -606,7 +632,7 @@
           <button type="button" class="ghost" id="numHintBtn">번호로 장 나누기</button>
         </div>
         <details id="optBox">
-          <summary>이 글 옵션 · 장 나누기 · 마지막 장 · 마지막 광고 · 안내문구 · 쓰는 칸</summary>
+          <summary>이 글 옵션 · 장 나누기 · 마지막 장 · 마지막 광고 · 안내문구</summary>
 <div class="split-box">
     <div class="split-row">
       <span class="split-lbl">장 나누기</span>
@@ -648,11 +674,7 @@
       </div>
     </div>
     <p class="hint" id="noteHint">체크를 빼면 이 글에서만 그 안내문구(채널 디자인)가 빠져요.</p>
-    <div class="split-row" style="align-items:flex-start">
-      <span class="split-lbl" style="padding-top:8px">쓰는 칸</span>
-      <div class="fo-grid" id="foGrid"></div>
-    </div>
-    <p class="hint" id="foHint">체크한 칸만 이 글에서 써요. 체크를 빼면 그 칸이 숨겨지고, 그 칸의 쿠팡 링크도 만들지 않고, ‘한 번에 붙여넣기’에서도 건너뛰어요. ‘인스타 자동 DM’을 빼면 인스타 공유용 마지막 장에 VS 숫자를 넣지 않아요 (안내문구는 위 ‘안내문구’ 체크로 정해요). 새 글은 그 채널의 기본값(채널 디자인 → 설명 칸)으로 시작해요.</p>
+    <p class="hint" id="foHint">쓰는 설명 칸은 채널 디자인 → ‘설명 칸’에서 채널마다 정해요 (그 채널의 모든 글에 똑같이 적용). ‘인스타 자동 DM’ 칸을 쓰지 않는 채널은 인스타 공유 이미지에 VS 숫자를 넣지 않아요.</p>
   </div>
         </details>
       </details>
@@ -683,6 +705,8 @@
       </div>
       <div id="acts">
         <button type="button" class="primary" id="doneBtn">작업 완료</button>
+        <button type="button" class="ghost" id="holdBtn">작업 보류</button>
+        <button type="button" class="ghost" id="rvBtn">후기 작성</button>
         <button type="button" class="ghost" id="delBtn">삭제</button>
       </div>
     </div>
@@ -723,6 +747,11 @@
         <button type="button" class="ghost sm" id="savePresetBtn">저장</button>
         <button type="button" class="ghost sm" id="closeSettingsBtn">닫기 ✕</button>
       </div>
+      <div class="dz-row" id="rvSwitch">
+        <div class="seg" id="rvSeg"><button type="button" data-val="gen" class="active">일반 글</button><button type="button" data-val="rev">후기</button></div>
+        <button type="button" class="ghost sm" id="rvReset" hidden>일반 글과 똑같이</button>
+      </div>
+      <p class="hint" id="rvNote" hidden>후기 글에만 적용돼요. 색·글꼴 같은 디자인은 일반 글과 같고, 아래 세 가지만 후기용으로 따로 정해요: 유튜브·인스타 문구와 마지막 장(‘번호·기타’), 쓰는 설명 칸(‘설명 칸’). 건드리지 않으면 일반 글과 똑같아요.</p>
       <div class="tabs" id="setTabs">
         <button type="button" class="on" data-tab="ch">채널</button>
         <button type="button" data-tab="look">색·꾸미기</button>
@@ -1006,7 +1035,7 @@
       </div>
 
       <!-- 유튜브(다운로드) 마지막 장: 인스타 마지막 장과 항목이 똑같아요 -->
-      <div class="sec" data-tab="misc">
+      <div class="sec" data-tab="misc" data-rv="1">
         <div class="sec-title">▶️ 유튜브용(다운로드) 마지막 장</div>
         <label class="lbl" for="ytNote">마지막 장 맨 아래 안내 문구 (비워 두면 안 들어가요)</label>
         <input type="text" id="ytNote" maxlength="60" value="">
@@ -1056,7 +1085,7 @@
       </div>
 
       <!-- 인스타 공유용 마지막 장 -->
-      <div class="sec" data-tab="misc">
+      <div class="sec" data-tab="misc" data-rv="1">
         <div class="sec-title">📸 인스타 공유용 마지막 장</div>
         <label class="lbl" for="igNote">마지막 장 맨 아래 안내 문구 (비워 두면 안 들어가요)</label>
         <input type="text" id="igNote" maxlength="60" value="1 또는 2 댓글 → 사연 뒷이야기 DM으로 보내드려요 💌">
@@ -1120,11 +1149,11 @@
         </div>
       </div>
 
-      <!-- 설명 칸 기본값 (이 채널의 새 글이 시작할 때 쓰는 칸) -->
-      <div class="sec" data-tab="flds" hidden>
-        <div class="sec-title">☑️ 쓰는 설명 칸 (이 채널의 기본값)</div>
+      <!-- 쓰는 설명 칸 (이 채널의 모든 글에 똑같이 적용) -->
+      <div class="sec" data-tab="flds" data-rv="1" hidden>
+        <div class="sec-title">☑️ 쓰는 설명 칸 (이 채널의 모든 글)</div>
         <div class="fo-grid" id="dfGrid"></div>
-        <p class="hint">체크한 칸만 이 채널의 새 글에서 쓰는 칸으로 시작해요. 글마다 ‘이 글 옵션 → 쓰는 칸’에서 따로 바꿀 수 있어요. 아직 기본값을 정한 적 없는 예전 채널은 그 채널의 가장 최근 글 설정으로 시작해요. 바꾼 뒤에는 위의 ‘저장’을 눌러야 적용돼요.</p>
+        <p class="hint">체크한 칸만 이 채널의 글에서 써요. 예전 글도 똑같이 적용돼요. 체크를 빼면 그 칸이 숨겨지고(내용은 지워지지 않아요), 그 칸의 쿠팡 링크도 만들지 않고, ‘한 번에 붙여넣기’에서도 건너뛰어요. 아직 정한 적 없는 예전 채널은 가장 최근 글의 설정으로 보여 줘요. 바꾼 뒤에는 위의 ‘저장’을 눌러야 적용돼요.</p>
       </div>
 
       <!-- 쿠팡 파트너스: 이 채널이 쓰는 쿠팡 계정과 채널 아이디 (매체마다 하나씩) -->
@@ -1259,6 +1288,9 @@ FONTS.forEach((f,i)=>{
 let igRender = {key:"", off:false, noteOff:false};   /* 마지막으로 그린 글과 그때의 '인스타 자동 DM 안 씀'·'인스타 안내문구 뺌' 상태 */
 let ADS = {yt:"", ig:""};             /* 이 글의 ‘유튜브/인스타 마지막 광고’ 글 (그릴 때마다 render 가 새로 읽어 옵니다) */
 let NOTEOFF = {yt:false, ig:false};   /* 이 글에서 안내문구를 뺄지 (유튜브·인스타) */
+let dzView = "gen";                   /* 채널 디자인 화면: "gen" 일반 글 / "rev" 후기 설정을 고치는 중 */
+let dzGenSub = null;                  /* 후기 설정을 고치는 동안 맡겨 둔 ‘일반 글’의 같은 항목들 */
+let dzRev = null;                     /* 이 채널의 후기 설정 (바뀐 항목만 따로 저장. 없으면 일반 글과 똑같이) */
 /* 채널 디자인을 고치는 중에는 글마다 다른 광고 글 대신 디자인을 볼 수 있는 예시 글을 넣습니다 (저장되지 않아요) */
 const DESIGN_SAMPLE_ADS = {yt:"구독·좋아요 부탁드려요!\n다음 사연도 기대해 주세요", ig:"팔로우하면 다음 사연을 바로 볼 수 있어요\n프로필 링크도 확인해 주세요"};
 function currentAds(){
@@ -1841,6 +1873,17 @@ function getOpt(k){
   if(typeof EXTRA[k] !== "number") return v;
   const n = parseFloat(v); return isFinite(n) ? n : EXTRA[k];
 }
+/* 후기 글에서만 따로 정하는 항목: 유튜브·인스타 안내문구 / VS 숫자 / 마지막 광고 디자인 + 쓰는 설명 칸. 나머지(색·글꼴 등)는 채널과 같습니다 */
+const REVIEW_KEYS = Object.keys(EXTRA).filter(k => /^(yt|ig)(Note|Num|Ad)/.test(k)).concat(["offFields"]);
+function pickReview(o){
+  const r = {};
+  REVIEW_KEYS.forEach(k => { if(o && o[k] !== undefined) r[k] = o[k]; });
+  return r;
+}
+/* 후기 글이 쓰는 설정 = 채널 설정 위에 채널의 ‘후기 설정’을 덮은 것 */
+function mergeReview(ch){
+  return ch && ch.review && typeof ch.review === "object" ? Object.assign({}, ch, pickReview(ch.review)) : ch;
+}
 let CHARLIM = 0, BREAKCHAR = false, FX = {shadow:"none", strokeW:0, strokeColor:"#000"};
 let keepArchiveSettings = false, archiveNote = "", archiveChannel = "";
 
@@ -1888,6 +1931,7 @@ $("bodyBold").addEventListener("change", updateFontPrev);
 
 function showTab(t){
   if(t === "acc" && !S.isAdmin) t = "ch";     /* 아이디별 채널 표는 관리자만 */
+  if(dzView === "rev" && t !== "misc" && t !== "flds") t = "misc";     /* 후기 설정: ‘번호·기타’(마지막 장)와 ‘설명 칸’만 */
   document.querySelectorAll("#setTabs button").forEach(b=>b.classList.toggle("on", b.dataset.tab === t));
   document.querySelectorAll("#designPane .sec[data-tab]").forEach(s=>{ s.hidden = s.dataset.tab !== t; });
   if(t === "font") updateFontPrev();
@@ -3168,7 +3212,9 @@ const FIELDS = [
   {kind:"yt_last_ad",          label:"유튜브 마지막 광고", short:"", hidden:true, flag:true},
   {kind:"ig_last_ad",          label:"인스타 마지막 광고", short:"", hidden:true, flag:true},
   /* 이 글에서 안내문구(채널 디자인)를 뺄 쪽 목록(JSON, 예: ["yt","ig"]). 비어 있으면 아직 안 만진 글 → 예전 방식을 따릅니다 */
-  {kind:"note_off",            label:"안내문구 안 넣기",   short:"", hidden:true, flag:true}
+  {kind:"note_off",            label:"안내문구 안 넣기",   short:"", hidden:true, flag:true},
+  /* 후기 글이 붙어 있는 원글의 ID (후기가 아닌 글은 비어 있음) */
+  {kind:"review_of",          label:"원글 (후기일 때)",   short:"", hidden:true, flag:true}
 ];
 const AD_BOXES = [{kind:"yt_last_ad", id:"adYt"}, {kind:"ig_last_ad", id:"adIg"}];
 /* 칸마다 어느 매체의 쿠팡 링크를 쓰는지: 유튜브 칸 → 유튜브 링크(yt), 인스타·스레드 칸 → 인스타 링크(ig).
@@ -3182,10 +3228,11 @@ const LINK_MEDIA = {
   threads_post:        "ig",
   threads_comment:     "ig"
 };
-/* ‘쓰는 칸’ 체크: 글마다 안 쓰는 칸 목록을 저장합니다. 안 쓰는 칸은 숨기고, 그 칸의 쿠팡 링크도 만들지 않고, 한 번에 붙여넣기에서도 건너뜁니다.
-   채널마다 기본값(채널 디자인 ‘설명 칸’)이 있어 새 글은 그 값으로 시작하고, 글마다 바꿀 수 있어요. */
+/* 쓰는 설명 칸은 채널 디자인(‘설명 칸’)에서만 정합니다. 그 채널의 모든 글(예전 글 포함)에 똑같이 적용돼요.
+   후기 글은 채널에 ‘후기 설정’이 있으면 그 설정을 따라요. 안 쓰는 칸은 숨기고, 그 칸의 쿠팡 링크도 만들지 않고, 한 번에 붙여넣기에서도 건너뜁니다. */
 const OFFABLE = FIELDS.filter(x => !x.hidden && !x.legacy).map(x => x.kind);
-function offListOf(c){
+/* 예전에 글마다 저장해 둔 ‘안 쓰는 칸’ (이제는 채널 설정이 없는 예전 채널의 시작값으로만 참고) */
+function legacyOffOf(c){
   if(!c) return [];
   if(c.full === false) return Array.isArray(c.off) ? c.off : [];       /* 아직 내용을 안 받은 글은 목록이 알려 준 값 */
   const f = c.f || {};
@@ -3195,9 +3242,22 @@ function offListOf(c){
   }
   return f.ig_off === "1" ? ["instagram_pin", "auto_dm"] : [];           /* 예전 ‘고정 댓글·자동 DM 안 함’ */
 }
+let OFFMEMO = {n:-1, by:{}};
+function offListOf(c){
+  if(!c) return [];
+  const ch = channelFor(c);
+  if(!ch) return [];
+  const rv = isReview(c) && ch.review && Array.isArray(ch.review.offFields) ? ch.review.offFields : null;
+  let list = rv || ch.offFields;
+  if(!Array.isArray(list)){
+    if(OFFMEMO.n !== S.contents.length) OFFMEMO = {n:S.contents.length, by:{}};
+    list = OFFMEMO.by[ch.id] || (OFFMEMO.by[ch.id] = defaultOffFor(ch, null));
+  }
+  return list.filter(k => OFFABLE.includes(k));
+}
 const isOff = (c, kind) => offListOf(c).includes(kind);
 const fieldOn = (c, x) => !isOff(c, x.kind);
-/* 자동 DM 을 안 쓰는 글은 인스타 공유용 마지막 장(번호·안내 줄)도 따로 만들지 않습니다 */
+/* 채널이 ‘인스타 자동 DM’ 칸을 안 쓰면 인스타 공유 이미지에 VS 숫자를 넣지 않습니다 */
 const igOffOf = c => isOff(c, "auto_dm");
 /* 이 글에서 안내문구(유튜브·인스타)를 뺄지. ‘이 글 옵션 → 안내문구’ 체크를 한 번도 안 만진 글은 예전 방식을 따릅니다
    (유튜브는 넣고, 인스타는 ‘자동 DM’을 쓰는 글에만 넣어요) */
@@ -3223,7 +3283,7 @@ const PASTE_HEADS = [
   {kind:"youtube_description", re:/^유튜브\s*(커뮤니티\s*)?(게시글|게시물|설명|커뮤니티)/},
   {kind:"threads_post",        re:/^(스레드|Threads)\s*(게시글|게시물|본문|설명|글)/i}
 ];
-const TABS3 = [["none","미지정"],["plan","예약"],["done","완료"]];
+const TABS3 = [["none","미지정"],["hold","보류"],["done","완료"]];
 const SAMPLE_TEXT = "채널 디자인 미리보기 (표지)\n\n두 번째 장 본문입니다.\n**강조할 말**은 이렇게 보여요.\n\n여러분의 생각은 어떠신가요?\n1. 첫 번째 선택지\n2. 두 번째 선택지\n3. 세 번째 선택지";
 const wideMQ = window.matchMedia("(min-width:1000px)");
 const isWide = () => wideMQ.matches;
@@ -3422,7 +3482,18 @@ function applyFields(c, fields){
 }
 function contentSig(c){ return JSON.stringify([c.rawText, c.f, c.channelId, c.publishAt, c.doneAt, c.splitMode, c.lastPageType, c.splitDelim]); }
 function hasAny(c){ return !!(c && (c.id || (c.rawText || "").trim() || FIELDS.some(x => !x.flag && (c.f[x.kind] || "").trim()))); }
-function stateOf(c){ return c.doneAt ? "done" : (c.publishAt ? "plan" : "none"); }
+/* 미지정 / 보류 / 완료. 보류는 ‘올릴 날짜’ 칸에 보류한 시각을 적어 두는 방식이라 서버는 그대로예요 (예전에 예약해 둔 글은 보류로 보여요) */
+function stateOf(c){ return c.doneAt ? "done" : (c.publishAt ? "hold" : "none"); }
+/* 후기: 원글과 이어진 글. 후기 글의 clientId 는 rv_<원글ID>_<8자> 모양이라 목록만 받은 글도 알아볼 수 있어요 */
+const RV_CID = /^rv_([A-Za-z0-9-]{8,52})_[A-Za-z0-9]{8}$/;
+function reviewOfId(c){
+  if(!c) return "";
+  const m = RV_CID.exec(String(c.clientId || ""));
+  return m ? m[1] : String((c.f && c.f.review_of) || "");
+}
+const isReview = c => !!reviewOfId(c);
+function originalOf(c){ const id = reviewOfId(c); return id ? (S.contents.find(x => x.id === id) || null) : null; }
+function reviewsOf(o){ return o && o.id ? S.contents.filter(x => x !== o && reviewOfId(x) === o.id) : []; }
 function findKey(key){ return S.contents.find(x => x.key === key) || (S.cur && S.cur.key === key ? S.cur : null); }
 function chById(id){ return S.channels.find(x => x.id === id) || null; }
 function channelFor(c){ return c ? (chById(c.channelId) || S.channels.find(x => x.name === c.channel) || null) : null; }
@@ -3820,33 +3891,35 @@ function emptyText(q){
   if(!S.loaded) return "불러오는 중…";
   if(!S.channels.length) return S.isAdmin ? "채널이 없어요. ‘채널 디자인’에서 채널을 먼저 만드세요." : "아직 사용할 채널이 없어요. 위의 ‘채널 디자인’에서 새 채널을 만들거나, 관리자에게 채널을 지정받으세요.";
   if(q) return "검색 결과가 없어요.";
-  return {none:"미지정 글이 없어요. + 를 눌러 새 글을 시작하세요.", plan:"올릴 날짜를 정한 글이 없어요.", done:"완료한 글이 없어요."}[S.tab];
+  return {none:"미지정 글이 없어요. + 를 눌러 새 글을 시작하세요.", hold:"보류한 글이 없어요.", done:"완료한 글이 없어요."}[S.tab];
 }
+let RVCOUNT = new Map();       /* 원글 ID → 달린 후기 수 (목록을 그릴 때마다 새로 셉니다) */
 function itemHtml(c){
   const on = S.cur && S.cur.key === c.key;
   const st = stateOf(c);
   let when;
-  if(st === "plan"){
-    const past = Date.parse(c.publishAt) < Date.now();
-    when = `<span class="${past ? "late" : ""}">${esc(fmtAt(c.publishAt))}${past ? " 지남" : ""}</span>`;
-  }else if(st === "done") when = "완료 " + esc(fmtAt(c.doneAt));
+  if(st === "hold") when = "보류 " + esc(fmtAt(c.publishAt));
+  else if(st === "done") when = "완료 " + esc(fmtAt(c.doneAt));
   else when = c.createdAt ? esc(fmtDay(c.createdAt)) : "새 글";
   const owner = S.isAdmin && c.ownerId ? " · " + esc(c.ownerId) : "";
   const pend = OUT[c.key] ? " · 저장 대기" : "";
-  const tags = FIELDS.filter(x => !x.hidden && fieldOn(c, x) && (!x.legacy || hasField(c, x.kind)))
+  const rv = isReview(c), rvn = rv ? 0 : (RVCOUNT.get(c.id) || 0);
+  const tags = (rvn ? `<span class="tg rvn" title="이 글에 달린 후기 ${rvn}개">후기 ${rvn}</span>` : "")
+    + FIELDS.filter(x => !x.hidden && fieldOn(c, x) && (!x.legacy || hasField(c, x.kind)))
     .map(x => `<span class="tg${hasField(c, x.kind) ? "" : " e"}" title="${esc(x.label)}">${x.short}</span>`).join("")
     + (unOf(c) ? `<span class="tg un" title="아이디 없는 쿠팡 링크(미지정 링크)로 나가는 글이에요">미지정 링크</span>` : "");
+  const ttl = (rv ? `<span class="tg rv">후기</span> ` : "") + esc(c.title || deriveTitle(c.rawText));
   /* 선택 모드: 동그라미(완료) 대신 네모 체크칸, 글을 눌러도 열지 않고 고르기만 함 */
   if(S.selMode){
     const pk = S.sel.has(c.key);
     return `<div class="it${pk ? " picked" : ""}" data-key="${esc(c.key)}">`
       + `<button type="button" class="sk${pk ? " on" : ""}" data-act="sel" aria-pressed="${pk}" aria-label="${pk ? "선택 해제" : "삭제할 글로 선택"}"></button>`
-      + `<button type="button" class="ib" data-act="sel"><b>${esc(c.title || deriveTitle(c.rawText))}</b>`
+      + `<button type="button" class="ib" data-act="sel"><b>${ttl}</b>`
       + `<small>${esc(chName(c))} · ${when}${owner}${pend}</small><span class="tgs">${tags}</span></button></div>`;
   }
   return `<div class="it${on ? " on" : ""}" data-key="${esc(c.key)}">`
     + `<button type="button" class="ck${c.doneAt ? " d" : ""}" data-act="done" aria-label="${c.doneAt ? "완료 취소" : "작업 완료로 표시"}" title="${c.doneAt ? "완료 취소" : "작업 완료"}"></button>`
-    + `<button type="button" class="ib" data-act="open"><b>${esc(c.title || deriveTitle(c.rawText))}</b>`
+    + `<button type="button" class="ib" data-act="open"><b>${ttl}</b>`
     + `<small>${esc(chName(c))} · ${when}${owner}${pend}</small><span class="tgs">${tags}</span></button></div>`;
 }
 function renderList(){
@@ -3856,12 +3929,14 @@ function renderList(){
   const base = S.contents.filter(c =>
     (!S.chanF || (S.chanF === "__none" ? !channelFor(c) : c.channelId === S.chanF))
     && (!q || qstr(c).includes(q) || (S.srvQ === q && !!c.id && S.srvIds.has(c.id))));
-  const cnt = {none:0, plan:0, done:0};
+  const cnt = {none:0, hold:0, done:0};
   base.forEach(c => cnt[stateOf(c)]++);
+  RVCOUNT = new Map();
+  S.contents.forEach(c => { const o = reviewOfId(c); if(o) RVCOUNT.set(o, (RVCOUNT.get(o) || 0) + 1); });
   $("tabs3").innerHTML = TABS3.map(([k, l]) => `<button type="button" data-tab="${k}" class="${S.tab === k ? "on" : ""}" aria-pressed="${S.tab === k}">${l} ${cnt[k]}</button>`).join("");
   let items = base.filter(c => stateOf(c) === S.tab);
   const T = v => Date.parse(v) || 0;
-  if(S.tab === "plan") items.sort((a, b) => T(a.publishAt) - T(b.publishAt));
+  if(S.tab === "hold") items.sort((a, b) => T(b.publishAt) - T(a.publishAt));
   else if(S.tab === "done") items.sort((a, b) => T(b.doneAt) - T(a.doneAt));
   else items.sort((a, b) => (T(b.createdAt) || Infinity) - (T(a.createdAt) || Infinity));
   const host = $("items");
@@ -3886,12 +3961,15 @@ function updateSelUI(){
   $("newBig").hidden = !!S.selMode;
   $("selBtn").textContent = S.selMode ? "취소" : "선택";
   $("selCount").textContent = `${k}개 선택됨`;
+  const hb = $("selHoldGo");
+  hb.textContent = (S.tab === "hold" ? "미지정으로" : "보류로") + ` · ${k}개`;
+  hb.disabled = !k;
   const vis = S.visKeys || [];
   const allOn = vis.length > 0 && vis.every(x => S.sel.has(x));
   $("selAll").textContent = allOn ? "전체 해제" : "전체 선택";
   $("selAll").disabled = !vis.length;
   if(!selDeleting){
-    $("selDelGo").textContent = `선택한 ${k}개 삭제`;
+    $("selDelGo").textContent = `삭제 · ${k}개`;
     $("selDelGo").disabled = !k;
   }
 }
@@ -3908,6 +3986,20 @@ $("selAll").onclick = () => {
   const allOn = vis.length > 0 && vis.every(x => S.sel.has(x));
   vis.forEach(x => allOn ? S.sel.delete(x) : S.sel.add(x));
   renderList();
+};
+/* 고른 글을 보류로 (보류 탭에서는 미지정으로 되돌리기) */
+$("selHoldGo").onclick = () => {
+  const picked = S.contents.filter(c => S.sel.has(c.key) && hasAny(c));
+  if(!picked.length){ toast("내용이 있는 글만 옮길 수 있어요", "bad"); return; }
+  const back = S.tab === "hold", prev = picked.map(c => [c, c.publishAt || "", c.doneAt || ""]);
+  const now = new Date().toISOString();
+  picked.forEach(c => setStateOf(c, back ? "none" : "hold", now));
+  S.sel = new Set(); S.selMode = false;
+  renderList(); updateDoneBtn();
+  toast(`${picked.length}개를 ${back ? "미지정으로 되돌렸어요" : "보류로 옮겼어요"}`, "", {label:"되돌리기", fn:() => {
+    prev.forEach(([c, pub, dn]) => { c.publishAt = pub; c.doneAt = dn; queueSave(c, {publishAt:pub, doneAt:dn}, 250); });
+    renderList(); updateDoneBtn();
+  }});
 };
 $("selDelGo").onclick = async () => {
   if(selDeleting) return;
@@ -3990,21 +4082,47 @@ async function serverSearch(q){
 $("chanF").addEventListener("change", () => { S.chanF = $("chanF").value; renderList(); saveState(); schedulePrefetch(); });
 $("newBtn").onclick = () => newDraft({focus:true});
 
-/* ---------- 작업 완료 ---------- */
+/* ---------- 작업 완료 · 작업 보류 ---------- */
+/* 한 글은 미지정 / 보류 / 완료 중 하나. 보류는 ‘올릴 날짜’ 칸에 보류한 시각을 적어 둡니다 (서버는 그대로) */
+function setStateOf(c, st, nowIso){
+  const now = nowIso || new Date().toISOString();
+  c.publishAt = st === "hold" ? now : "";
+  c.doneAt = st === "done" ? now : "";
+  queueSave(c, {publishAt:c.publishAt, doneAt:c.doneAt}, 250);
+}
 function toggleDone(c){
   if(!hasAny(c)){ toast("내용을 먼저 넣어 주세요", "bad"); return; }
+  const prev = [c.publishAt || "", c.doneAt || ""];
   const was = !!c.doneAt;
-  c.doneAt = was ? "" : new Date().toISOString();
-  queueSave(c, {doneAt:c.doneAt}, 250);
+  setStateOf(c, was ? "none" : "done");
   renderList();
   if(c === S.cur) updateDoneBtn();
-  toast(was ? "완료를 취소했어요" : "‘" + (c.title || "글") + "’ 완료 목록으로 옮겼어요", "", {label:"되돌리기", fn:() => toggleDone(c)});
+  toast(was ? "완료를 취소했어요" : "‘" + (c.title || "글") + "’ 완료 목록으로 옮겼어요", "", {label:"되돌리기", fn:() => {
+    c.publishAt = prev[0]; c.doneAt = prev[1]; queueSave(c, {publishAt:prev[0], doneAt:prev[1]}, 250);
+    renderList(); if(c === S.cur) updateDoneBtn();
+  }});
+}
+function toggleHold(c){
+  if(!hasAny(c)){ toast("내용을 먼저 넣어 주세요", "bad"); return; }
+  const prev = [c.publishAt || "", c.doneAt || ""];
+  const was = stateOf(c) === "hold";
+  setStateOf(c, was ? "none" : "hold");
+  renderList();
+  if(c === S.cur) updateDoneBtn();
+  toast(was ? "보류를 풀었어요" : "‘" + (c.title || "글") + "’ 보류로 옮겼어요", "", {label:"되돌리기", fn:() => {
+    c.publishAt = prev[0]; c.doneAt = prev[1]; queueSave(c, {publishAt:prev[0], doneAt:prev[1]}, 250);
+    renderList(); if(c === S.cur) updateDoneBtn();
+  }});
 }
 function updateDoneBtn(){
-  const b = $("doneBtn"), c = S.cur;
-  const done = !!(c && c.doneAt);
-  b.textContent = done ? "완료 취소 (다시 작업 중으로)" : "작업 완료";
+  const c = S.cur;
+  const done = !!(c && c.doneAt), hold = !!(c && stateOf(c) === "hold");
+  const b = $("doneBtn");
+  b.textContent = done ? "완료 취소" : "작업 완료";
   b.classList.toggle("isdone", done);
+  const h = $("holdBtn");
+  h.textContent = hold ? "보류 해제" : "작업 보류";
+  h.classList.toggle("ishold", hold);
 }
 $("doneBtn").onclick = () => {
   const c = S.cur;
@@ -4013,6 +4131,77 @@ $("doneBtn").onclick = () => {
   toggleDone(c);
   if(!was && c.doneAt && !isWide()) goList();
 };
+$("holdBtn").onclick = () => {
+  const c = S.cur;
+  if(!c) return;
+  const was = stateOf(c) === "hold";
+  toggleHold(c);
+  if(!was && stateOf(c) === "hold" && !isWide()) goList();
+};
+/* ---------- 후기 ----------
+   원글 하단의 [후기 작성] → 같은 채널에 후기용 새 글을 만들어 바로 엽니다.
+   후기 글의 clientId 는 rv_<원글ID>_<8자> 라서 서버를 고치지 않아도 목록에서 후기로 알아볼 수 있고, 같은 정보를 글 안(원글 칸)에도 적어 둡니다.
+   원글에서 가져오는 것: 원글과의 연결 + 쿠팡 상품 주소(링크는 후기에서 새로 만듭니다). 본문은 비어서 시작해요. */
+async function newReview(o){
+  if(!o || !hasAny(o)){ toast("내용을 먼저 넣어 주세요", "bad"); return; }
+  if(isReview(o)){ toast("후기에는 후기를 달 수 없어요. 원글에서 눌러 주세요", "bad"); return; }
+  if(!o.id){ try{ await flush(); }catch(e){} }           /* 아직 서버에 없는 글이면 먼저 저장 */
+  if(!o.id){ toast("저장이 끝난 뒤에 다시 눌러 주세요", "bad"); return; }
+  const ch = channelFor(o) || S.channels[0];
+  if(!ch){ toast("‘채널 디자인’에서 채널을 먼저 만드세요", "bad"); return; }
+  const rid = RV_CID.test("rv_" + o.id + "_abcd1234") ? "rv_" + o.id + "_" + uuid().slice(0, 8) : uuid();
+  const c = {key:rid, id:null, clientId:rid, title:"", channelId:ch.id, channel:ch.name, rawText:"", f:emptyF(), extra:[],
+    publishAt:"", doneAt:"", splitMode:"", lastPageType:"", splitDelim:"", createdAt:"", updatedAt:"", ownerId:S.uid, full:true};
+  c.f.review_of = o.id;
+  if((o.f && o.f.coupang_url) || ""){ c.f.coupang_url = o.f.coupang_url; }
+  openContent(c, {focus:true});
+}
+function renderReviewBox(){
+  const c = S.cur;
+  const rv = !!c && isReview(c);
+  $("rvBox").hidden = !rv;
+  $("rvBtn").hidden = !c || rv || !hasAny(c);
+  if(rv){
+    const o = originalOf(c);
+    $("rvTitle").textContent = o ? (o.title || deriveTitle(o.rawText) || "제목 없음") : "원글을 찾을 수 없어요 (삭제됐거나 권한이 없을 수 있어요)";
+    $("rvOpen").hidden = !o;
+    $("rvDet").hidden = !o;
+    $("rvText").textContent = !o ? "" : (o.full === false ? "원글 내용을 열면 불러와요" : (o.rawText || "(원글이 비어 있어요)"));
+    if(o && $("rvDet").open) ensureOrigLoaded();
+  }
+  const list = c && !rv ? reviewsOf(c) : [];
+  const host = $("rvList");
+  host.hidden = !list.length;
+  host.textContent = "";
+  if(list.length){
+    const t = document.createElement("span");
+    t.textContent = "이 글의 후기";
+    host.appendChild(t);
+    list.forEach(x => {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "ghost sm"; b.dataset.key = x.key;
+      b.textContent = x.title || deriveTitle(x.rawText) || "제목 없음";
+      host.appendChild(b);
+    });
+  }
+}
+async function ensureOrigLoaded(){
+  const c = S.cur, o = c && originalOf(c);
+  if(!o || o.full !== false || !o.id || o._loading) return;
+  $("rvText").textContent = "불러오는 중…";
+  o._loading = true;
+  try{ await loadFull([o.id]); }catch(e){}
+  o._loading = false;
+  if(S.cur === c) renderReviewBox();
+}
+$("rvDet").addEventListener("toggle", () => { if($("rvDet").open) ensureOrigLoaded(); });
+$("rvOpen").onclick = () => { const o = S.cur && originalOf(S.cur); if(o) openContent(o); };
+$("rvList").addEventListener("click", e => {
+  const b = e.target.closest("button[data-key]");
+  const x = b && S.contents.find(y => y.key === b.dataset.key);
+  if(x) openContent(x);
+});
+$("rvBtn").onclick = () => { const c = S.cur; if(c) newReview(c); };
 $("delBtn").onclick = async () => {
   const c = S.cur;
   if(!c) return;
@@ -4032,8 +4221,8 @@ $("delBtn").onclick = async () => {
 };
 
 /* ---------- 글 열기 ---------- */
-/* 새 글이 시작할 때 안 쓰는 칸 = 그 채널의 기본값(채널 디자인 → 설명 칸).
-   기본값을 정한 적 없는 예전 채널은 그 채널에서 가장 최근에 만든 글의 설정을 따라갑니다 (글이 없으면 모두 씀) */
+/* 안 쓰는 칸을 채널 디자인에서 정한 적 없는 예전 채널은, 그 채널에서 가장 최근에 만든 글에 예전에 저장돼 있던 설정으로 보여 줍니다 (글이 없으면 모두 씀).
+   채널 디자인에서 한 번 저장하면 그 뒤로는 저장한 값이 모든 글에 적용돼요. */
 function defaultOffFor(ch, except){
   if(ch && Array.isArray(ch.offFields)) return ch.offFields.filter(k => OFFABLE.includes(k));
   const id = ch && ch.id;
@@ -4043,7 +4232,7 @@ function defaultOffFor(ch, except){
     const t = Date.parse(x.createdAt) || Date.parse(x.updatedAt) || 0;
     if(best === null || t > bt){ best = x; bt = t; }
   });
-  return best ? offListOf(best) : [];
+  return best ? legacyOffOf(best) : [];
 }
 function newDraft(opt){
   opt = opt || {};
@@ -4057,7 +4246,6 @@ function newDraft(opt){
   const id = uuid();
   const c = {key:id, id:null, clientId:id, title:"", channelId:ch.id, channel:ch.name, rawText:"", f:emptyF(), extra:[],
     publishAt:"", doneAt:"", splitMode:"", lastPageType:"", splitDelim:"", createdAt:"", updatedAt:"", ownerId:S.uid, full:true};
-  c.f.off_fields = JSON.stringify(defaultOffFor(ch, c));
   openContent(c, {focus:opt.focus !== false});
 }
 function focusSrc(){ setTimeout(() => { const s = $("src"); if(s){ $("rawBox").open = true; s.focus(); } }, 60); }
@@ -4100,8 +4288,6 @@ function fillDetail(){
   if(!known){ const o = new Option(`채널 없음 (${c.channel || "미지정"})`, ""); o.disabled = true; sel.add(o); }
   S.channels.forEach(ch => sel.add(new Option(ch.name, ch.id)));
   sel.value = known ? known.id : "";
-  if(act !== $("dtIn")) $("dtIn").value = toLocalInput(c.publishAt);
-  $("dtClr").hidden = !c.publishAt;
   if(act !== $("src")) $("src").value = c.rawText || "";
   updateRawTag();
   updateCopyBtn("raw");
@@ -4117,6 +4303,7 @@ function fillDetail(){
   renderLinkBox();
   applyOffFields();
   syncAdBoxes();
+  renderReviewBox();
   $("rawBox").open = isWide() || !c.rawText || S.rawOpen;
   applyFieldOpen();
   updateDoneBtn();
@@ -4128,7 +4315,7 @@ function applyDesignFor(c){
   let ch = channelFor(c);
   if(!ch && c && !hasAny(c) && S.channels[0]){ ch = S.channels[0]; c.channelId = ch.id; c.channel = ch.name; }
   ch = ch || S.channels[0] || defaultPresets()[0];
-  applySettings(ch);
+  applySettings(c && isReview(c) ? mergeReview(ch) : ch);      /* 후기 글: 채널 설정 + 채널의 후기 설정 */
   if(c){
     const sm = c.splitMode || ch.splitMode || "blank";
     $("splitMode").value = ["blank","delim","number"].includes(sm) ? sm : "blank";
@@ -4590,8 +4777,8 @@ $("cpPaste").addEventListener("click", async () => {
   runCoupang(c, url, false);
 });
 
-/* ---------- 이 글 옵션: 쓰는 칸 ----------
-   체크한 칸만 보이고, 체크를 뺀 칸은 숨겨지며 그 칸의 쿠팡 링크도 만들지 않고 한 번에 붙여넣기에서도 건너뜁니다. */
+/* ---------- 쓰는 설명 칸: 채널 디자인 → ‘설명 칸’ 에서 정한 값을 이 글에 적용 ----------
+   체크를 뺀 칸은 숨겨지고 그 칸의 쿠팡 링크도 만들지 않고 한 번에 붙여넣기에서도 건너뜁니다. 채널의 모든 글(예전 글 포함)에 똑같이 적용돼요. */
 function buildFieldChecks(hostId, prefix){
   const host = $(hostId);
   host.textContent = "";
@@ -4607,14 +4794,12 @@ function buildFieldChecks(hostId, prefix){
     host.appendChild(lb);
   });
 }
-buildFieldChecks("foGrid", "fo_");      /* 글마다 */
 buildFieldChecks("dfGrid", "dfo_");     /* 채널 기본값 (채널 디자인 → 설명 칸) */
 function applyOffFields(){
   const c = S.cur;
   if(!c) return;
   const off = offListOf(c);
   OFFABLE.forEach(k => {
-    const cb = $("fo_" + k); if(cb) cb.checked = !off.includes(k);
     const b = $("box_" + k); if(b) b.hidden = off.includes(k);
   });
   syncNoteChecks();
@@ -4637,19 +4822,6 @@ function syncNoteChecks(){
   if(hasAny(c)) queueSave(c, {postFields:{note_off:c.f.note_off}}, 300);   /* 아직 빈 새 글이면 글이 만들어질 때 함께 저장됩니다 */
   scheduleRender(false);
 }));
-$("foGrid").addEventListener("change", () => {
-  const c = S.cur;
-  if(!c || S.mode !== "work") return;
-  const off = OFFABLE.filter(k => { const cb = $("fo_" + k); return !!cb && !cb.checked; });
-  c.f.off_fields = JSON.stringify(off);
-  if(hasAny(c)) queueSave(c, {postFields:{off_fields:c.f.off_fields}}, 300);   /* 아직 빈 새 글이면 글이 만들어질 때 함께 저장됩니다 */
-  applyOffFields();
-  renderLinkBox();
-  scheduleListRender();
-  /* 새로 쓰게 된 칸의 쿠팡 링크가 모자라면 조용히 만듭니다 (예전 방식 링크는 눌러서 만들 때까지 그대로 둡니다) */
-  if((c.f.coupang_url || "") && !cpIsLegacy(c)) runCoupang(c, c.f.coupang_url, true);
-});
-
 /* 마지막 광고(유튜브·인스타): 글마다 저장되는 여러 줄 글. 고치는 대로 저장 + 마지막 장 다시 그리기 */
 function syncAdBoxes(){
   const c = S.cur, act = document.activeElement;
@@ -4723,12 +4895,11 @@ $("lastPageType").addEventListener("change", optChanged);
 $("splitDelim").addEventListener("input", optChanged);
 $("numHintBtn").addEventListener("click", optChanged);
 
-/* 채널 · 올릴 날짜 */
+/* 채널 */
 $("chanSel").addEventListener("change", () => {
   const c = S.cur, ch = chById($("chanSel").value);
   if(!c || !ch) return;
   c.channelId = ch.id; c.channel = ch.name;
-  if(!hasAny(c)) c.f.off_fields = JSON.stringify(defaultOffFor(ch, c));
   LS.setRaw("cw_last_channel_" + S.uid, ch.id);
   applyDesignFor(c);
   runMake();
@@ -4736,20 +4907,6 @@ $("chanSel").addEventListener("change", () => {
   fillDetail();
   renderList();
 });
-$("dtIn").addEventListener("change", () => {
-  const c = S.cur;
-  if(!c) return;
-  const v = $("dtIn").value;
-  const iso = v ? new Date(v).toISOString() : "";
-  if(iso === (c.publishAt || "")) return;
-  c.publishAt = iso;
-  $("dtClr").hidden = !iso;
-  if(!c.doneAt && S.contents.includes(c)) S.tab = stateOf(c);
-  if(hasAny(c)) queueSave(c, {publishAt:iso}, 300);
-  renderList(); saveState();
-});
-$("dtClr").onclick = () => { $("dtIn").value = ""; $("dtIn").dispatchEvent(new Event("change")); };
-
 /* ---------- 모바일 화면 전환 (페이지 이동 없음 → 이미지 그대로) ---------- */
 function setView(v, push){
   const was = S.view;
@@ -4904,6 +5061,9 @@ function loadDesign(id){
   const base = ch || Object.assign(defaultPresets()[0], {wmText:""});
   dzCurId = ch ? ch.id : "";
   applySettings(base);
+  dzView = "gen"; dzGenSub = null;                                   /* 후기 설정은 ‘일반 글 | 후기’ 스위치로 */
+  dzRev = base.review && typeof base.review === "object" ? pickReview(base.review) : null;
+  updateRvUI();
   $("chName").value = ch ? (ch.name || "") : "";
   const c = S.cur && (S.cur.rawText || "").trim() ? S.cur : null;
   $("src").value = c ? c.rawText : SAMPLE_TEXT;
@@ -4916,9 +5076,65 @@ function loadDesign(id){
   refreshDesignSelect();
   runMake();
 }
+/* ---------- 채널 디자인: 일반 글 | 후기 ----------
+   후기 설정은 채널 안에 ‘review’ 로 따로 저장돼요. 후기에서 정하는 것은 REVIEW_KEYS(유튜브·인스타 문구, 마지막 장, 쓰는 설명 칸)뿐이고
+   나머지 디자인은 일반 글과 같아요. 후기 쪽을 고치지 않으면 저장하지 않아서 일반 글과 똑같이 따라갑니다. */
+function applyReviewKeys(o){
+  REVIEW_KEYS.forEach(k => { if(k !== "offFields") $(k).value = o[k] ?? EXTRA[k]; });
+  const offList = Array.isArray(o.offFields) ? o.offFields : [];
+  OFFABLE.forEach(k => { const b = $("dfo_" + k); if(b) b.checked = !offList.includes(k); });
+  updateIgNumUI();
+}
+function updateRvUI(){
+  document.body.classList.toggle("dzrev", dzView === "rev");
+  document.querySelectorAll("#rvSeg button").forEach(b => b.classList.toggle("active", b.dataset.val === dzView));
+  $("rvNote").hidden = dzView !== "rev";
+  $("rvReset").hidden = dzView !== "rev";
+  showTab(S.dzTab || "ch");
+}
+function setDzView(v){
+  if(v === dzView || S.mode !== "design") return;
+  if(v === "rev"){
+    dzGenSub = pickReview(collectCurrentSettings(""));
+    applyReviewKeys(Object.assign({}, dzGenSub, dzRev || {}));
+  }else{
+    dzRev = captureRev();
+    applyReviewKeys(dzGenSub);
+    dzGenSub = null;
+  }
+  dzView = v;
+  updateRvUI();
+  scheduleRender(false);
+}
+/* 후기 쪽 화면 값 → 후기 설정. 일반 글과 하나도 다르지 않고 따로 저장한 적도 없으면 null(= 일반 글과 똑같이) */
+function captureRev(){
+  const cur = pickReview(collectCurrentSettings(""));
+  return (dzRev || JSON.stringify(cur) !== JSON.stringify(dzGenSub)) ? cur : null;
+}
+/* 저장할 채널 설정 전체 (일반 글 설정 + 후기 설정) */
+function dzSettings(name){
+  const s = collectCurrentSettings(name);
+  if(dzView === "rev"){
+    const rev = captureRev();
+    Object.assign(s, dzGenSub);                                       /* 화면에는 후기 값이 있으니, 일반 글 값은 맡겨 둔 것으로 */
+    dzRev = rev;
+  }
+  if(dzRev) s.review = dzRev; else delete s.review;
+  return s;
+}
+document.querySelectorAll("#rvSeg button").forEach(b => { b.onclick = () => setDzView(b.dataset.val); });
+$("rvReset").onclick = () => {
+  if(dzView !== "rev" || !dzGenSub) return;
+  dzRev = null;
+  applyReviewKeys(dzGenSub);
+  dzDirty = true; updateDzSave();
+  scheduleRender(false);
+  toast("후기 설정을 일반 글과 똑같이 되돌렸어요. 저장을 눌러야 적용돼요");
+};
 function closeDesign(){
   if(S.mode !== "design") return true;
   if(dzDirty && !confirm("저장하지 않은 디자인 변경이 있어요. 버리고 나갈까요?")) return false;
+  dzView = "gen"; dzGenSub = null; document.body.classList.remove("dzrev");
   S.mode = "work";
   document.body.classList.remove("design");
   dzDirty = false; updateDzSave();
@@ -5001,7 +5217,7 @@ $("savePresetBtn").onclick = async () => {
   if(!old || dzBusy) return;
   const name = S.isAdmin ? (($("chName").value || "").trim().slice(0, 40) || old.name) : old.name;      /* 이름은 관리자만 바꿈 */
   if(S.channels.some(x => x.id !== old.id && x.name === name)){ toast("같은 이름의 채널이 이미 있어요", "bad"); return; }
-  const s = collectCurrentSettings(name);
+  const s = dzSettings(name);
   ["splitMode", "splitDelim", "lastPageType"].forEach(k => { if(old[k] !== undefined) s[k] = old[k]; });
   if(S.isAdmin){
     const why = cpCheck(s.coupang, old.id);
@@ -5016,7 +5232,7 @@ $("addPresetBtn").onclick = async () => {
   if(!name) return;
   if(S.channels.some(x => x.name === name)){ toast("같은 이름의 채널이 이미 있어요", "bad"); return; }
   const fresh = !dzCurId;                                   /* 디자인할 채널이 없어 기본 디자인에서 시작한 경우 */
-  const s = collectCurrentSettings(name);
+  const s = dzSettings(name);
   s.coupang = emptyCp();                                    /* 새 채널은 쿠팡 아이디를 따로 정합니다 (지금 채널 것을 복사하지 않아요) */
   if(fresh && !s.wmText) s.wmText = name;
   if(!newTry || newTry.name !== name) newTry = {name, id:newChId()};     /* 응답이 늦어 다시 눌러도 같은 채널로 처리 */
@@ -5257,7 +5473,7 @@ function startApp(){
   }
   Object.keys(OUT).forEach(k => { const c = S.contents.find(x => x.key === k); if(c) applyFields(c, OUT[k].fields); });
   const st = LS.get(keyOf("state"), {}) || {};
-  S.tab = ["none", "plan", "done"].includes(st.tab) ? st.tab : "none";
+  S.tab = st.tab === "plan" ? "hold" : (["none", "hold", "done"].includes(st.tab) ? st.tab : "none");
   S.chanF = st.chanF || "";
   S.rawOpen = !!st.rawOpen;
   S.dzTab = st.dzTab || "ch";
