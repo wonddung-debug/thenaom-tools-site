@@ -104,6 +104,11 @@
   .fo-grid{display:grid; grid-template-columns:1fr; gap:2px 12px; flex:1 1 auto; min-width:0}
   .fo-item{display:flex; align-items:center; gap:8px; font-size:13.5px; font-weight:600; color:var(--ink); cursor:pointer; min-height:36px}
   .fo-item input{width:20px; height:20px; margin:0; flex:none; accent-color:var(--accent)}
+  /* 이 글 옵션: 안내문구 체크 (유튜브 문구 · 인스타 문구) — 한 줄 */
+  .fo-inline{display:flex; gap:4px 12px; flex-wrap:nowrap; align-items:center; flex:1 1 auto; min-width:0}
+  .fo-inline .fo-item{white-space:nowrap; gap:6px; font-size:13px}
+  /* 채널 디자인 → 마지막 장 안의 작은 제목 */
+  .sub-ttl{font-size:12.5px; font-weight:800; color:var(--sub); margin:14px 0 6px; padding-top:10px; border-top:1px dashed var(--line)}
   .split-box .hint{margin:0}
   .split-row input[type="text"]{flex:0 0 90px; min-width:0; width:90px; padding:8px 10px; font-size:13.5px; background:var(--bg);}
   /* 이 글 옵션: 유튜브·인스타 마지막 광고 (여러 줄 입력칸) */
@@ -601,7 +606,7 @@
           <button type="button" class="ghost" id="numHintBtn">번호로 장 나누기</button>
         </div>
         <details id="optBox">
-          <summary>이 글 옵션 · 장 나누기 · 마지막 장 · 마지막 광고 · 쓰는 칸</summary>
+          <summary>이 글 옵션 · 장 나누기 · 마지막 장 · 마지막 광고 · 안내문구 · 쓰는 칸</summary>
 <div class="split-box">
     <div class="split-row">
       <span class="split-lbl">장 나누기</span>
@@ -634,12 +639,20 @@
       <span class="split-lbl" style="padding-top:8px">인스타 마지막 광고</span>
       <textarea class="adta" id="adIg" spellcheck="false" placeholder="인스타 공유 마지막 장에 들어갈 글 (줄바꿈으로 여러 줄)" aria-label="인스타 마지막 광고"></textarea>
     </div>
-    <p class="hint" id="adHint">마지막 광고는 이 글의 마지막 장에만 들어가요. 본문 아래, 안내문구(채널 디자인) 바로 위에 들어가고, 안내문구가 없으면 맨 아래에 들어가요. 비워 두면 안 들어가요.</p>
+    <p class="hint" id="adHint">마지막 광고는 이 글의 마지막 장에만 들어가요. 본문 아래, 안내문구(채널 디자인) 바로 위에 들어가고, 안내문구가 없으면 맨 아래에 들어가요. 비워 두면 안 들어가요. 광고 글의 디자인은 채널 디자인에서 골라요.</p>
+    <div class="split-row">
+      <span class="split-lbl">안내문구</span>
+      <div class="fo-inline">
+        <label class="fo-item"><input type="checkbox" id="noteYt" checked><span>유튜브 문구</span></label>
+        <label class="fo-item"><input type="checkbox" id="noteIg" checked><span>인스타 문구</span></label>
+      </div>
+    </div>
+    <p class="hint" id="noteHint">체크를 빼면 이 글에서만 그 안내문구(채널 디자인)가 빠져요.</p>
     <div class="split-row" style="align-items:flex-start">
       <span class="split-lbl" style="padding-top:8px">쓰는 칸</span>
       <div class="fo-grid" id="foGrid"></div>
     </div>
-    <p class="hint" id="foHint">체크한 칸만 이 글에서 써요. 체크를 빼면 그 칸이 숨겨지고, 그 칸의 쿠팡 링크도 만들지 않고, ‘한 번에 붙여넣기’에서도 건너뛰어요. ‘인스타 자동 DM’을 빼면 인스타 공유용 마지막 장에 번호·안내문구를 넣지 않아요. 새 글은 그 채널의 기본값(채널 디자인 → 설명 칸)으로 시작해요.</p>
+    <p class="hint" id="foHint">체크한 칸만 이 글에서 써요. 체크를 빼면 그 칸이 숨겨지고, 그 칸의 쿠팡 링크도 만들지 않고, ‘한 번에 붙여넣기’에서도 건너뛰어요. ‘인스타 자동 DM’을 빼면 인스타 공유용 마지막 장에 VS 숫자를 넣지 않아요 (안내문구는 위 ‘안내문구’ 체크로 정해요). 새 글은 그 채널의 기본값(채널 디자인 → 설명 칸)으로 시작해요.</p>
   </div>
         </details>
       </details>
@@ -992,9 +1005,9 @@
         <p class="hint">글자 수는 공백 포함, **강조 표시**는 제외하고 셉니다. ‘엔터 그대로’ 모드에서는 글자 수 제한이 적용되지 않아요.</p>
       </div>
 
-      <!-- 유튜브(다운로드) 마지막 장 안내문구 -->
+      <!-- 유튜브(다운로드) 마지막 장: 인스타 마지막 장과 항목이 똑같아요 -->
       <div class="sec" data-tab="misc">
-        <div class="sec-title">▶️ 유튜브용(다운로드) 마지막 장 안내문구</div>
+        <div class="sec-title">▶️ 유튜브용(다운로드) 마지막 장</div>
         <label class="lbl" for="ytNote">마지막 장 맨 아래 안내 문구 (비워 두면 안 들어가요)</label>
         <input type="text" id="ytNote" maxlength="60" value="">
         <label class="lbl" for="ytNoteStyle">안내문구 모양</label>
@@ -1006,13 +1019,46 @@
           <option value="text">글자만</option>
           <option value="sides">양쪽 줄 (— 문구 —)</option>
         </select>
-        <p class="hint">‘다운로드’(유튜브용) 마지막 장의 맨 아래에 들어가요. 마지막 장이 어떤 모양이어도 들어가요. 글마다 쓰는 ‘유튜브 마지막 광고’ 글은 이 문구 바로 위에 들어가요 (이 문구가 없으면 맨 아래에 들어가요).</p>
+        <div class="sub-ttl">VS 숫자 1·2</div>
+        <div class="grid2">
+          <div><label class="lbl" for="ytNumOn">VS 숫자 1·2</label>
+            <select id="ytNumOn"><option value="on">붙이기</option><option value="off" selected>안 붙이기</option></select></div>
+          <div><label class="lbl" for="ytNumStyle">숫자 모양</label>
+            <select id="ytNumStyle"><option value="circle">색 동그라미</option><option value="plain">숫자만</option></select></div>
+          <div><label class="lbl" for="ytNumColor">색</label>
+            <select id="ytNumColor"><option value="hl">강조색</option><option value="ink">글자색</option><option value="custom">직접 고르기</option></select></div>
+          <div><label class="lbl" for="ytNumSize">크기(px)</label>
+            <input type="number" id="ytNumSize" value="76" step="2" min="30" max="160"></div>
+        </div>
+        <div class="row-flex" id="ytNumCustomRow" style="margin-top:8px;"><span style="font-size:12.5px;font-weight:600;">직접 고른 색</span><input type="color" id="ytNumCustom" value="#ff6b6b"></div>
+        <div class="sub-ttl">마지막 광고 글 디자인</div>
+        <div class="grid2">
+          <div><label class="lbl" for="ytAdStyle">모양</label>
+            <select id="ytAdStyle">
+              <option value="text">글자만</option>
+              <option value="soft">연한 바탕 박스</option>
+              <option value="solid">진한 박스 (강조색 바탕)</option>
+              <option value="box">테두리 박스</option>
+              <option value="bar">왼쪽 세로줄</option>
+              <option value="underline">형광펜 밑줄 (줄마다)</option>
+            </select></div>
+          <div><label class="lbl" for="ytAdColor">글자 색</label>
+            <select id="ytAdColor"><option value="ink">글자색</option><option value="hl">강조색</option><option value="custom">직접 고르기</option></select></div>
+          <div><label class="lbl" for="ytAdSize">글자 크기(px)</label>
+            <input type="number" id="ytAdSize" value="34" step="2" min="18" max="64"></div>
+          <div><label class="lbl" for="ytAdAlign">정렬</label>
+            <select id="ytAdAlign"><option value="center">가운데</option><option value="left">왼쪽</option><option value="right">오른쪽</option></select></div>
+          <div><label class="lbl" for="ytAdBold">굵기</label>
+            <select id="ytAdBold"><option value="normal">보통</option><option value="bold">굵게</option></select></div>
+        </div>
+        <div class="row-flex" id="ytAdCustomRow" style="margin-top:8px;"><span style="font-size:12.5px;font-weight:600;">직접 고른 색</span><input type="color" id="ytAdCustom" value="#ff6b6b"></div>
+        <p class="hint">‘다운로드’(유튜브용) 마지막 장에 들어가요. 안내문구는 어떤 마지막 장에든 들어가고, VS 숫자는 VS 장에만 붙어요. ‘유튜브 마지막 광고’ 글(글마다 입력)은 안내문구 바로 위에 들어가요. 광고 글의 색은 글자 색이고, 박스·줄은 강조색이에요. 미리보기에는 예시 글이 들어가요.</p>
       </div>
 
       <!-- 인스타 공유용 마지막 장 -->
       <div class="sec" data-tab="misc">
         <div class="sec-title">📸 인스타 공유용 마지막 장</div>
-        <label class="lbl" for="igNote">마지막 장 아래 안내 문구 (비워 두면 숫자 1·2만 붙어요)</label>
+        <label class="lbl" for="igNote">마지막 장 맨 아래 안내 문구 (비워 두면 안 들어가요)</label>
         <input type="text" id="igNote" maxlength="60" value="1 또는 2 댓글 → 사연 뒷이야기 DM으로 보내드려요 💌">
         <label class="lbl" for="igNoteStyle">안내문구 모양</label>
         <select id="igNoteStyle">
@@ -1023,7 +1069,8 @@
           <option value="text">글자만</option>
           <option value="sides">양쪽 줄 (— 문구 —)</option>
         </select>
-        <div class="grid2" style="margin-top:8px;">
+        <div class="sub-ttl">VS 숫자 1·2</div>
+        <div class="grid2">
           <div><label class="lbl" for="igNumOn">VS 숫자 1·2</label>
             <select id="igNumOn"><option value="on">붙이기</option><option value="off">안 붙이기</option></select></div>
           <div><label class="lbl" for="igNumStyle">숫자 모양</label>
@@ -1034,7 +1081,28 @@
             <input type="number" id="igNumSize" value="76" step="2" min="30" max="160"></div>
         </div>
         <div class="row-flex" id="igNumCustomRow" style="margin-top:8px;"><span style="font-size:12.5px;font-weight:600;">직접 고른 색</span><input type="color" id="igNumCustom" value="#ff6b6b"></div>
-        <p class="hint">‘인스타 공유’로 보낼 때만 마지막 투표 장(VS · A vs B · 1.2.3. 선택지)에 들어가요. VS 장에는 위·아래에 1·2 숫자도 붙어요. 선택지가 3개 이상이면 문구 속 ‘1 또는 2’는 ‘1~4’처럼 자동으로 바뀌어요. ‘인스타 자동 DM’ 칸을 쓰지 않는 글에서는 이 안내문구와 숫자를 넣지 않아요. 글마다 쓰는 ‘인스타 마지막 광고’ 글은 안내문구 바로 위에 들어가요 (안내문구가 없으면 맨 아래에 들어가요).</p>
+        <div class="sub-ttl">마지막 광고 글 디자인</div>
+        <div class="grid2">
+          <div><label class="lbl" for="igAdStyle">모양</label>
+            <select id="igAdStyle">
+              <option value="text">글자만</option>
+              <option value="soft">연한 바탕 박스</option>
+              <option value="solid">진한 박스 (강조색 바탕)</option>
+              <option value="box">테두리 박스</option>
+              <option value="bar">왼쪽 세로줄</option>
+              <option value="underline">형광펜 밑줄 (줄마다)</option>
+            </select></div>
+          <div><label class="lbl" for="igAdColor">글자 색</label>
+            <select id="igAdColor"><option value="ink">글자색</option><option value="hl">강조색</option><option value="custom">직접 고르기</option></select></div>
+          <div><label class="lbl" for="igAdSize">글자 크기(px)</label>
+            <input type="number" id="igAdSize" value="34" step="2" min="18" max="64"></div>
+          <div><label class="lbl" for="igAdAlign">정렬</label>
+            <select id="igAdAlign"><option value="center">가운데</option><option value="left">왼쪽</option><option value="right">오른쪽</option></select></div>
+          <div><label class="lbl" for="igAdBold">굵기</label>
+            <select id="igAdBold"><option value="normal">보통</option><option value="bold">굵게</option></select></div>
+        </div>
+        <div class="row-flex" id="igAdCustomRow" style="margin-top:8px;"><span style="font-size:12.5px;font-weight:600;">직접 고른 색</span><input type="color" id="igAdCustom" value="#ff6b6b"></div>
+        <p class="hint">‘인스타 공유’로 보낼 때 마지막 장에 들어가요. 안내문구는 어떤 마지막 장에든 들어가고, VS 숫자는 VS 장에만 붙어요. 선택지가 3개 이상이면 문구 속 ‘1 또는 2’는 ‘1~4’처럼 자동으로 바뀌어요. ‘인스타 자동 DM’ 칸을 쓰지 않는 글에는 VS 숫자를 넣지 않아요. ‘인스타 마지막 광고’ 글(글마다 입력)은 안내문구 바로 위에 들어가요. 광고 글의 색은 글자 색이고, 박스·줄은 강조색이에요. 미리보기에는 예시 글이 들어가요.</p>
       </div>
 
       <!-- 5. 최대 장수 제한 -->
@@ -1188,11 +1256,14 @@ FONTS.forEach((f,i)=>{
   fontSel.appendChild(o);
 });
 
-let igRender = {key:"", off:false};   /* 마지막으로 그린 글과 그때의 '인스타 자동 DM 안 씀' 상태 */
+let igRender = {key:"", off:false, noteOff:false};   /* 마지막으로 그린 글과 그때의 '인스타 자동 DM 안 씀'·'인스타 안내문구 뺌' 상태 */
 let ADS = {yt:"", ig:""};             /* 이 글의 ‘유튜브/인스타 마지막 광고’ 글 (그릴 때마다 render 가 새로 읽어 옵니다) */
-/* 채널 디자인을 고치는 중에는 글마다 다른 광고 글을 넣지 않습니다 */
+let NOTEOFF = {yt:false, ig:false};   /* 이 글에서 안내문구를 뺄지 (유튜브·인스타) */
+/* 채널 디자인을 고치는 중에는 글마다 다른 광고 글 대신 디자인을 볼 수 있는 예시 글을 넣습니다 (저장되지 않아요) */
+const DESIGN_SAMPLE_ADS = {yt:"구독·좋아요 부탁드려요!\n다음 사연도 기대해 주세요", ig:"팔로우하면 다음 사연을 바로 볼 수 있어요\n프로필 링크도 확인해 주세요"};
 function currentAds(){
-  if(S.mode !== "work" || !S.cur || !S.cur.f) return {yt:"", ig:""};
+  if(S.mode !== "work") return {yt:DESIGN_SAMPLE_ADS.yt, ig:DESIGN_SAMPLE_ADS.ig};
+  if(!S.cur || !S.cur.f) return {yt:"", ig:""};
   return {yt:String(S.cur.f.yt_last_ad || "").trim(), ig:String(S.cur.f.ig_last_ad || "").trim()};
 }
 let pages = [], canvases = [], blobs = [], igBlobs = [];   /* blobs = 유튜브용(다운로드), igBlobs = 인스타용(공유) */
@@ -1761,7 +1832,10 @@ const EXTRA = {letterSpacing:0, coverScale:1, textShadow:"none", strokeW:0, stro
   charLimit:0, breakMode:"word", fitMode:"auto", minFont:20, bgPattern:"none", frameColor:"ink",
   igNote:"1 또는 2 댓글 → 사연 뒷이야기 DM으로 보내드려요 💌", igNoteStyle:"pill",
   ytNote:"", ytNoteStyle:"pill",
-  igNumOn:"on", igNumStyle:"circle", igNumColor:"hl", igNumCustom:"#ff6b6b", igNumSize:76};
+  igNumOn:"on", igNumStyle:"circle", igNumColor:"hl", igNumCustom:"#ff6b6b", igNumSize:76,
+  ytNumOn:"off", ytNumStyle:"circle", ytNumColor:"hl", ytNumCustom:"#ff6b6b", ytNumSize:76,
+  ytAdStyle:"text", ytAdColor:"ink", ytAdCustom:"#ff6b6b", ytAdSize:34, ytAdAlign:"center", ytAdBold:"normal",
+  igAdStyle:"text", igAdColor:"ink", igAdCustom:"#ff6b6b", igAdSize:34, igAdAlign:"center", igAdBold:"normal"};
 function getOpt(k){
   const v = $(k).value;
   if(typeof EXTRA[k] !== "number") return v;
@@ -2167,18 +2241,18 @@ function drawCta(ctx, f, hlCol, padY, areaH){
   ctx.fillText("♥ 저장하고 팔로우 +", WIDTH/2, y + h/2 + 1);
   ctx.restore();
 }
-/* 인스타 공유용: 투표 선택지 앞에 붙는 숫자 (채널 디자인 → 번호·기타에서 모양·색·크기 조절) */
-const igNumSize = () => Math.max(30, Math.min(160, Math.round(getOpt("igNumSize")) || 76));
-function igNumColor(hlCol, inkCol){
-  const k = getOpt("igNumColor");
-  return k === "ink" ? inkCol : (k === "custom" ? (getOpt("igNumCustom") || hlCol) : hlCol);
+/* VS 장의 위·아래 글 앞에 붙는 숫자 1·2 (채널 디자인 → 마지막 장에서 유튜브·인스타 따로 모양·색·크기 조절). pre = "yt" | "ig" */
+const numSize = pre => Math.max(30, Math.min(160, Math.round(getOpt(pre + "NumSize")) || 76));
+function numColor(pre, hlCol, inkCol){
+  const k = getOpt(pre + "NumColor");
+  return k === "ink" ? inkCol : (k === "custom" ? (getOpt(pre + "NumCustom") || hlCol) : hlCol);
 }
-function drawNumBadge(ctx, label, cx, cy, size, f, hlCol, inkCol){
-  const col = igNumColor(hlCol, inkCol);
+function drawNumBadge(ctx, label, cx, cy, size, f, hlCol, inkCol, pre){
+  const col = numColor(pre, hlCol, inkCol);
   ctx.save();
   try{ ctx.letterSpacing = "0px"; }catch(e){}
   ctx.textAlign = "center"; ctx.textBaseline = "middle";
-  if(getOpt("igNumStyle") === "plain"){
+  if(getOpt(pre + "NumStyle") === "plain"){
     ctx.fillStyle = col;                                   /* 숫자만: 동그라미 없이 굵은 숫자 */
     ctx.font = `${f.cover} ${Math.round(size*0.85)}px "${f.family}", "Pretendard", sans-serif`;
   }else{
@@ -2261,53 +2335,111 @@ function wrapAdText(ctx, text, maxW){
   while(out.length && out[out.length - 1] === "") out.pop();
   return out;
 }
-function layoutAdText(ctx, f, text, maxW, maxH){
-  const css = n => `${f.weight} ${n}px "${f.family}", "Pretendard", "Noto Sans KR", sans-serif`;
+/* 마지막 광고 글 디자인 (채널 디자인 → 마지막 장에서 유튜브·인스타 따로 고름). pre = "yt" | "ig"
+   모양: text 글자만 · soft 연한 바탕 박스 · solid 진한 박스 · box 테두리 박스 · bar 왼쪽 세로줄 · underline 형광펜 밑줄(줄마다) */
+const AD_STYLES = ["text", "soft", "solid", "box", "bar", "underline"];
+const AD_BOXED = ["soft", "solid", "box", "bar"];
+function adLook(pre){
+  const st = getOpt(pre + "AdStyle"), al = getOpt(pre + "AdAlign");
+  return {
+    style: AD_STYLES.includes(st) ? st : "text",
+    color: getOpt(pre + "AdColor"), custom: getOpt(pre + "AdCustom"),
+    size: Math.max(18, Math.min(64, Math.round(getOpt(pre + "AdSize")) || 34)),
+    align: ["left", "center", "right"].includes(al) ? al : "center",
+    bold: getOpt(pre + "AdBold") === "bold"
+  };
+}
+function layoutAdText(ctx, f, text, maxW, maxH, look){
+  look = look || {style:"text", size:34, align:"center", bold:false};
+  const wt = look.bold ? Math.max(f.cover, 700) : f.weight;
+  const css = n => `${wt} ${n}px "${f.family}", "Pretendard", "Noto Sans KR", sans-serif`;
   const hOf = (lines, lh) => lines.reduce((a, l) => a + (l === "" ? lh*0.5 : lh), 0);
-  let size = 34, lines = [], lh = 0;
+  const boxed = AD_BOXED.includes(look.style);
+  const px = boxed ? 30 : 0, py = boxed ? 20 : 0;          /* 박스 안쪽 여백 */
+  const innerW = maxW - px*2, innerH = maxH - py*2;
+  const minSize = Math.min(20, look.size);
+  let size = look.size, lines = [], lh = 0, textW = 0;
   ctx.save();
   try{ ctx.letterSpacing = "0px"; }catch(e){}
   for(;;){
     ctx.font = css(size);
-    lines = wrapAdText(ctx, text, maxW);
+    lines = wrapAdText(ctx, text, innerW);
     lh = Math.round(size * 1.45);
-    if(hOf(lines, lh) <= maxH || size <= 20) break;
+    if(hOf(lines, lh) <= innerH || size <= minSize) break;
     size--;
   }
-  while(lines.length > 1 && hOf(lines, lh) > maxH) lines.pop();
+  while(lines.length > 1 && hOf(lines, lh) > innerH) lines.pop();
+  ctx.font = css(size);
+  lines.forEach(l => { if(l) textW = Math.max(textW, ctx.measureText(l).width); });
   ctx.restore();
-  return {lines, size, lh, css, maxW, h:hOf(lines, lh), top:0};
+  const h = hOf(lines, lh);
+  return {lines, size, lh, css, maxW:innerW, h, px, py, outerH:h + py*2, textW:Math.min(textW, innerW), top:0};
 }
-function drawAdText(ctx, box, inkCol){
+/* box.top = 글(박스 포함) 맨 위 */
+function drawAdText(ctx, box, look, inkCol, hlCol, padX){
+  look = look || {style:"text", color:"ink", align:"center"};
+  const st = look.style, boxed = box.px > 0;
+  const bodyL = padX, bodyR = WIDTH - padX;
+  const boxW = boxed ? box.textW + box.px*2 : bodyR - bodyL;
+  const boxX = look.align === "left" ? bodyL : (look.align === "right" ? bodyR - boxW : (WIDTH - boxW)/2);
+  const ax = look.align === "left" ? (boxed ? boxX + box.px : bodyL)
+    : (look.align === "right" ? (boxed ? boxX + boxW - box.px : bodyR) : boxX + boxW/2);
+  let textCol = look.color === "hl" ? hlCol : (look.color === "custom" ? (look.custom || inkCol) : inkCol), textAlpha = 0.9;
   ctx.save();
   try{ ctx.letterSpacing = "0px"; }catch(e){}
+  if(st === "soft"){
+    ctx.fillStyle = hlCol; ctx.globalAlpha = 0.16;
+    ctx.beginPath(); ctx.roundRect(boxX, box.top, boxW, box.outerH, 18); ctx.fill();
+  }else if(st === "solid"){
+    ctx.fillStyle = hlCol; ctx.globalAlpha = 1;
+    ctx.beginPath(); ctx.roundRect(boxX, box.top, boxW, box.outerH, 18); ctx.fill();
+    textCol = isDarkColor(hlCol) ? "#ffffff" : "#111111"; textAlpha = 1;
+  }else if(st === "box"){
+    ctx.strokeStyle = hlCol; ctx.globalAlpha = 0.85; ctx.lineWidth = 3.5;
+    ctx.beginPath(); ctx.roundRect(boxX + 2, box.top + 2, boxW - 4, box.outerH - 4, 18); ctx.stroke();
+  }else if(st === "bar"){
+    ctx.fillStyle = hlCol; ctx.globalAlpha = 0.9;
+    ctx.beginPath(); ctx.roundRect(boxX, box.top, 8, box.outerH, 4); ctx.fill();
+  }
   ctx.font = box.css(box.size);
-  ctx.fillStyle = inkCol; ctx.globalAlpha = 0.9;
-  ctx.textAlign = "center"; ctx.textBaseline = "middle";
-  let y = box.top;
+  ctx.textAlign = AD_ALIGNS.includes(look.align) ? look.align : "center"; ctx.textBaseline = "middle";
+  let y = box.top + box.py;
   box.lines.forEach(l => {
     if(l === ""){ y += box.lh*0.5; return; }
-    ctx.fillText(l, WIDTH/2, y + box.lh/2 + 1, box.maxW);
+    const yc = y + box.lh/2 + 1;
+    if(st === "underline"){
+      const w = Math.min(ctx.measureText(l).width, box.maxW);
+      const x0 = look.align === "left" ? ax : (look.align === "right" ? ax - w : ax - w/2);
+      ctx.save();
+      ctx.fillStyle = hlCol; ctx.globalAlpha = 0.85;
+      ctx.beginPath(); ctx.roundRect(x0 - 8, yc + box.size*0.08, w + 16, Math.max(8, Math.round(box.size*0.34)), 4); ctx.fill();
+      ctx.restore();
+    }
+    ctx.fillStyle = textCol; ctx.globalAlpha = textAlpha;
+    ctx.fillText(l, ax, yc, box.maxW);
     y += box.lh;
   });
   ctx.restore();
 }
-/* 마지막 장이 투표 장(VS·A vs B·O/X·1.2.3. 선택지)인지 */
-const isVotePage = p => !!p && (p.type === "vs" || p.type === "choice");
-/* 인스타용 마지막 장이 유튜브용과 달라지는지 (안내 문구가 있거나, 숫자를 붙일 VS 장) */
-function needsIgLast(p){
-  if(!isVotePage(p)) return false;
-  return !!String(getOpt("igNote") || "").trim() || (p.type === "vs" && !p.ox && getOpt("igNumOn") !== "off");
+const AD_ALIGNS = ["left", "center", "right"];
+/* 안내문구 글자 / VS 숫자를 붙일 장인지 (유튜브·인스타 공통) */
+const noteTxt = pre => String(getOpt(pre + "Note") || "").trim();
+const numShown = (p, pre) => !!p && p.type === "vs" && !p.ox && getOpt(pre + "NumOn") !== "off";
+/* 인스타용 마지막 장이 유튜브용과 달라지는지: 안내문구가 있거나(이 글에서 안 뺐을 때), 숫자를 붙일 VS 장(‘자동 DM’을 쓰는 글) */
+function needsIgLast(p, igOff){
+  return (!NOTEOFF.ig && !!noteTxt("ig")) || (!igOff && numShown(p, "ig"));
 }
+/* 유튜브용(다운로드) 마지막 장이 원래 이미지와 달라지는지: 안내문구, 또는 숫자를 붙일 VS 장 */
+const needsYtLast = p => (!NOTEOFF.yt && !!noteTxt("yt")) || numShown(p, "yt");
 
 /* A vs B / O·X 좌우 2분할 */
-function drawSideBySide(ctx, page, f, css, padX, padY, areaH, maxFont, lhRatio, bgCol, inkCol, hlCol, hlStyle, num){
-  const nS = num ? igNumSize() : 0;
+function drawSideBySide(ctx, page, f, css, padX, padY, areaH, maxFont, lhRatio, bgCol, inkCol, hlCol, hlStyle, num, pre){
+  const nS = num ? numSize(pre) : 0;
   const gap = 96, colW = (WIDTH - padX*2 - gap)/2, markH = page.ox ? 170 : (num ? nS + 40 : 0);
   const r = fit(ctx, css, [page.top, page.bottom], colW, areaH - markH, Math.min(maxFont, 50), 18, lhRatio);
   [[r.all[0], padX], [r.all[1], padX + colW + gap]].forEach(([ls, x], i)=>{
     const top = padY + markH + (areaH - markH - ls.length*r.lh)/2;
-    if(num && !page.ox) drawNumBadge(ctx, String(i + 1), x + colW/2, padY + nS/2 + 10, nS, f, hlCol, inkCol);
+    if(num && !page.ox) drawNumBadge(ctx, String(i + 1), x + colW/2, padY + nS/2 + 10, nS, f, hlCol, inkCol, pre);
     if(page.ox){
       const cx = x + colW/2, cy = padY + 80, R = 58, k = R*0.8;
       ctx.save(); ctx.strokeStyle = inkCol; ctx.lineWidth = 18; ctx.lineCap = "round"; ctx.beginPath();
@@ -2419,7 +2551,7 @@ function drawFrameAndDeco(ctx, H, bgCol, inkCol, hlCol, padX, padY){
   }
 }
 
-/* ig = true 이면 인스타 공유용 (마지막 투표 장에 1·2 숫자 + 안내 줄). 기본은 유튜브용 원래 이미지 */
+/* ig = true 이면 인스타 공유용 (마지막 장에 안내 줄 + VS 장이면 1·2 숫자). 기본은 유튜브용(다운로드) 이미지 */
 function draw(page, idx, total, f, ig){
   const H = getHeight();
   const c = document.createElement("canvas");
@@ -2457,27 +2589,28 @@ function draw(page, idx, total, f, ig){
   const css = s => `${wt} ${s}px "${f.family}", "Pretendard", "Noto Sans KR", sans-serif`;
   const maxW = WIDTH - padX*2;
   const isLast = idx === total - 1;
-  /* 마지막 장 맨 아래 안내문구: 인스타용은 투표 장에서만(‘인스타 자동 DM’을 쓰는 글), 유튜브용(다운로드)은 어떤 마지막 장에든 들어갑니다 */
-  const igOn = !!ig && isLast && isVotePage(page) && !igRender.off;
+  /* 마지막 장 맨 아래 안내문구: 유튜브용(다운로드)·인스타용 모두 어떤 마지막 장에든 들어갑니다.
+     다만 이 글의 ‘이 글 옵션 → 안내문구’에서 뺀 쪽은 넣지 않습니다. VS 숫자는 VS 장에만 붙고, 인스타는 ‘인스타 자동 DM’을 쓰는 글에서만 붙습니다 */
+  const pre = ig ? "ig" : "yt";
   let noteText = "", noteStyle = "pill";
-  if(igOn){ noteText = String(getOpt("igNote") || "").trim(); noteStyle = getOpt("igNoteStyle"); }
-  else if(!ig && isLast){ noteText = String(getOpt("ytNote") || "").trim(); noteStyle = getOpt("ytNoteStyle"); }
-  /* 선택지가 3개 이상이면 문구 속 ‘1 또는 2’를 ‘1~4’처럼 바꿔 줍니다 */
-  if(igOn && noteText && page.type === "choice" && page.items.length > 2){
+  if(isLast && !NOTEOFF[pre]){ noteText = noteTxt(pre); noteStyle = getOpt(pre + "NoteStyle"); }
+  /* 선택지가 3개 이상이면 문구 속 ‘1 또는 2’를 ‘1~4’처럼 바꿔 줍니다 (인스타용) */
+  if(ig && noteText && page.type === "choice" && page.items.length > 2){
     noteText = noteText.replace(/1\s*(또는|이나|or|,|\/)\s*2/, `${page.items[0].num}~${page.items[page.items.length - 1].num}`);
   }
-  const igNum = igOn && page.type === "vs" && !page.ox && getOpt("igNumOn") !== "off";
-  /* 마지막 광고 글(글마다 다름): 본문과 안내문구 사이에, 안내문구가 없으면 맨 아래에 들어갑니다 */
+  const igNum = isLast && numShown(page, pre) && !(ig && igRender.off);
+  /* 마지막 광고 글(글마다 다름): 본문과 안내문구 사이에, 안내문구가 없으면 맨 아래에 들어갑니다. 모양·색·크기는 채널 디자인에서 */
   const adText = isLast ? (ig ? ADS.ig : ADS.yt) : "";
+  const adLk = adText ? adLook(pre) : null;
   /* 본문 칸이 끝나는 자리를 아래에서부터 안내 줄 → 광고 글 순서로 위로 줄입니다 */
   let bodyBottom = H - padY - footH/2;
   if(noteText) bodyBottom = Math.min(bodyBottom, igNoteY(H) - IG_NOTE_H/2 - 18);
   let adBox = null;
   if(adText){
-    adBox = layoutAdText(ctx, f, adText, maxW, 300);
+    adBox = layoutAdText(ctx, f, adText, maxW, 300, adLk);
     if(adBox.lines.length){
       const adBottom = noteText ? igNoteY(H) - 54 : Math.min(igNoteY(H) + 34, H - 80);
-      adBox.top = adBottom - adBox.h;
+      adBox.top = adBottom - adBox.outerH;
       bodyBottom = Math.min(bodyBottom, adBox.top - 18);
     }else adBox = null;
   }
@@ -2493,12 +2626,12 @@ function draw(page, idx, total, f, ig){
   }else if(page.type === "choice"){
     drawChoiceLayout(ctx, page, f, padX, padY, areaH, maxFont, lhRatio, bgCol, inkCol, hlCol, hlStyle);
   }else if(page.dir === "h"){
-    drawSideBySide(ctx, page, f, css, padX, padY, areaH, maxFont, lhRatio, bgCol, inkCol, hlCol, hlStyle, igNum);
+    drawSideBySide(ctx, page, f, css, padX, padY, areaH, maxFont, lhRatio, bgCol, inkCol, hlCol, hlStyle, igNum, pre);
   }else{
     const vsH = 110;
     const halfH = (areaH - vsH)/2;
     /* 인스타용이면 글 왼쪽에 1·2 숫자 자리를 비워 둡니다 */
-    const bSize = igNum ? igNumSize() : 0, bGap = igNum ? 28 : 0;
+    const bSize = igNum ? numSize(pre) : 0, bGap = igNum ? 28 : 0;
     const tX = padX + bSize + bGap, tW = maxW - bSize - bGap;
     const r = fit(ctx, css, [page.top, page.bottom], tW, halfH, Math.min(maxFont, 58), 20, lhRatio);
     const tl = r.all[0], bl = r.all[1];
@@ -2510,8 +2643,8 @@ function draw(page, idx, total, f, ig){
     drawFormattedLines(ctx, bl, botY, r.lh, r.size, curAlign, padX, inkCol, hlCol, hlStyle, f, false, igNum ? tX : null, igNum ? tW : null);
 
     if(igNum){
-      drawNumBadge(ctx, "1", padX + bSize/2, topY - r.lh/2 + tl.length*r.lh/2, bSize, f, hlCol, inkCol);
-      drawNumBadge(ctx, "2", padX + bSize/2, botY - r.lh/2 + bl.length*r.lh/2, bSize, f, hlCol, inkCol);
+      drawNumBadge(ctx, "1", padX + bSize/2, topY - r.lh/2 + tl.length*r.lh/2, bSize, f, hlCol, inkCol, pre);
+      drawNumBadge(ctx, "2", padX + bSize/2, botY - r.lh/2 + bl.length*r.lh/2, bSize, f, hlCol, inkCol, pre);
     }
 
     const cy = padY + halfH + vsH/2;
@@ -2532,7 +2665,7 @@ function draw(page, idx, total, f, ig){
     ctx.fillText("VS", WIDTH/2, cy + 2);
   }
 
-  if(adBox) drawAdText(ctx, adBox, inkCol);
+  if(adBox) drawAdText(ctx, adBox, adLk, inkCol, hlCol, padX);
   if(noteText) drawIgNote(ctx, noteText, H, f, inkCol, padX, noteStyle, hlCol);
 
   const pStyle = $("pageNumStyle").value;
@@ -2700,20 +2833,22 @@ async function render(){
   /* 인스타 공유용 마지막 장 (유튜브용과 다를 때만 한 장 더 만듭니다) → 목록 맨 끝(n번째 칸)에 미리보기 */
   /* '인스타 자동 DM'을 안 쓰는 글은 인스타용 마지막 장(번호·안내 줄)도 따로 만들지 않습니다 (다운로드 = 인스타 공유 이미지) */
   const igOffNow = S.mode === "work" && igOffOf(S.cur);
-  igRender = {key: S.cur ? S.cur.key : "", off: igOffNow};
+  NOTEOFF = S.mode === "work" ? noteOffOf(S.cur) : {yt:false, ig:false};     /* 이 글에서 안내문구를 뺀 쪽 */
+  igRender = {key: S.cur ? S.cur.key : "", off: igOffNow, noteOff: NOTEOFF.ig};
   ADS = currentAds();
   /* 인스타용 마지막 장은 유튜브용(다운로드)과 다를 때만 한 장 더 만듭니다:
-     - 인스타 쪽에 넣을 것이 있을 때 (안내문구·숫자, 또는 이 글의 ‘인스타 마지막 광고’)
-     - 유튜브 쪽에 넣을 것이 있을 때 (유튜브 안내문구, 또는 이 글의 ‘유튜브 마지막 광고’) → 인스타 공유 이미지에 유튜브용 문구가 섞이지 않게 */
-  const igExtra = (!igOffNow && needsIgLast(snapPages[n - 1])) || !!ADS.ig;
-  const ytExtra = !!String(getOpt("ytNote") || "").trim() || !!ADS.yt;
+     - 인스타 쪽에 넣을 것이 있을 때 (안내문구, VS 숫자, 또는 이 글의 ‘인스타 마지막 광고’)
+     - 유튜브 쪽에 넣을 것이 있을 때 (유튜브 안내문구·VS 숫자, 또는 이 글의 ‘유튜브 마지막 광고’) → 인스타 공유 이미지에 유튜브용 문구가 섞이지 않게 */
+  const lastP = snapPages[n - 1];
+  const igExtra = needsIgLast(lastP, igOffNow) || !!ADS.ig;
+  const ytExtra = needsYtLast(lastP) || !!ADS.yt;
   const withIg = igExtra || ytExtra;
   const m = n + (withIg ? 1 : 0);
   const entries = new Array(m), todo = [];
   for(let i = 0; i < m; i++){
     const ig = i === n;
     const pi = ig ? n - 1 : i;
-    const adSig = pi === n - 1 ? (ig ? ADS.ig : ADS.yt) : "";      /* 광고 글이 바뀌면 마지막 장을 새로 그립니다 */
+    const adSig = pi === n - 1 ? (ig ? ADS.ig : ADS.yt) + "|" + (NOTEOFF[ig ? "ig" : "yt"] ? "nn" : "") : "";   /* 광고 글·안내문구 빼기가 바뀌면 마지막 장을 새로 그립니다 */
     const sig = dsig + "|" + (ig ? "ig|" + (igOffNow ? "off|" : "") : "") + pi + "|" + n + "|" + JSON.stringify(snapPages[pi]) + "|" + adSig;
     const hit = imgCache.get(sig);
     if(hit){ imgCache.delete(sig); imgCache.set(sig, hit); entries[i] = hit; }
@@ -2992,13 +3127,16 @@ Object.keys(EXTRA).forEach(k=>{
   $(k).addEventListener("input", ()=>scheduleRender(false));
   $(k).addEventListener("change", ()=>scheduleRender(false));
 });
-/* 숫자 옵션: ‘직접 고르기’일 때만 색 선택 칸, ‘안 붙이기’면 모양·색·크기 흐리게 */
+/* 채널 디자인 → 마지막 장 (유튜브·인스타 똑같이): ‘직접 고르기’일 때만 색 선택 칸, 숫자 ‘안 붙이기’면 모양·색·크기 흐리게 */
 function updateIgNumUI(){
-  const off = $("igNumOn").value === "off";
-  $("igNumCustomRow").hidden = off || $("igNumColor").value !== "custom";
-  ["igNumStyle", "igNumColor", "igNumSize"].forEach(id => { $(id).disabled = off; });
+  ["ig", "yt"].forEach(p => {
+    const off = $(p + "NumOn").value === "off";
+    $(p + "NumCustomRow").hidden = off || $(p + "NumColor").value !== "custom";
+    [p + "NumStyle", p + "NumColor", p + "NumSize"].forEach(id => { $(id).disabled = off; });
+    $(p + "AdCustomRow").hidden = $(p + "AdColor").value !== "custom";
+  });
 }
-["igNumOn", "igNumColor"].forEach(id => $(id).addEventListener("change", updateIgNumUI));
+["ig", "yt"].forEach(p => [p + "NumOn", p + "NumColor", p + "AdColor"].forEach(id => $(id).addEventListener("change", updateIgNumUI)));
 
 /* =====================================================================
    콘텐츠 작업실: 목록 · 글 · 자동 저장 · 앱 전환 복원 · 채널 디자인 · 아이디별 채널
@@ -3028,7 +3166,9 @@ const FIELDS = [
   {kind:"off_fields",          label:"안 쓰는 설명 칸",   short:"", hidden:true, flag:true},
   /* 마지막 장에 들어가는 광고 글 (글마다 다름). 화면의 ‘이 글 옵션’ 안에서 입력하고, 한 번에 붙여넣기로도 채워져요 */
   {kind:"yt_last_ad",          label:"유튜브 마지막 광고", short:"", hidden:true, flag:true},
-  {kind:"ig_last_ad",          label:"인스타 마지막 광고", short:"", hidden:true, flag:true}
+  {kind:"ig_last_ad",          label:"인스타 마지막 광고", short:"", hidden:true, flag:true},
+  /* 이 글에서 안내문구(채널 디자인)를 뺄 쪽 목록(JSON, 예: ["yt","ig"]). 비어 있으면 아직 안 만진 글 → 예전 방식을 따릅니다 */
+  {kind:"note_off",            label:"안내문구 안 넣기",   short:"", hidden:true, flag:true}
 ];
 const AD_BOXES = [{kind:"yt_last_ad", id:"adYt"}, {kind:"ig_last_ad", id:"adIg"}];
 /* 칸마다 어느 매체의 쿠팡 링크를 쓰는지: 유튜브 칸 → 유튜브 링크(yt), 인스타·스레드 칸 → 인스타 링크(ig).
@@ -3059,6 +3199,16 @@ const isOff = (c, kind) => offListOf(c).includes(kind);
 const fieldOn = (c, x) => !isOff(c, x.kind);
 /* 자동 DM 을 안 쓰는 글은 인스타 공유용 마지막 장(번호·안내 줄)도 따로 만들지 않습니다 */
 const igOffOf = c => isOff(c, "auto_dm");
+/* 이 글에서 안내문구(유튜브·인스타)를 뺄지. ‘이 글 옵션 → 안내문구’ 체크를 한 번도 안 만진 글은 예전 방식을 따릅니다
+   (유튜브는 넣고, 인스타는 ‘자동 DM’을 쓰는 글에만 넣어요) */
+function noteOffOf(c){
+  if(!c) return {yt:false, ig:false};
+  const raw = c.full === false ? "" : String((c.f && c.f.note_off) || "").trim();
+  if(raw){
+    try{ const a = JSON.parse(raw); if(Array.isArray(a)) return {yt:a.includes("yt"), ig:a.includes("ig")}; }catch(e){}
+  }
+  return {yt:false, ig:igOffOf(c)};
+}
 /* 이 칸에 글이 들어 있는지 (내용을 아직 안 받은 글은 목록이 알려 준 값으로) */
 const hasField = (c, kind) => c.full === false ? (c.fl || []).includes(kind) : !!String((c.f && c.f[kind]) || "").trim();
 /* 한 번에 붙여넣기: 제목 줄을 보고 어느 칸인지 알아냅니다 (위에서부터 먼저 맞는 것) */
@@ -4467,9 +4617,26 @@ function applyOffFields(){
     const cb = $("fo_" + k); if(cb) cb.checked = !off.includes(k);
     const b = $("box_" + k); if(b) b.hidden = off.includes(k);
   });
-  /* 이미 그려 둔 같은 글의 ‘자동 DM 쓰는지’가 달라졌다면 인스타용 마지막 장을 넣거나 빼려고 다시 그립니다 */
-  if(S.mode === "work" && pages.length && igRender.key === c.key && igRender.off !== igOffOf(c)) scheduleRender(false);
+  syncNoteChecks();
+  /* 이미 그려 둔 같은 글의 ‘자동 DM 쓰는지’(또는 그에 따른 안내문구)가 달라졌다면 인스타용 마지막 장을 넣거나 빼려고 다시 그립니다 */
+  if(S.mode === "work" && pages.length && igRender.key === c.key && (igRender.off !== igOffOf(c) || igRender.noteOff !== noteOffOf(c).ig)) scheduleRender(false);
 }
+/* 이 글 옵션 → 안내문구: 유튜브 문구 · 인스타 문구 체크 (이 글에만 적용) */
+function syncNoteChecks(){
+  const no = noteOffOf(S.cur);
+  if($("noteYt")) $("noteYt").checked = !no.yt;
+  if($("noteIg")) $("noteIg").checked = !no.ig;
+}
+["noteYt", "noteIg"].forEach(id => $(id).addEventListener("change", () => {
+  const c = S.cur;
+  if(!c || S.mode !== "work") return;
+  const off = [];
+  if(!$("noteYt").checked) off.push("yt");
+  if(!$("noteIg").checked) off.push("ig");
+  c.f.note_off = JSON.stringify(off);
+  if(hasAny(c)) queueSave(c, {postFields:{note_off:c.f.note_off}}, 300);   /* 아직 빈 새 글이면 글이 만들어질 때 함께 저장됩니다 */
+  scheduleRender(false);
+}));
 $("foGrid").addEventListener("change", () => {
   const c = S.cur;
   if(!c || S.mode !== "work") return;
