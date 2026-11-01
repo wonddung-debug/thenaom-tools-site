@@ -407,8 +407,11 @@
   #delBtn{color:var(--bad); border-color:var(--bad)}
   /* 후기 글: 연결된 원글 / 원글: 달린 후기 */
   #rvBox{border:1px solid var(--accent); background:var(--accent-bg); border-radius:12px; padding:10px 12px}
-  #rvBox .rv-head{display:flex; gap:8px; align-items:center}
-  #rvBox .rv-head b{flex:1 1 auto; min-width:0; font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  #rvBox .rv-head{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+  #rvBox .rv-head b{flex:1 1 140px; min-width:0; font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  #rvBox .rv-head button{white-space:nowrap}
+  #rvList .rv-item{display:inline-flex; gap:4px; align-items:center; max-width:100%}
+  #rvList .rv-item button{white-space:nowrap}
   #rvBox summary{margin-top:6px; font-size:13px; font-weight:700; color:var(--accent); cursor:pointer; min-height:34px; display:flex; align-items:center}
   #rvText{max-height:260px; overflow:auto; white-space:pre-wrap; word-break:break-word; font-size:14px; line-height:1.55; padding:8px 10px; border-radius:8px; background:var(--panel); border:1px solid var(--line)}
   #rvList{display:flex; flex-wrap:wrap; gap:6px; align-items:center; padding:8px 10px; border:1px dashed var(--accent); border-radius:12px; font-size:13px; font-weight:700; color:var(--accent)}
@@ -621,7 +624,7 @@
       <div id="loadMsg" hidden><span id="loadTxt"></span><button type="button" class="ghost sm" id="loadRetry" hidden>다시 불러오기</button></div>
       <!-- 후기 글: 연결된 원글 -->
       <div id="rvBox" hidden>
-        <div class="rv-head"><span class="tg rv">후기</span><b id="rvTitle">원글</b><button type="button" class="ghost sm" id="rvOpen">원글 열기</button></div>
+        <div class="rv-head"><span class="tg rv">후기</span><b id="rvTitle">원글</b><button type="button" class="ghost sm" id="rvOpen">원글 열기</button><button type="button" class="ghost sm" id="rvCopy">원글+후기 복사</button></div>
         <details id="rvDet"><summary>원글 내용 보기</summary><div id="rvText"></div></details>
       </div>
       <!-- 원글: 이 글에 달린 후기 -->
@@ -3572,6 +3575,14 @@ function reviewOfId(c){
 const isReview = c => !!reviewOfId(c);
 function originalOf(c){ const id = reviewOfId(c); return id ? (S.contents.find(x => x.id === id) || null) : null; }
 function reviewsOf(o){ return o && o.id ? S.contents.filter(x => x !== o && reviewOfId(x) === o.id) : []; }
+/* 화면에 보이는 제목: 후기는 원글 제목을 따라가요 (원글을 못 찾으면 후기 자신의 제목). 저장된 제목은 건드리지 않아요 */
+function shownTitle(c){
+  if(c && isReview(c)){
+    const o = originalOf(c);
+    if(o) return o.title || deriveTitle(o.rawText) || "제목 없음";
+  }
+  return (c && (c.title || deriveTitle(c.rawText))) || "제목 없음";
+}
 function findKey(key){ return S.contents.find(x => x.key === key) || (S.cur && S.cur.key === key ? S.cur : null); }
 function chById(id){ return S.channels.find(x => x.id === id) || null; }
 function channelFor(c){ return c ? (chById(c.channelId) || S.channels.find(x => x.name === c.channel) || null) : null; }
@@ -3950,7 +3961,7 @@ function setActMsg(text, kind){
 /* ---------- 목록 ---------- */
 let listTimer = null, doneLimit = 100;
 function scheduleListRender(){ clearTimeout(listTimer); listTimer = setTimeout(renderList, 120); }
-function qstr(c){ return [c.title, c.rawText, chName(c), c.ownerId].concat(FIELDS.map(x => x.flag ? "" : c.f[x.kind])).join(" ").toLowerCase(); }
+function qstr(c){ return [c.title, shownTitle(c), c.rawText, chName(c), c.ownerId].concat(FIELDS.map(x => x.flag ? "" : c.f[x.kind])).join(" ").toLowerCase(); }
 function renderChanFilter(){
   const sel = $("chanF");
   const orphan = S.isAdmin && S.contents.some(c => !channelFor(c));
@@ -3986,7 +3997,7 @@ function itemHtml(c){
     + FIELDS.filter(x => !x.hidden && fieldOn(c, x) && (!x.legacy || hasField(c, x.kind)))
     .map(x => `<span class="tg${hasField(c, x.kind) ? "" : " e"}" title="${esc(x.label)}">${x.short}</span>`).join("")
     + (unOf(c) ? `<span class="tg un" title="아이디 없는 쿠팡 링크(미지정 링크)로 나가는 글이에요">미지정 링크</span>` : "");
-  const ttl = (rv ? `<span class="tg rv">후기</span> ` : "") + esc(c.title || deriveTitle(c.rawText));
+  const ttl = (rv ? `<span class="tg rv">후기</span> ` : "") + esc(shownTitle(c));
   /* 선택 모드: 동그라미(완료) 대신 네모 체크칸, 글을 눌러도 열지 않고 고르기만 함 */
   if(S.selMode){
     const pk = S.sel.has(c.key);
@@ -4175,7 +4186,7 @@ function toggleDone(c){
   setStateOf(c, was ? "none" : "done");
   renderList();
   if(c === S.cur) updateDoneBtn();
-  toast(was ? "완료를 취소했어요" : "‘" + (c.title || "글") + "’ 완료 목록으로 옮겼어요", "", {label:"되돌리기", fn:() => {
+  toast(was ? "완료를 취소했어요" : "‘" + shownTitle(c) + "’ 완료 목록으로 옮겼어요", "", {label:"되돌리기", fn:() => {
     c.publishAt = prev[0]; c.doneAt = prev[1]; queueSave(c, {publishAt:prev[0], doneAt:prev[1]}, 250);
     renderList(); if(c === S.cur) updateDoneBtn();
   }});
@@ -4187,7 +4198,7 @@ function toggleHold(c){
   setStateOf(c, was ? "none" : "hold");
   renderList();
   if(c === S.cur) updateDoneBtn();
-  toast(was ? "보류를 풀었어요" : "‘" + (c.title || "글") + "’ 보류로 옮겼어요", "", {label:"되돌리기", fn:() => {
+  toast(was ? "보류를 풀었어요" : "‘" + shownTitle(c) + "’ 보류로 옮겼어요", "", {label:"되돌리기", fn:() => {
     c.publishAt = prev[0]; c.doneAt = prev[1]; queueSave(c, {publishAt:prev[0], doneAt:prev[1]}, 250);
     renderList(); if(c === S.cur) updateDoneBtn();
   }});
@@ -4243,6 +4254,7 @@ function renderReviewBox(){
     const o = originalOf(c);
     $("rvTitle").textContent = o ? (o.title || deriveTitle(o.rawText) || "제목 없음") : "원글을 찾을 수 없어요 (삭제됐거나 권한이 없을 수 있어요)";
     $("rvOpen").hidden = !o;
+    $("rvCopy").hidden = !o;
     $("rvDet").hidden = !o;
     $("rvText").textContent = !o ? "" : (o.full === false ? "원글 내용을 열면 불러와요" : (o.rawText || "(원글이 비어 있어요)"));
     if(o && $("rvDet").open) ensureOrigLoaded();
@@ -4255,13 +4267,43 @@ function renderReviewBox(){
     const t = document.createElement("span");
     t.textContent = "이 글의 후기";
     host.appendChild(t);
-    list.forEach(x => {
+    list.forEach((x, i) => {
+      const item = document.createElement("span");
+      item.className = "rv-item";
       const b = document.createElement("button");
       b.type = "button"; b.className = "ghost sm"; b.dataset.key = x.key;
-      b.textContent = x.title || deriveTitle(x.rawText) || "제목 없음";
-      host.appendChild(b);
+      b.textContent = "후기 " + (i + 1);              /* 후기 제목은 모두 원글 제목이라, 구분하려고 번호로 보여 줘요 */
+      const cp = document.createElement("button");
+      cp.type = "button"; cp.className = "ghost sm"; cp.dataset.rvcopy = x.key;
+      cp.textContent = "원글+후기 복사";
+      item.appendChild(b);
+      item.appendChild(cp);
+      host.appendChild(item);
     });
   }
+}
+/* 원글 + 후기를 한 번에 복사: "원글" · "후기" 글자를 붙이고, **강조** 기호는 지우지 않고 그대로 복사해요.
+   (설명 칸·원글 칸의 기존 ‘복사’ 버튼은 그대로 두었어요) */
+async function copyOrigAndReview(o, r){
+  if(!o || !r){ toast("원글을 찾을 수 없어요", "bad"); return; }
+  const oid = o.id, rkey = r.key;
+  const need = [o, r].filter(x => x.id && x.full === false).map(x => x.id);
+  let loaded = false;
+  if(need.length){
+    toast("불러오는 중…");
+    try{ await loadFull(need); }catch(e){}
+    o = S.contents.find(x => x.id === oid) || (S.cur && S.cur.id === oid ? S.cur : o);
+    r = findKey(rkey) || r;
+    if(o.full === false || r.full === false){ toast("내용을 불러오지 못했어요. 잠시 뒤에 다시 눌러 주세요", "bad"); return; }
+    loaded = true;
+  }
+  const ot = String(o.rawText || "").trim(), rt = String(r.rawText || "").trim();
+  if(!ot){ toast("원글이 비어 있어요", "bad"); return; }
+  if(!rt){ toast("후기가 비어 있어요", "bad"); return; }
+  const text = "원글\n" + ot + "\n\n후기\n" + rt;
+  const ok = await copyText(text);
+  if(!ok){ toast(loaded ? "불러온 직후라 복사가 막혔어요. 한 번 더 눌러 주세요" : "복사하지 못했어요. 한 번 더 눌러 주세요", "bad"); return; }
+  toast(`원글+후기 ${text.length.toLocaleString()}글자 복사됨`);
 }
 async function ensureOrigLoaded(){
   const c = S.cur, o = c && originalOf(c);
@@ -4274,7 +4316,10 @@ async function ensureOrigLoaded(){
 }
 $("rvDet").addEventListener("toggle", () => { if($("rvDet").open) ensureOrigLoaded(); });
 $("rvOpen").onclick = () => { const o = S.cur && originalOf(S.cur); if(o) openContent(o); };
+$("rvCopy").onclick = () => { const c = S.cur; if(c) copyOrigAndReview(originalOf(c), c); };
 $("rvList").addEventListener("click", e => {
+  const cb = e.target.closest("button[data-rvcopy]");
+  if(cb){ const x = findKey(cb.dataset.rvcopy); if(x && S.cur) copyOrigAndReview(S.cur, x); return; }
   const b = e.target.closest("button[data-key]");
   const x = b && S.contents.find(y => y.key === b.dataset.key);
   if(x) openContent(x);
@@ -4283,7 +4328,7 @@ $("rvBtn").onclick = () => { const c = S.cur; if(c) newReview(c); };
 $("delBtn").onclick = async () => {
   const c = S.cur;
   if(!c) return;
-  if(!confirm(`‘${c.title || "제목 없음"}’ 글을 삭제할까요? 되돌릴 수 없습니다.`)) return;
+  if(!confirm(isReview(c) ? `‘${shownTitle(c)}’의 후기를 삭제할까요? (원글은 그대로 남아요) 되돌릴 수 없습니다.` : `‘${c.title || "제목 없음"}’ 글을 삭제할까요? 되돌릴 수 없습니다.`)) return;
   delete OUT[c.key]; saveOut();
   if(c.id){
     setSaveSt("saving");
