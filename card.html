@@ -365,6 +365,15 @@
   #cpMsg{margin:6px 0 0; line-height:1.5}
   #cpMsg.bad{color:var(--bad); font-weight:700}
   #cpPaste{width:100%; padding:10px; margin-bottom:8px; font-size:14px; font-weight:700; border-radius:10px; border:1px dashed var(--accent); color:var(--accent); background:var(--accent-bg)}
+  /* 상품이 둘 이상일 때: 상품 이름줄 · 2번째부터의 입력 줄 */
+  .mhead{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:8px 0 4px; font-size:13px}
+  .mhead code{padding:1px 6px; border-radius:6px; background:var(--accent-bg); color:var(--accent); font-size:12px; font-weight:700}
+  .mhead .mname{flex:1 1 120px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--sub)}
+  .mrow{margin-top:8px; padding-top:2px; border-top:1px dashed var(--line)}
+  .mmsg{margin:4px 0 0; line-height:1.5}
+  .mmsg.bad{color:var(--bad); font-weight:700}
+  #cpAdd{width:100%; margin-top:10px; padding:10px; font-size:14px; font-weight:700; border-radius:10px; border:1px dashed var(--accent); color:var(--accent); background:var(--accent-bg)}
+  .cphead{margin:8px 0 2px; font-size:12.5px; font-weight:700}
   #cpDet{margin-top:4px}
   #cpDet > summary{min-height:38px; display:flex; align-items:center; gap:6px; font-size:12.5px; font-weight:600; color:var(--sub); cursor:pointer}
   #cpList{display:flex; flex-direction:column; gap:4px; margin-top:4px}
@@ -380,6 +389,8 @@
     .cprow{font-size:14px}
     .cprow button{min-height:40px; font-size:14px}
     #cpPaste{min-height:50px; font-size:16px}
+    #cpAdd{min-height:50px; font-size:15px}
+    .mhead button{min-height:40px}
     #cpDet > summary{min-height:44px; font-size:14px}
   }
   /* 한 번에 붙여넣기 */
@@ -698,11 +709,14 @@
       <div id="linkBox">
         <div class="lk-head"><b>쿠팡 링크</b><span class="tg e" id="cpTag">비어 있음</span></div>
         <button type="button" class="ghost" id="cpPaste">📋 복사한 주소 붙여넣고 바로 링크 만들기</button>
+        <div class="mhead" id="cpHead1" hidden><b>상품 1</b><code>[링크1]</code><span class="mname" id="cpName1"></span></div>
         <div class="lk-in">
           <input type="text" id="cpUrl" placeholder="쿠팡 상품 페이지 주소를 붙여 넣으세요" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="쿠팡 상품 페이지 주소">
           <button type="button" class="ghost sm" id="cpGo">링크 만들기</button>
         </div>
         <p class="hint" id="cpMsg"></p>
+        <div id="cpMore"></div>
+        <button type="button" class="ghost" id="cpAdd" hidden>＋ 상품 하나 더 넣기 (글에는 [링크2]처럼 번호를 붙여 써요)</button>
         <details id="cpDet" hidden>
           <summary id="cpDetSum">칸마다 만든 링크 보기</summary>
           <div id="cpList"></div>
@@ -3107,7 +3121,7 @@ function shareImages(){
     if(!capSrc.trim()){ capNote = "인스타 캡션이 비어 있어서 복사할 게 없어요"; capBad = true; }
     else{
       const r = fillLinks(c, capKind, capSrc);
-      if(r.missing){ capNote = "인스타 캡션에 [링크]가 있는데 쿠팡 링크가 아직 없어서 복사하지 않았어요"; capBad = true; }
+      if(r.missing){ capNote = `인스타 캡션에 ${r.tag || "[링크]"}가 있는데 쿠팡 링크가 아직 없어서 복사하지 않았어요`; capBad = true; }
       else cap = plainCopy(r.text);
     }
   }
@@ -3433,7 +3447,7 @@ function setSaveSt(kind, detail){
 /* ---------- 서버 연결 ----------
    1순위: fetch (빠름, 화면을 떠나는 순간에도 keepalive 로 전송)
    2순위: 예전 방식(iframe) — 배포 설정 때문에 fetch 가 막히면 자동으로 바꿉니다. */
-let useIframe = false;
+let useIframe = false, iframeAt = 0;
 function getEndpoint(){
   let ep = (DEFAULT_ENDPOINT || "").trim();
   if(!ep) ep = LS.raw(ENDPOINT_KEY).trim();
@@ -3449,9 +3463,12 @@ async function callDb(payload, opt){
   const endpoint = getEndpoint();
   if(!endpoint) throw new Error("웹 앱 주소가 없습니다.");
   const body = Object.assign({}, payload, {userId:S.uid, requestId:"r" + Date.now().toString(36) + Math.random().toString(36).slice(2)});
+  /* 통신이 한 번 순간적으로 끊겼다고 화면을 닫을 때까지 ‘느린 방식(iframe)’에 갇히지 않게, 30초 뒤에는 빠른 방식을 다시 시도합니다 */
+  if(useIframe && Date.now() - iframeAt > 30000) useIframe = false;
+  const limit = opt.timeoutMs || 45000;
   if(!useIframe){
     const ctrl = window.AbortController ? new AbortController() : null;
-    const timer = setTimeout(()=>{ if(ctrl) ctrl.abort(); }, 45000);
+    const timer = setTimeout(()=>{ if(ctrl) ctrl.abort(); }, limit);
     let res = null, text = "";
     try{
       const params = new URLSearchParams();
@@ -3464,7 +3481,7 @@ async function callDb(payload, opt){
       if(e && e.name === "AbortError") throw new Error("서버 응답이 없습니다. 인터넷 연결을 확인하세요.");
       if(navigator.onLine === false) throw new Error("인터넷 연결이 끊겼습니다.");
       if(opt.keepalive) throw e;
-      useIframe = true;                 /* 배포 설정 때문에 막힘 → 예전 방식으로 */
+      useIframe = true; iframeAt = Date.now();     /* 배포 설정 때문에 막힘 → 예전 방식으로 (잠시 뒤 빠른 방식을 다시 시도) */
     }finally{ clearTimeout(timer); }
     if(!useIframe){
       let data = null;
@@ -3472,12 +3489,32 @@ async function callDb(payload, opt){
       if(data && data.type === "CARD_DB_RESPONSE") return data.result || {};
       if(!res.ok) throw new Error(`서버 오류 (${res.status}). 잠시 후 다시 시도합니다.`);
       if(opt.keepalive) throw new Error("응답을 읽지 못했습니다.");
-      useIframe = true;                 /* 새 서버가 아직 배포되지 않았거나, 로그인이 필요한 배포 */
+      useIframe = true; iframeAt = Date.now();     /* 새 서버가 아직 배포되지 않았거나, 로그인이 필요한 배포 */
     }
   }
-  return iframeCall(endpoint, body);
+  return iframeCall(endpoint, body, limit);
 }
-function iframeCall(endpoint, body){
+/* 읽기만 하는 요청(목록 · 글 내용 받기)용: 10초 안에 답이 없으면 기다리던 요청은 그대로 두고 같은 요청을 한 번 더 보내서,
+   먼저 오는 답을 씁니다. 구글 서버가 가끔 한 번씩 오래 멈추는데, 새 요청은 바로 답이 오는 경우가 많아서 ‘엄청 오래 걸리는’ 일이 크게 줄어요.
+   글을 바꾸는 요청(저장 · 삭제)에는 쓰지 않습니다. */
+function callDbRead(payload, opt){
+  return new Promise((resolve, reject) => {
+    let done = false, started = 0, failed = 0, timer = null;
+    const finish = (fn, v) => { if(done) return; done = true; clearTimeout(timer); fn(v); };
+    const launch = () => {
+      started++;
+      callDb(payload, opt).then(v => finish(resolve, v), e => {
+        failed++;
+        if(done) return;
+        if(started < 2 && navigator.onLine !== false){ launch(); return; }     /* 실패하면 바로 한 번 더 */
+        if(failed >= started) finish(reject, e);
+      });
+    };
+    launch();
+    timer = setTimeout(() => { if(!done && started < 2) launch(); }, 10000);
+  });
+}
+function iframeCall(endpoint, body, limit){
   return new Promise((resolve, reject)=>{
     const frameName = "cwFrame_" + body.requestId;
     const iframe = document.createElement("iframe");
@@ -3492,7 +3529,8 @@ function iframeCall(endpoint, body){
     const finish = (fn, v) => { if(done) return; done = true; window.removeEventListener("message", onMsg); clearTimeout(timer); form.remove(); iframe.remove(); fn(v); };
     const onMsg = ev => { const d = ev.data; if(d && d.type === "CARD_DB_RESPONSE" && d.requestId === body.requestId) finish(resolve, d.result || {}); };
     window.addEventListener("message", onMsg);
-    const timer = setTimeout(()=>finish(reject, new Error("45초 동안 서버 응답이 없습니다. 웹 앱 배포와 인터넷 연결을 확인하세요.")), 45000);
+    const lim = limit || 45000;
+    const timer = setTimeout(()=>finish(reject, new Error(Math.round(lim / 1000) + "초 동안 서버 응답이 없습니다. 웹 앱 배포와 인터넷 연결을 확인하세요.")), lim);
     document.body.append(iframe, form);
     try{ form.submit(); }catch(err){ finish(reject, err); }
   });
@@ -3744,9 +3782,10 @@ function boot(silent){
   booted = (async ()=>{
     const uidAtStart = S.uid;
     try{
-      await Promise.race([flush(), new Promise(r => setTimeout(r, 15000))]).catch(()=>{});
+      /* 저장 중인 글은 최대 4초만 기다립니다 (예전에는 15초). 아직 못 보낸 수정은 목록을 합칠 때 폰 쪽 값이 이기도록 되어 있어서, 오래 기다릴 필요가 없어요 */
+      await Promise.race([flush(), new Promise(r => setTimeout(r, 4000))]).catch(()=>{});
       const t0 = Date.now();
-      const r = await callDb({action:"boot", chVer:S.chVer, lite:1});      /* lite: 목록만 가볍게 (글 내용은 열 때 받아 옴) */
+      const r = await callDbRead({action:"boot", chVer:S.chVer, lite:1});      /* lite: 목록만 가볍게 (글 내용은 열 때 받아 옴) */
       if(uidAtStart !== S.uid) return;
       if(!r || !r.ok) throw new Error((r && r.error) || "목록을 불러오지 못했습니다.");
       lastBootAt = Date.now();
@@ -3863,13 +3902,14 @@ function absorbSaved(c, sc){
   if(!applyFull(c, sc)) return;
   if(contentSig(c) !== before) afterFullLoaded(c, {});
 }
-/* 글 ID 여러 개(최대 12)의 내용을 한 번에 받습니다. 돌려주는 값: {ok, gone:[없어졌거나 권한 없는 ID], msg} */
-async function loadFull(ids){
+/* 글 ID 여러 개(최대 12)의 내용을 한 번에 받습니다. 돌려주는 값: {ok, gone:[없어졌거나 권한 없는 ID], msg}
+   background=true(미리 받아 두기)는 급하지 않아서 ‘늦으면 한 번 더 요청’을 하지 않습니다 */
+async function loadFull(ids, background){
   const want = (ids || []).filter(Boolean).slice(0, 12);
   const res = {ok:false, gone:[], msg:""};
   if(!want.length){ res.ok = true; return res; }
   try{
-    const r = await callDb({action:"getMany", ids:want});
+    const r = await (background ? callDb : callDbRead)({action:"getMany", ids:want});
     if(!r || !r.ok) throw new Error((r && r.error) || "글 내용을 불러오지 못했습니다.");
     const byId = new Map();
     S.contents.forEach(x => { if(x.id) byId.set(x.id, x); });
@@ -3909,7 +3949,8 @@ async function startLoad(c, opt){
   c._loading = true;
   setCLoading("글을 불러오는 중…", false);
   let r;
-  try{ r = await loadFull([c.id]); }finally{ c._loading = false; }
+  const slowT = setTimeout(() => { if(S.cur === c && c._loading) setCLoading("서버가 평소보다 느려요. 계속 불러오는 중…", false); }, 8000);
+  try{ r = await loadFull([c.id]); }finally{ clearTimeout(slowT); c._loading = false; }
   if(S.cur !== c) return;
   if(r.ok && r.gone.includes(c.id)){ setCLoading(""); removeLocal(c, "이 글을 찾을 수 없어요 (삭제됐거나 채널 권한이 바뀜)"); return; }
   if(!r.ok || c.full === false){ setCLoading("글을 불러오지 못했어요" + (r.msg ? ": " + r.msg : ""), true); return; }
@@ -3928,21 +3969,24 @@ async function refreshCur(c){
   afterFullLoaded(c, {});
 }
 $("loadRetry").onclick = () => { const c = S.cur; if(c && c.id && c.full === false) startLoad(c, {}); };
-/* 목록 맨 위 글 몇 개는 미리 받아 둡니다 (눌렀을 때 바로 열리게) */
+/* 목록 맨 위 글 몇 개는 미리 받아 둡니다 (눌렀을 때 바로 열리게).
+   미리 받기가 서버를 바쁘게 해서 정작 내가 누른 글이 늦게 열리는 일이 없도록: 한 번에 4개만, 목록이 자리 잡은 뒤(2.5초)에,
+   목록을 받는 중이거나 저장 중이거나 내가 누른 글을 불러오는 중이면 건너뜁니다. */
 let pfTimer = null, pfBusy = false;
-function schedulePrefetch(){ clearTimeout(pfTimer); pfTimer = setTimeout(prefetchTop, 700); }
+function schedulePrefetch(){ clearTimeout(pfTimer); pfTimer = setTimeout(prefetchTop, 2500); }
 async function prefetchTop(){
   if(pfBusy || !S.uid || S.mode !== "work" || navigator.onLine === false) return;
+  if(booted || flushRun || (S.cur && S.cur._loading)){ schedulePrefetch(); return; }
   const now = Date.now(), want = [];
   for(const k of (S.visKeys || [])){
-    if(want.length >= 8) break;
+    if(want.length >= 4) break;
     const c = S.contents.find(x => x.key === k);
     if(c && c.id && c.full === false && !c._loading && !(c._pf && now - c._pf < 120000)) want.push(c);
   }
   if(!want.length) return;
   pfBusy = true;
   want.forEach(c => { c._pf = now; });
-  try{ await loadFull(want.map(c => c.id)); }catch(e){}
+  try{ await loadFull(want.map(c => c.id), true); }catch(e){}
   pfBusy = false;
   writeCacheSoon();
 }
@@ -4014,6 +4058,7 @@ function itemHtml(c){
 function renderList(){
   clearTimeout(listTimer); listTimer = null;
   if(!S.uid) return;
+  updateRvBtn();                       /* 글을 쓰거나 저장이 끝날 때마다 목록이 다시 그려지니, 그때 후기 버튼도 같이 맞춰요 */
   const q = S.q.trim().toLowerCase();
   const base = S.contents.filter(c =>
     (!S.chanF || (S.chanF === "__none" ? !channelFor(c) : c.channelId === S.chanF))
@@ -4245,11 +4290,18 @@ async function newReview(o){
   if((o.f && o.f.coupang_url) || ""){ c.f.coupang_url = o.f.coupang_url; }
   openContent(c, {focus:true});
 }
+/* ‘후기 작성’ 버튼을 보일지: 내용이 있는 원글에서만. 글을 쓰는 동안·저장이 끝난 뒤에도 바로 따라가도록 따로 뺐어요
+   (예전에는 글을 열 때 한 번만 정해져서, 새 글을 쓰고 나면 다른 글을 눌렀다 와야 버튼이 나타났어요) */
+function updateRvBtn(){
+  const c = S.cur;
+  const b = $("rvBtn");
+  if(b) b.hidden = !c || isReview(c) || !hasAny(c);
+}
 function renderReviewBox(){
   const c = S.cur;
   const rv = !!c && isReview(c);
   $("rvBox").hidden = !rv;
-  $("rvBtn").hidden = !c || rv || !hasAny(c);
+  updateRvBtn();
   if(rv){
     const o = originalOf(c);
     $("rvTitle").textContent = o ? (o.title || deriveTitle(o.rawText) || "제목 없음") : "원글을 찾을 수 없어요 (삭제됐거나 권한이 없을 수 있어요)";
@@ -4648,8 +4700,8 @@ async function copyField(kind, label, text, opt){
     /* 설명 칸의 [링크]를 이 칸 전용 쿠팡 링크로 바꿉니다. 링크가 아직 없으면 [링크] 글자가 그대로 올라가는 일을 막기 위해 복사하지 않습니다. */
     const r = fillLinks(c, kind, text);
     if(r.missing){
-      res.bad = true; res.line = `${label}에 [링크]가 있는데 쿠팡 링크가 아직 없어서 복사하지 않았어요`;
-      if(!opt.quiet) toast("[링크]를 바꿀 쿠팡 링크가 아직 없어요. 아래 ‘쿠팡 링크’ 칸에 상품 주소를 먼저 넣어 주세요", "bad");
+      res.bad = true; res.line = `${label}에 ${r.tag || "[링크]"}가 있는데 쿠팡 링크가 아직 없어서 복사하지 않았어요`;
+      if(!opt.quiet) toast(`${r.tag || "[링크]"}를 바꿀 쿠팡 링크가 아직 없어요. 아래 ‘쿠팡 링크’ 칸에 상품 주소를 먼저 넣어 주세요`, "bad");
       return res;
     }
     src = r.text;
@@ -4697,9 +4749,17 @@ async function copyText(text){
    설명 칸에 [링크]라고 써 두면, 복사하는 순간 그 칸에 맞는 쿠팡 링크로 바뀝니다.
    유튜브 칸 → 유튜브 링크, 인스타·스레드 칸 → 인스타 링크.
    링크는 서버(Apps Script)가 쿠팡에 요청해 만들고, 글과 함께 저장됩니다. 어떤 아이디로 만들었는지도 같이 저장해요. */
-const LINK_RE = /\[\s*링크\s*\]/, LINK_RE_G = /\[\s*링크\s*\]/g;
+/* [링크] = 1번 상품 (예전과 같음) · [링크1] = 1번 · [링크2] = 2번 상품 · [링크3] = 3번 상품 … */
+const LINK_RE = /\[\s*링크\s*(?:\d{1,2})?\s*\]/, LINK_RE_G = /\[\s*링크\s*(\d{1,2})?\s*\]/g;
 const COUPANG_URL_RE = /^https?:\/\/([a-z0-9-]+\.)*coupang\.com\/\S+$/i;
-const CP_HELP = "설명 칸에 [링크]라고 써 두면, 복사할 때 쿠팡 링크로 바뀌어요. 유튜브 칸에는 유튜브 링크, 인스타·스레드 칸에는 인스타 링크가 들어가요.";
+const CP_HELP = "설명 칸에 [링크]라고 써 두면, 복사할 때 쿠팡 링크로 바뀌어요. 상품이 둘 이상이면 [링크1] [링크2]처럼 번호를 붙여 쓰세요. 유튜브 칸에는 유튜브 링크, 인스타·스레드 칸에는 인스타 링크가 들어가요.";
+/* 쿠팡 앱 ‘공유’로 복사한 글에는 상품 이름이 주소와 함께 붙어 있는 경우가 많아요. 주소를 뺀 나머지 글자를 상품 이름으로 씁니다 (주소만 붙여 넣었으면 이름 없음) */
+function nameFromShare(raw){
+  let t = String(raw || "").replace(/https?:\/\/[^\s"'<>]+/gi, " ");
+  t = t.replace(/\[\s*쿠팡\s*\]/g, " ").replace(/\s+/g, " ").trim();
+  t = t.replace(/^[\s\-–—·|:>]+|[\s\-–—·|:<]+$/g, "").trim();
+  return t.length >= 2 ? t.slice(0, 80) : "";
+}
 const CPS = {};   /* 글마다: 만드는 중인지 · 못 만든 매체 · 안내 문구 */
 const cps = c => CPS[c.key] || (CPS[c.key] = {busy:false, errors:null, note:"", bad:false});
 /* 이 글의 채널에 정해 둔 쿠팡 설정 (없으면 null) */
@@ -4725,19 +4785,38 @@ function cpDoc(c){
 const cpIsLegacy = c => { const d = cpDoc(c); return !!d && d.v !== 2 && Object.keys(d.links).length > 0; };
 /* 지금 쓸 수 있는 링크 {yt, ig}. 상품 주소가 바뀌었거나, 채널의 아이디가 그 사이 바뀌었으면 그 링크는 쓰지 않습니다.
    아이디 링크: 저장된 아이디가 채널의 지금 아이디와 같을 때만 · 미지정 링크(저장된 아이디가 빈 글자): 지금도 미지정일 때만 */
-function getLinkSet(c){
-  const d = cpDoc(c), out = {};
-  if(!d || d.v !== 2 || d.url !== (c.f.coupang_url || "")) return out;
+function linksFrom(c, ent){                    /* ent = 한 상품의 링크 묶음 {ids, links} */
+  const out = {};
+  if(!ent || !ent.links || typeof ent.links !== "object") return out;
   const cfg = chCp(c) || emptyCp();            /* 채널에 쿠팡 설정이 아예 없어도 ‘미지정 링크’는 쓸 수 있어요 */
   CP_MEDIA.forEach(m => {
-    const l = d.links[m.k], id = d.ids && d.ids[m.k], unNow = !!cpUnReason(c, m.k);
+    const l = ent.links[m.k], id = ent.ids && ent.ids[m.k], unNow = !!cpUnReason(c, m.k);
     if(!l) return;
     if(id){ if(!unNow && cfg[m.k] && String(id).toLowerCase() === String(cfg[m.k]).toLowerCase()) out[m.k] = l; }
     else if(unNow) out[m.k] = l;
   });
   return out;
 }
-/* 지금 쓸 수 있는 링크 중 ‘미지정 링크’인 매체들 */
+function getLinkSet(c){                        /* 1번 상품 */
+  const d = cpDoc(c);
+  if(!d || d.v !== 2 || d.url !== (c.f.coupang_url || "")) return {};
+  return linksFrom(c, d);
+}
+/* 2번째 상품부터는 서버가 모르는 칸을 새로 만들지 않으려고, 기존 ‘만들어진 링크’(coupang_links) 안의 more 에 함께 저장합니다.
+   한 칸: {url, name, ids, links} — 1번 상품은 예전과 똑같이 coupang_url + coupang_links 그대로예요 */
+function moreOf(c){
+  const d = cpDoc(c);
+  return d && Array.isArray(d.more) ? d.more.filter(x => x && typeof x === "object").map(x => ({url:String(x.url || ""), name:String(x.name || ""), ids:x.ids && typeof x.ids === "object" ? x.ids : {}, links:x.links && typeof x.links === "object" ? x.links : {}})) : [];
+}
+function getMoreSet(c, i){ const e = moreOf(c)[i]; return e && e.url ? linksFrom(c, e) : {}; }
+/* 화면에 보여 줄 상품 목록: 1번 + 2번째부터 */
+function cpProducts(c){
+  const d = cpDoc(c);
+  const list = [{n:1, idx:-1, url:c.f.coupang_url || "", name:(d && d.name) || "", set:getLinkSet(c), ids:(d && d.ids) || {}}];
+  moreOf(c).forEach((e, i) => list.push({n:i + 2, idx:i, url:e.url, name:e.name, set:e.url ? linksFrom(c, e) : {}, ids:e.ids}));
+  return list;
+}
+/* 지금 쓸 수 있는 링크 중 ‘미지정 링크’인 매체들 (1번 상품) */
 function cpUnMedia(c){
   const d = cpDoc(c);
   if(!d) return [];
@@ -4745,14 +4824,23 @@ function cpUnMedia(c){
   return Object.keys(ls).filter(k => !(d.ids && d.ids[k]));
 }
 /* 목록 한 줄에 ‘미지정’ 표시를 붙일지 (목록용 가벼운 글은 서버가 알려 준 un 값을 씁니다) */
-function unOf(c){ return c.full === false ? (c.un ? 1 : 0) : (c.f && c.f.coupang_links ? cpUnMedia(c).length : 0); }
-/* 칸 종류에 맞는 링크를 [링크] 자리에 넣습니다. missing=true 는 [링크]가 있는데 링크가 아직 없다는 뜻 */
+function cpUnAll(c){ return cpProducts(c).reduce((n, p) => n + Object.keys(p.set).filter(k => !(p.ids && p.ids[k])).length, 0); }
+function unOf(c){ return c.full === false ? (c.un ? 1 : 0) : (c.f && c.f.coupang_links ? cpUnAll(c) : 0); }
+/* 칸 종류에 맞는 링크를 [링크] 자리에 넣습니다. [링크2] 는 2번 상품, [링크3] 은 3번 상품 …
+   missing=true 는 [링크]가 있는데 링크가 아직 없다는 뜻 (tag = 링크가 없는 첫 번째 자리표시, 예: “[링크2]”) */
 function fillLinks(c, kind, text){
   const src = String(text || "");
-  if(!LINK_RE.test(src)) return {text:src, missing:false};
-  const m = LINK_MEDIA[kind], link = m ? getLinkSet(c)[m] : "";
-  if(!link) return {text:src, missing:true};
-  return {text:src.replace(LINK_RE_G, () => link), missing:false};
+  if(!LINK_RE.test(src)) return {text:src, missing:false, tag:""};
+  const m = LINK_MEDIA[kind];
+  const sets = cpProducts(c).map(p => p.set);
+  let tag = "";
+  const out = src.replace(LINK_RE_G, (all, n) => {
+    const idx = n ? Math.max(1, parseInt(n, 10)) - 1 : 0;
+    const link = m && sets[idx] ? sets[idx][m] : "";
+    if(!link){ if(!tag) tag = all.replace(/\s+/g, ""); return all; }
+    return link;
+  });
+  return tag ? {text:src, missing:true, tag} : {text:out, missing:false, tag:""};
 }
 /* 링크 칸 아래에 띄울 안내 (미지정 링크 안내 → 아이디가 바뀐 링크 → 예전 링크 안내 순) */
 function cpNoteFor(c){
@@ -4772,37 +4860,81 @@ function cpNoteFor(c){
 function renderLinkBox(){
   const c = S.cur;
   if(!c) return;
-  const st = cps(c), url = c.f.coupang_url || "", links = getLinkSet(c);
-  const meds = mediaNeeded(c), total = meds.length, have = meds.filter(m => links[m]).length;
+  const st = cps(c), url = c.f.coupang_url || "";
+  const prods = cpProducts(c), active = prods.filter(p => p.url);          /* 상품 1 + 2번째부터 (주소가 들어 있는 것만 셉니다) */
+  const meds = mediaNeeded(c), total = meds.length * active.length;
+  const have = active.reduce((n, p) => n + meds.filter(m => p.set[m]).length, 0);
+  const unN = active.reduce((n, p) => n + Object.keys(p.set).filter(k => !(p.ids && p.ids[k])).length, 0);
   const inp = $("cpUrl");
   if(document.activeElement !== inp) inp.value = url;
   const tg = $("cpTag");
-  const unN = cpUnMedia(c).length;
-  tg.textContent = st.busy ? "만드는 중…" : (!url ? "비어 있음" : (have === total ? `만들어짐 · ${total}개${unN ? ` · 미지정 ${unN}개` : ""}` : `${have}/${total}개${unN ? ` · 미지정 ${unN}개` : ""}`));
-  tg.className = (!st.busy && url && have === total) ? (unN ? "tg un" : "tg") : "tg e";
+  tg.textContent = st.busy ? "만드는 중…" : (!active.length ? "비어 있음" : (have === total ? `만들어짐 · ${total}개${unN ? ` · 미지정 ${unN}개` : ""}` : `${have}/${total}개${unN ? ` · 미지정 ${unN}개` : ""}`));
+  tg.className = (!st.busy && active.length && have === total) ? (unN ? "tg un" : "tg") : "tg e";
   $("cpGo").disabled = st.busy;
   const m = $("cpMsg"), nf = cpNoteFor(c);
   const note = (st.note && (st.bad || Date.now() - (st.noteAt || 0) < 6000)) ? st.note : "";     /* 오류 안내는 계속, 알림성 안내는 잠깐만 */
-  m.textContent = st.busy ? "쿠팡에서 링크를 만드는 중…" : (note || (nf && nf.t) || CP_HELP);
+  m.textContent = st.busy && (st.busyIdx == null || st.busyIdx < 0) ? "쿠팡에서 링크를 만드는 중…" : (note || (nf && nf.t) || CP_HELP);
   m.classList.toggle("bad", !st.busy && ((!!note && st.bad) || (!note && !!nf && nf.bad)));
   m.classList.toggle("un", !st.busy && !note && !!nf && !!nf.un);
-  const errs = st.errors || {};
   const cfg = chCp(c) || emptyCp();
   const det = $("cpDet");
   if(det._key !== c.key){ det._key = c.key; det.open = false; }       /* 다른 글을 열면 다시 접어 둡니다 */
-  det.hidden = !url;
+  det.hidden = !active.length;
   $("cpDetSum").textContent = `만든 링크 보기 · ${have}/${total}개${unN ? ` · 미지정 ${unN}개` : ""}`;
-  const unSet = cpUnMedia(c);
-  $("cpList").innerHTML = !url ? "" : meds.map(k => {
-    const l = links[k], x = CP_MEDIA.find(z => z.k === k);
-    const why = errs[k] || "아직 없음";
-    const isUn = !!l && unSet.includes(k);
-    const mid = l ? `<span class="cpu" title="${esc(l)}">${esc(l)}</span>`
-      : `<span class="cpu${st.busy ? "" : " bad"}">${esc(st.busy ? "만드는 중…" : why)}</span>`;
-    const sm = l ? (isUn ? `<small class="un">미지정</small>` : `<small>${esc((cpDoc(c) && cpDoc(c).ids && cpDoc(c).ids[k]) || cfg[k] || "")}</small>`) : `<small>${esc(cfg[k] || "")}</small>`;
-    return `<div class="cprow"><span class="cpl" title="${esc(x.where)}">${esc(x.label)}${sm}</span>${mid}`
-      + (l ? `<button type="button" class="ghost sm" data-m="${esc(k)}">복사</button>` : "") + `</div>`;
+  $("cpList").innerHTML = !active.length ? "" : active.map(p => {
+    const errs = p.n === 1 ? (st.errors || {}) : ((st.merrors && st.merrors[p.idx]) || {});
+    const head = prods.length > 1 ? `<div class="cphead">상품 ${p.n} · [링크${p.n}]${p.name ? " · " + esc(p.name) : ""}</div>` : "";
+    return head + meds.map(k => {
+      const l = p.set[k], x = CP_MEDIA.find(z => z.k === k);
+      const why = errs[k] || "아직 없음";
+      const isUn = !!l && !(p.ids && p.ids[k]);
+      const mid = l ? `<span class="cpu" title="${esc(l)}">${esc(l)}</span>`
+        : `<span class="cpu${st.busy ? "" : " bad"}">${esc(st.busy ? "만드는 중…" : why)}</span>`;
+      const sm = l ? (isUn ? `<small class="un">미지정</small>` : `<small>${esc((p.ids && p.ids[k]) || cfg[k] || "")}</small>`) : `<small>${esc(cfg[k] || "")}</small>`;
+      return `<div class="cprow"><span class="cpl" title="${esc(x.where)}">${esc(x.label)}${sm}</span>${mid}`
+        + (l ? `<button type="button" class="ghost sm" data-m="${esc(k)}" data-p="${p.n}">복사</button>` : "") + `</div>`;
+    }).join("");
   }).join("");
+  /* 상품이 둘 이상이거나 이름을 알면 ‘상품 1 · [링크1] · 이름’ 줄을 보여 줍니다 */
+  $("cpHead1").hidden = !(prods.length > 1 || prods[0].name);
+  $("cpName1").textContent = prods[0].name || "";
+  renderMoreBox(c, prods, meds, st);
+}
+/* 2번째 상품부터의 입력 줄들 (입력 중인 칸은 건드리지 않고, 이름·안내 문구만 새로 맞춥니다) */
+function renderMoreBox(c, prods, meds, st){
+  const host = $("cpMore"), extras = prods.slice(1);
+  $("cpAdd").hidden = !(c.f.coupang_url || "");
+  $("cpAdd").disabled = !!st.busy;
+  const sig = c.key + ":" + extras.length;
+  if(host._sig !== sig){
+    host._sig = sig;
+    host.innerHTML = extras.map(p => `<div class="mrow" data-i="${p.idx}">`
+      + `<div class="mhead"><b>상품 ${p.n}</b><code>[링크${p.n}]</code><span class="mname"></span><button type="button" class="ghost sm" data-mdel="${p.idx}">빼기</button></div>`
+      + `<div class="lk-in"><input type="text" data-murl="${p.idx}" placeholder="${p.n}번째 상품 주소를 붙여 넣으세요" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="${p.n}번째 쿠팡 상품 주소">`
+      + `<button type="button" class="ghost sm" data-mpaste="${p.idx}">붙여넣기</button><button type="button" class="ghost sm" data-mgo="${p.idx}">링크 만들기</button></div>`
+      + `<p class="hint mmsg"></p></div>`).join("");
+  }
+  extras.forEach(p => {
+    const row = host.querySelector(`.mrow[data-i="${p.idx}"]`);
+    if(!row) return;
+    const inp = row.querySelector("input");
+    if(document.activeElement !== inp) inp.value = p.url;
+    row.querySelector(".mname").textContent = p.name || "";
+    row.querySelectorAll("button").forEach(b => { b.disabled = !!st.busy; });
+    const have = meds.filter(k => p.set[k]).length;
+    const note = st.mnote && st.mnote[p.idx];
+    const errs = st.merrors && st.merrors[p.idx];
+    let t = "", bad = false;
+    if(st.busy && st.busyIdx === p.idx) t = "쿠팡에서 링크를 만드는 중…";
+    else if(note && (note.bad || Date.now() - note.at < 6000)){ t = note.t; bad = !!note.bad; }
+    else if(errs && Object.keys(errs).length){ t = `${Object.keys(errs).length}개는 만들지 못했어요: ${Object.values(errs)[0]} · ‘링크 만들기’를 다시 누르면 못 만든 것만 다시 시도해요.`; bad = true; }
+    else if(p.url && have < meds.length) t = "링크를 아직 다 못 만들었어요. ‘링크 만들기’를 눌러 주세요.";
+    else if(p.url) t = `✓ 링크가 만들어졌어요 · 글에는 [링크${p.n}]라고 쓰면 돼요`;
+    else t = "주소를 넣으면 링크가 만들어져요.";
+    const mm = row.querySelector(".mmsg");
+    mm.textContent = t;
+    mm.classList.toggle("bad", bad);
+  });
 }
 /* 입력칸의 주소를 읽어 링크 만들기를 시작 (quiet: 칸을 벗어날 때처럼 조용히) */
 function cpSubmit(quiet){
@@ -4818,16 +4950,20 @@ function cpSubmit(quiet){
     return;
   }
   if(url !== raw) $("cpUrl").value = url;     /* 공유 문구가 같이 붙어 있으면 주소만 남김 */
-  runCoupang(c, url, quiet);
+  runCoupang(c, url, quiet, nameFromShare(raw));
 }
-async function runCoupang(c, url, quiet){
+/* 1번 상품 링크 만들기. 2번째부터의 상품(more)은 그대로 두고 1번만 바꿉니다. name = 공유 글에서 읽은 상품 이름(없으면 빈 글자) */
+async function runCoupang(c, url, quiet, name){
   const st = cps(c);
   if(st.busy) return;
   st.note = ""; st.bad = false;
-  if(!url){                                    /* 입력칸을 비우면 저장된 주소·링크도 지움 */
+  const keepMore = moreOf(c);
+  const docOf = base => JSON.stringify(keepMore.length ? Object.assign(base, {more:keepMore}) : base);
+  const shell = () => ({v:2, url:"", channelId:(channelFor(c) || {}).id || "", ids:{}, links:{}});     /* 1번 상품은 비었고 2번째부터만 남을 때의 빈 껍데기 */
+  if(!url){                                    /* 입력칸을 비우면 저장된 주소·링크도 지움 (2번째부터의 상품은 그대로) */
     if(!(c.f.coupang_url || "") && !(c.f.coupang_links || "")){ if(S.cur === c) renderLinkBox(); return; }
-    c.f.coupang_url = ""; c.f.coupang_links = ""; st.errors = null;
-    queueSave(c, {postFields:{coupang_url:"", coupang_links:""}}, 300);
+    c.f.coupang_url = ""; c.f.coupang_links = keepMore.length ? docOf(shell()) : ""; st.errors = null;
+    queueSave(c, {postFields:{coupang_url:"", coupang_links:c.f.coupang_links}}, 300);
     scheduleListRender();
     if(S.cur === c) renderLinkBox();
     return;
@@ -4838,14 +4974,19 @@ async function runCoupang(c, url, quiet){
   const prevDoc = same ? cpDoc(c) : null;
   const need = meds.filter(k => !have[k]);    /* 같은 주소면 아직 없는 링크만 만듭니다 (아이디가 없는 매체는 ‘미지정 링크’로 만들어요) */
   if(!need.length){
+    if(name && prevDoc && prevDoc.name !== name){          /* 링크는 이미 있고 이름만 새로 알게 된 경우 */
+      prevDoc.name = name;
+      c.f.coupang_links = JSON.stringify(prevDoc);
+      queueSave(c, {postFields:{coupang_links:c.f.coupang_links}}, 300);
+    }
     if(!quiet){ st.note = "이 주소의 링크가 이미 모두 만들어져 있어요."; st.noteAt = Date.now(); }
     if(S.cur === c) renderLinkBox();
     return;
   }
   const ch = channelFor(c);
   if(!ch){ st.note = "이 글의 채널을 찾지 못했어요. 화면을 새로고침해 주세요."; st.bad = true; if(S.cur === c) renderLinkBox(); return; }
-  st.busy = true; st.errors = null;
-  if(!same){ c.f.coupang_url = url; c.f.coupang_links = ""; }
+  st.busy = true; st.busyIdx = -1; st.errors = null;
+  if(!same){ c.f.coupang_url = url; c.f.coupang_links = keepMore.length ? docOf(shell()) : ""; }
   if(S.cur === c) renderLinkBox();
   try{
     const r = await callDb({action:"makeLinks", url, channelId:ch.id, media:need});
@@ -4854,7 +4995,8 @@ async function runCoupang(c, url, quiet){
     Object.keys(have).forEach(k => { links[k] = have[k]; ids[k] = (prevDoc && prevDoc.ids && prevDoc.ids[k]) || ""; });     /* 이미 있는 링크는 만든 때의 아이디(미지정이면 빈 글자) 그대로 */
     Object.keys(r.links || {}).forEach(k => { links[k] = r.links[k]; ids[k] = (r.ids && r.ids[k]) || ""; });                /* 서버가 아이디 없이 만든 링크는 빈 글자 = 미지정 */
     c.f.coupang_url = url;
-    c.f.coupang_links = JSON.stringify({v:2, url, channelId:ch.id, ids, links});
+    const nm = name || (prevDoc && prevDoc.name) || "";
+    c.f.coupang_links = docOf(Object.assign({v:2, url, channelId:ch.id, ids, links}, nm ? {name:nm} : {}));
     const errs = Object.assign({}, r.errors || {});
     st.errors = Object.keys(errs).length ? errs : null;
     queueSave(c, {postFields:{coupang_url:url, coupang_links:c.f.coupang_links}}, 300);
@@ -4878,13 +5020,152 @@ $("cpGo").addEventListener("click", () => cpSubmit(false));
 $("cpUrl").addEventListener("keydown", e => { if(e.key === "Enter"){ e.preventDefault(); cpSubmit(false); } });
 $("cpUrl").addEventListener("paste", () => setTimeout(() => cpSubmit(false), 0));
 $("cpUrl").addEventListener("change", () => cpSubmit(true));
+
+/* ---------- 2번째 상품부터 (상품이 둘 이상일 때) ----------
+   ‘＋ 상품 하나 더’로 칸을 늘리고, 설명 칸에는 [링크2] [링크3] … 처럼 번호를 붙여 씁니다. [링크]·[링크1] 은 1번 상품이에요.
+   링크 만드는 방식은 1번 상품과 똑같고(서버도 그대로), 상품마다 따로 만들어요. i = 2번 상품이 0, 3번 상품이 1 … */
+async function runCoupangMore(c, i, url, quiet, name){
+  const st = cps(c);
+  if(st.busy) return;
+  const more = moreOf(c), cur = more[i];
+  if(!cur) return;
+  st.note = ""; st.bad = false;
+  st.mnote = st.mnote || {}; st.merrors = st.merrors || {};
+  const say = (t, bad) => { st.mnote[i] = {t, bad:!!bad, at:Date.now()}; };
+  const commit = save => {                       /* 화면의 글에 바로 넣고, save 면 서버 저장도 예약합니다 */
+    const d = cpDoc(c) || {v:2, url:c.f.coupang_url || "", channelId:"", ids:{}, links:{}};
+    d.more = more;
+    c.f.coupang_links = JSON.stringify(d);
+    if(save){ queueSave(c, {postFields:{coupang_links:c.f.coupang_links}}, 300); scheduleListRender(); }
+  };
+  const redraw = () => { if(S.cur === c) renderLinkBox(); };
+  if(!url){                                      /* 입력칸을 비우면 이 상품의 주소·링크만 지움 */
+    if(!cur.url){ redraw(); return; }
+    cur.url = ""; cur.name = ""; cur.ids = {}; cur.links = {};
+    delete st.merrors[i]; delete st.mnote[i];
+    commit(true); redraw();
+    return;
+  }
+  const same = url === cur.url;
+  const have = same ? linksFrom(c, cur) : {};
+  const meds = mediaNeeded(c);
+  const need = meds.filter(k => !have[k]);
+  if(!need.length){
+    if(name && cur.name !== name){ cur.name = name; commit(true); }
+    if(!quiet) say("이 주소의 링크가 이미 모두 만들어져 있어요.", false);
+    redraw();
+    return;
+  }
+  const ch = channelFor(c);
+  if(!ch){ say("이 글의 채널을 찾지 못했어요. 화면을 새로고침해 주세요.", true); redraw(); return; }
+  st.busy = true; st.busyIdx = i;
+  delete st.merrors[i]; delete st.mnote[i];
+  if(!same){ cur.url = url; cur.name = name || ""; cur.ids = {}; cur.links = {}; commit(false); }
+  redraw();
+  try{
+    const r = await callDb({action:"makeLinks", url, channelId:ch.id, media:need});
+    if(!r || !r.ok) throw new Error((r && r.error) || "링크를 만들지 못했습니다.");
+    const links = {}, ids = {};
+    Object.keys(have).forEach(k => { links[k] = have[k]; ids[k] = (cur.ids && cur.ids[k]) || ""; });
+    Object.keys(r.links || {}).forEach(k => { links[k] = r.links[k]; ids[k] = (r.ids && r.ids[k]) || ""; });
+    cur.url = url; cur.links = links; cur.ids = ids;
+    if(name) cur.name = name;
+    const errs = Object.assign({}, r.errors || {});
+    if(Object.keys(errs).length) st.merrors[i] = errs;
+    commit(true);
+    if(!Object.keys(errs).length && S.cur === c) toast(`상품 ${i + 2} 쿠팡 링크를 만들었어요`);
+  }catch(e){
+    say("링크를 만들지 못했어요: " + (e && e.message || e), true);
+  }finally{
+    st.busy = false;
+    redraw();
+  }
+}
+function cpSubmitMore(i, quiet){
+  const c = S.cur;
+  if(!c) return;
+  const inp = $("cpMore").querySelector(`input[data-murl="${i}"]`);
+  const raw = String(inp ? inp.value : "").trim();
+  if(!raw){ runCoupangMore(c, i, "", quiet); return; }
+  const url = pickUrl(raw);
+  if(!url || !COUPANG_URL_RE.test(url)){
+    const st = cps(c);
+    (st.mnote = st.mnote || {})[i] = {t:"쿠팡 상품 페이지 주소(coupang.com …)를 넣어 주세요.", bad:true, at:Date.now()};
+    renderLinkBox();
+    return;
+  }
+  if(inp && url !== raw) inp.value = url;       /* 공유 문구가 같이 붙어 있으면 주소만 남김 */
+  runCoupangMore(c, i, url, quiet, nameFromShare(raw));
+}
+$("cpMore").addEventListener("click", async e => {
+  const c = S.cur;
+  if(!c) return;
+  const go = e.target.closest("button[data-mgo]"), ps = e.target.closest("button[data-mpaste]"), del = e.target.closest("button[data-mdel]");
+  if(go){ cpSubmitMore(+go.dataset.mgo, false); return; }
+  if(ps){
+    const i = +ps.dataset.mpaste;
+    const t = await readClip();
+    if(t === null){ toast("이 브라우저에서는 자동으로 붙여 넣을 수 없어요. 옆 칸에 주소를 직접 붙여 넣어 주세요", "bad"); return; }
+    const url = pickUrl(t);
+    if(!url || !COUPANG_URL_RE.test(url)){ toast("복사해 둔 글에서 쿠팡 상품 주소를 못 찾았어요. 쿠팡에서 주소를 복사한 뒤 다시 눌러 주세요", "bad"); return; }
+    if(S.cur !== c) return;
+    const inp = $("cpMore").querySelector(`input[data-murl="${i}"]`);
+    if(inp) inp.value = url;
+    runCoupangMore(c, i, url, false, nameFromShare(t));
+    return;
+  }
+  if(del){
+    const st = cps(c);
+    if(st.busy){ toast("링크를 만드는 중이에요. 끝난 뒤에 눌러 주세요", "bad"); return; }
+    const i = +del.dataset.mdel, more = moreOf(c);
+    if(!confirm(`상품 ${i + 2}을(를) 뺄까요?` + (i === more.length - 1 ? "" : "\n뒤에 있는 상품은 번호가 하나씩 당겨져요."))) return;
+    more.splice(i, 1);
+    const d = cpDoc(c) || {v:2, url:c.f.coupang_url || "", channelId:"", ids:{}, links:{}};
+    if(more.length) d.more = more; else delete d.more;
+    c.f.coupang_links = JSON.stringify(d);
+    st.mnote = {}; st.merrors = {};
+    queueSave(c, {postFields:{coupang_links:c.f.coupang_links}}, 300);
+    scheduleListRender();
+    renderLinkBox();
+  }
+});
+$("cpMore").addEventListener("keydown", e => {
+  const inp = e.target.closest && e.target.closest("input[data-murl]");
+  if(inp && e.key === "Enter"){ e.preventDefault(); cpSubmitMore(+inp.dataset.murl, false); }
+});
+$("cpMore").addEventListener("paste", e => {
+  const inp = e.target.closest && e.target.closest("input[data-murl]");
+  if(inp) setTimeout(() => cpSubmitMore(+inp.dataset.murl, false), 0);
+});
+$("cpMore").addEventListener("change", e => {
+  const inp = e.target.closest && e.target.closest("input[data-murl]");
+  if(inp) cpSubmitMore(+inp.dataset.murl, true);
+});
+$("cpAdd").addEventListener("click", () => {
+  const c = S.cur;
+  if(!c) return;
+  if(cps(c).busy){ toast("링크를 만드는 중이에요. 끝난 뒤에 눌러 주세요", "bad"); return; }
+  if(!(c.f.coupang_url || "")){ toast("먼저 1번 상품 주소부터 넣어 주세요", "bad"); return; }
+  const more = moreOf(c);
+  if(more.length >= 8){ toast("상품은 9개까지 넣을 수 있어요", "bad"); return; }
+  more.push({url:"", name:"", ids:{}, links:{}});
+  const d = cpDoc(c) || {v:2, url:c.f.coupang_url || "", channelId:"", ids:{}, links:{}};
+  d.more = more;
+  c.f.coupang_links = JSON.stringify(d);
+  queueSave(c, {postFields:{coupang_links:c.f.coupang_links}}, 300);
+  scheduleListRender();
+  renderLinkBox();
+  const idx = more.length - 1;
+  setTimeout(() => { const el = $("cpMore").querySelector(`input[data-murl="${idx}"]`); if(el) el.focus(); }, 40);
+});
 $("cpList").addEventListener("click", async e => {
   const b = e.target.closest("button[data-m]");
   if(!b || !S.cur) return;
-  const link = getLinkSet(S.cur)[b.dataset.m];
+  const n = +b.dataset.p || 1;
+  const link = (n === 1 ? getLinkSet(S.cur) : getMoreSet(S.cur, n - 2))[b.dataset.m];
   if(!link) return;
   const ok = await copyText(link);
-  toast(ok ? `${mediaLabel(b.dataset.m)} 복사됨` : "복사하지 못했어요. 링크를 길게 눌러 직접 복사해 주세요.", ok ? "" : "bad");
+  toast(ok ? `${n > 1 ? "상품 " + n + " · " : ""}${mediaLabel(b.dataset.m)} 복사됨` : "복사하지 못했어요. 링크를 길게 눌러 직접 복사해 주세요.", ok ? "" : "bad");
 });
 
 /* ‘복사한 쿠팡 주소 붙여넣고 바로 링크 만들기’: 복사해 둔 글에서 쿠팡 주소를 찾아 넣고 바로 만듭니다 */
@@ -4897,7 +5178,7 @@ $("cpPaste").addEventListener("click", async () => {
   if(!url || !COUPANG_URL_RE.test(url)){ toast("복사해 둔 글에서 쿠팡 상품 주소를 못 찾았어요. 쿠팡에서 주소를 복사한 뒤 다시 눌러 주세요", "bad"); return; }
   if(S.cur !== c) return;
   $("cpUrl").value = url;
-  runCoupang(c, url, false);
+  runCoupang(c, url, false, nameFromShare(t));
 });
 
 /* ---------- 쓰는 설명 칸: 채널 디자인 → ‘설명 칸’ 에서 정한 값을 이 글에 적용 ----------
@@ -4977,6 +5258,7 @@ $("src").addEventListener("input", () => {
   c.title = deriveTitle(c.rawText);
   updateRawTag();
   updateNumHint();
+  updateRvBtn();
   queueSave(c, {rawText:c.rawText});
   if(first) S.tab = stateOf(c);
   scheduleListRender();
@@ -5097,7 +5379,9 @@ document.addEventListener("visibilitychange", () => {
     saveState(); writeCacheNow();
     if(Object.keys(OUT).length) flush({keepalive:true});
   }else{
-    if(Date.now() - lastBootAt > 20000) boot(true);
+    /* 다른 앱에 갔다 올 때마다(20초만 지나도) 전체 목록을 새로 받으면 글이 쌓일수록 느려져서, 2분이 지났을 때만 자동으로 새로 받아요.
+       바로 최신으로 보고 싶으면 위의 ‘콘텐츠 작업실’ 글자를 누르거나 목록을 아래로 당기면 됩니다 */
+    if(Date.now() - lastBootAt > 120000) boot(true);
     else if(Object.keys(OUT).length) flush();
   }
 });
