@@ -178,17 +178,41 @@
   .ph-pn .ph-row button{padding:7px 10px; font-size:12px; border-radius:8px}
   .ph-pn .ph-head{display:flex; align-items:center; gap:8px; font-weight:700}
   .ph-pn .ph-head canvas, .ph-pn .ph-head .th{width:44px; height:44px; border-radius:6px; object-fit:cover; background:var(--line); flex:0 0 auto}
-  .ph-pn .ph-c-r{display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin:4px 0}
-  .ph-pn .ph-c-r b{margin-right:auto}
-  .ph-pn .ph-c select{width:auto; padding:5px 6px; font-size:12px}
-  .ph-pn .ph-c-n{display:flex; flex-wrap:wrap; gap:4px 10px; margin:6px 0}
-  .ph-pn .ph-c-n label{display:flex; align-items:center; gap:4px; font-size:11.5px; color:var(--sub); font-weight:700; white-space:nowrap}
-  .ph-pn .ph-c-n input[type=number]{width:54px; padding:4px 4px; font-size:12px; text-align:right}
-  .ph-pn .ph-c-n input:disabled{opacity:.4}
-  .ph-pn .seg.sm{display:inline-flex}
-  .ph-pn .seg.sm button{padding:5px 8px}
-  .ph-pn .ph-c .ph-row{margin-top:4px}
-  .ph-pn .ph-c-tip{margin:4px 0 0; font-size:11.5px; color:var(--sub)}
+  /* PC: 사진 설정 칸 — 원글 위에 크게, 밀대로 바로 조절, 접기 가능 */
+  .ph-dock{display:none}
+  @media (min-width:1000px){
+    .ph-dock:not([hidden]){display:block; margin:0 0 12px; border:2px solid var(--accent); border-radius:12px; background:var(--bg); overflow:hidden}
+    .ph-dock summary{display:flex; align-items:center; gap:10px; padding:10px 14px; cursor:pointer; font-size:15px; list-style:none; user-select:none}
+    .ph-dock summary::-webkit-details-marker{display:none}
+    .ph-dock summary b{color:var(--accent); font-size:16px}
+    .ph-dock .ph-dk-no{font-weight:700; color:var(--ink)}
+    .ph-dock .ph-dk-fold{margin-left:auto; font-size:12.5px; color:var(--sub); font-weight:600}
+    .ph-dock .ph-dk-fold::before{content:"▲ "}
+    .ph-dock details:not([open]) .ph-dk-fold::before{content:"▼ "}
+    .ph-dock details[open] > summary{border-bottom:1px solid var(--line)}
+    .ph-dock .ph-dk-nav{display:flex; align-items:center; gap:8px; padding:8px 14px 0}
+    .ph-dock .ph-dk-nav .ph-dk-sp{flex:1}
+    #phDockBody{padding:2px 14px 12px}
+    #phDockBody .ph-pn{border:0; padding:0; margin:0; background:none; font-size:14px; line-height:1.55}
+    #phDockBody .ph-pn .ph-head{font-size:14px; margin:4px 0 2px}
+    #phDockBody .ph-pn .ph-line{margin:7px 0}
+    #phDockBody .ph-pn .ph-line > span{flex:0 0 46px; font-size:13.5px}
+    #phDockBody .ph-pn .seg button{padding:8px 4px; font-size:14px; line-height:1.25}
+    #phDockBody .ph-pn .seg.two{display:flex}
+    #phDockBody .ph-pn .seg.two button{border-top:0}
+    #phDockBody .ph-pn .ph-row{margin-top:8px; gap:8px}
+    #phDockBody .ph-pn .ph-row button{padding:9px 14px; font-size:14px}
+    #phDockBody .ph-pn .ph-drop{padding:22px 12px; font-size:14.5px}
+    #phDockBody .ph-pn .ph-tip{font-size:13px; color:var(--sub); margin:6px 0}
+    .ph-sl{display:grid; grid-template-columns:repeat(auto-fit,minmax(215px,1fr)); gap:4px 22px; margin:8px 0 2px; padding-top:8px; border-top:1px dashed var(--line)}
+    .ph-sl-r{display:grid; grid-template-columns:minmax(0,1fr) auto; grid-template-areas:"l v" "s s"; align-items:center; column-gap:8px; margin:0; padding:2px 0 4px}
+    .ph-sl-r > span{grid-area:l; font-weight:700; color:var(--sub); font-size:13.5px}
+    .ph-sl-r output{grid-area:v; font-weight:800; font-size:14.5px; text-align:right; color:var(--ink); font-variant-numeric:tabular-nums}
+    .ph-sl-r input[type=range]{grid-area:s; width:100%; margin:0; height:28px; accent-color:var(--accent); cursor:pointer}
+    .ph-sl-r input[type=range]:disabled{opacity:.35; cursor:not-allowed}
+    .ph-sl-r.off > span, .ph-sl-r.off output{opacity:.4}
+    .card.ph-selected img{outline:2px solid var(--accent); outline-offset:-2px}
+  }
   .card .ph-hd{position:absolute; display:none; pointer-events:none}
   .card .ph-hd .fr{position:absolute; border:1.5px dashed var(--accent); pointer-events:none; box-sizing:border-box}
   .card .ph-hd i{position:absolute; width:12px; height:12px; margin:-7px 0 0 -7px; background:#fff; border:2px solid var(--accent); border-radius:3px; pointer-events:auto; box-shadow:0 1px 3px rgba(0,0,0,.35); box-sizing:content-box}
@@ -702,6 +726,19 @@
     <div id="emptyMsg">왼쪽 목록에서 글을 고르거나 <b>+</b> 를 눌러 새 글을 시작하세요.</div>
     <div id="txtBody">
       <div id="loadMsg" hidden><span id="loadTxt"></span><button type="button" class="ghost sm" id="loadRetry" hidden>다시 불러오기</button></div>
+      <!-- 사진 설정 (PC): 원글 위에 한 칸으로 보여요. 접고 펼 수 있어요 -->
+      <div id="phDock" class="ph-dock" hidden>
+        <details id="phDockDet" open>
+          <summary><b>📷 사진 설정</b><span id="phDkNo" class="ph-dk-no"></span><span class="ph-dk-fold">접기 · 펼치기</span></summary>
+          <div class="ph-dk-nav">
+            <button type="button" class="ghost sm" id="phDkPrev">◀ 앞 장</button>
+            <button type="button" class="ghost sm" id="phDkNext">뒤 장 ▶</button>
+            <span class="ph-dk-sp"></span>
+            <button type="button" class="ghost sm" id="phDkX">닫기 ✕</button>
+          </div>
+          <div id="phDockBody"></div>
+        </details>
+      </div>
       <!-- 후기 글: 연결된 원글 -->
       <div id="rvBox" hidden>
         <div class="rv-head"><span class="tg rv">후기</span><b id="rvTitle">원글</b><button type="button" class="ghost sm" id="rvOpen">원글 열기</button><button type="button" class="ghost sm" id="rvCopy">원글+후기 복사</button></div>
@@ -3482,6 +3519,13 @@ function makeCard(){
   /* 사진 칸: 버튼을 누르면 설정 칸이 열리고 닫혀요 */
   pb.addEventListener("click", () => {
     if(!phCan()) return;
+    if(isWide()){                                    /* PC: 설정 칸은 원글 위 한 곳에 있어요 */
+      const det = $("phDockDet");
+      if(pn.hidden) phSelect(card, true);
+      else if(!det.open){ det.open = true; $("phDock").scrollIntoView({block:"nearest"}); }
+      else phClose(card);
+      return;
+    }
     pn.hidden = !pn.hidden;
     if(pn.hidden){ card._adj = false; img.classList.remove("adj"); } else phPanel(card);
     phHandlesUpdate(card);
@@ -3508,7 +3552,6 @@ function makeCard(){
   pn.addEventListener("change", ev => {
     const t = ev.target;
     if(t.dataset && t.dataset.n) phNumInput(card, t, true);
-    else if(t.dataset && t.dataset.s && S.cur) phSet(S.cur, card._pi, {[t.dataset.s]: t.value});
   });
   pn.addEventListener("toggle", ev => { if(ev.target.tagName === "DETAILS") phNumOpen = ev.target.open; }, true);
   /* 사진이 ‘꽉 채우기’일 때 보이는 부분 옮기기: 컴퓨터는 사진 위를 그냥 끌면 되고, 폰은 ‘보이는 부분 움직이기’를 켠 뒤 끌어요 */
@@ -3522,8 +3565,11 @@ function makeCard(){
       ev.preventDefault();
       return;
     }
+    let justSel = false;
+    if(isWide() && S.mode === "work" && !card._ig && card._pn.hidden && !$("phDock").hidden){ phSelect(card); justSel = true; }   /* 설정 칸이 열려 있으면, 누른 장으로 옮겨 가요 */
     const hit = phHit(card, ev);
     if(!hit) return;
+    if(justSel && card._phi && card._phi.bg) return;                        /* 배경 사진은 장을 고르는 클릭으로는 움직이지 않아요 */
     const m = PHMAP[card._pi], P = phParams(m.item);
     card._drag = {id:ev.pointerId, x:ev.clientX, y:ev.clientY, fx:P.fx, fy:P.fy, sc:hit.sc, ow:card._phi.ow, oh:card._phi.oh};
     img.classList.add("grabbing");
@@ -3766,6 +3812,54 @@ function phErrMsg(e){
   return (e && e.message) || "알 수 없는 오류";
 }
 function phOpenCard(){ return [...$("list").children].find(cd => !cd._ig && cd._pn && !cd._pn.hidden) || null; }
+/* ---------- PC: 사진 설정 칸(원글 위) — 고른 장의 설정 칸을 그 자리로 옮겨 보여 줘요 ---------- */
+const phHome = cd => { if(cd._pn && cd._pn.parentNode !== cd) cd.insertBefore(cd._pn, cd._img); };
+function phDockSync(){
+  const dock = $("phDock"), body = $("phDockBody");
+  if(!dock) return;
+  const cards = [...$("list").children];
+  const open = isWide() && phCan() ? phOpenCard() : null;
+  [...body.children].forEach(ch => {
+    if(open && ch === open._pn) return;
+    const owner = cards.find(cd => cd._pn === ch);
+    if(owner){ phHome(owner); } else ch.remove();
+  });
+  cards.forEach(cd => cd.classList.toggle("ph-selected", !!open && cd === open));
+  if(!open){ dock.hidden = true; return; }
+  if(open._pn.parentNode !== body) body.appendChild(open._pn);
+  dock.hidden = false;
+  const n = PHMAP.length, no = open._pi + 1, m = PHMAP[open._pi];
+  $("phDkNo").textContent = `${no} / ${n}장` + (m && !m.item.sample ? "" : " · 사진 없음");
+  $("phDkPrev").disabled = open._pi <= 0;
+  $("phDkNext").disabled = open._pi >= n - 1;
+}
+/* 이 장의 설정 칸을 열어요 (PC 에서는 다른 장의 설정 칸은 닫혀요) */
+function phSelect(card, reveal){
+  if(!phCan() || card._ig) return;
+  if(isWide()){
+    [...$("list").children].forEach(cd => {
+      if(cd !== card && cd._pn && !cd._pn.hidden){ cd._pn.hidden = true; cd._adj = false; cd._img.classList.remove("adj"); phHandlesUpdate(cd); }
+    });
+  }
+  card._pn.hidden = false;
+  phPanel(card);
+  phDockSync();
+  phHandlesUpdate(card);
+  if(reveal && isWide()){ $("phDockDet").open = true; $("phDock").scrollIntoView({block:"nearest"}); }
+}
+function phClose(card){
+  card._pn.hidden = true; card._adj = false; card._img.classList.remove("adj");
+  phHandlesUpdate(card);
+  phDockSync();
+}
+function phDockGo(dir){
+  const cur = phOpenCard();
+  if(!cur) return;
+  const to = [...$("list").children].find(cd => !cd._ig && cd._pi === cur._pi + dir);
+  if(!to) return;
+  phSelect(to);
+  to.scrollIntoView({block:"nearest", behavior:"smooth"});
+}
 function phStatus(){
   if(PHUP > 0){ setActMsg(`📷 사진 올리는 중… ${PHUP}장 (끝날 때까지 이 화면을 닫지 마세요)`, "info"); phMsgOn = true; }
   else if(phMsgOn){ phMsgOn = false; setActMsg(""); }
@@ -3828,8 +3922,10 @@ function phNumOff(card, k){
   if(k === "fy") return !(ph && ph.oh > 1);
   return false;
 }
+const PH_UNIT = {hp:"%", wp:"%", dm:"px", rd:"px", bw:"px", gp:"px", zm:"%", fx:"%", fy:"%", op:"%"};
 function phPanel(card){
   const c = S.cur, m = PHMAP[card._pi], it = m && m.item, e = it ? PH.get(it.id) : null;
+  const wide = isWide();
   let h = "", P = null, struct = "n";
   if(!it){
     h = `<div class="ph-drop">여기에 사진을 <b>끌어다 놓거나</b> <b>붙여넣기(Ctrl+V)</b> 해요.<br>여러 장을 한꺼번에 놓으면 이 장부터 차례로 들어가요.</div>`
@@ -3842,18 +3938,28 @@ function phPanel(card){
     const st = it.tmp ? "올리는 중…" : (e && e.st === "loading" ? "사진 불러오는 중…" : (e && e.st === "fail" ? `<span class="ph-bad">불러오지 못했어요${e.err ? " · " + esc(e.err) : ""}</span>` : "사진이 들어 있어요"));
     const bg = P.pos === "bg", round = P.pos === "round";
     const ph = card._phi;
-    if(isWide()) h = phCompact(card, it, P, e, st, ph);
-    else h = `<div class="ph-head">${st}</div>`
+    h = `<div class="ph-head">${st}</div>`
       + phSeg("pos", "자리", [["top", "사진 위"], ["bottom", "사진 아래"], ["round", "동그란 작은 사진"], ["bg", "배경에 희미하게"]], P.pos, false, "two");
-    if(!isWide()){
-      if(!bg){
-        const cur = round ? ({230:"s", 300:"m", 380:"l"})[P.dm] : ({30:"s", 40:"m", 50:"l"})[P.hp];
-        h += phSeg("sz", "크기", [["s", "작게"], ["m", "보통"], ["l", "크게"]], cur || "")
-          + phSeg("sh", "모양", [["rect", "네모"], ["rounded", "둥근 네모"], ["circle", "동그라미"]], round ? "circle" : P.sh, round);
-      }
-      h += phSeg("fit", "맞춤", [["cover", "꽉 채우기"], ["contain", "전체 보이기"]], P.fit);
-      if(ph && ph.shrunk) h += `<div class="ph-note">글이 길어서 사진을 줄였어요</div>`;
-      if(bg) h += `<div class="ph-tip">글 자리는 그대로이고, 사진이 장 전체에 깔려요. 숫자가 작을수록 더 흐려요.</div>`;
+    if(!bg){
+      const cur = round ? ({230:"s", 300:"m", 380:"l"})[P.dm] : ({30:"s", 40:"m", 50:"l"})[P.hp];
+      h += phSeg("sz", "크기", [["s", "작게"], ["m", "보통"], ["l", "크게"]], cur || "")
+        + phSeg("sh", "모양", [["rect", "네모"], ["rounded", "둥근 네모"], ["circle", "동그라미"]], round ? "circle" : P.sh, round);
+    }
+    h += phSeg("fit", "맞춤", [["cover", "꽉 채우기"], ["contain", "전체 보이기"]], P.fit);
+    if(ph && ph.shrunk) h += `<div class="ph-note">글이 길어서 사진을 줄였어요</div>`;
+    if(bg) h += `<div class="ph-tip">글 자리는 그대로이고, 사진이 장 전체에 깔려요. 숫자가 작을수록 더 흐려요.</div>`;
+    if(wide){
+      /* PC: 밀대를 바로 움직여 조절 (숫자 칸 없이 값만 옆에 보여 줘요) */
+      h += `<div class="ph-sl">` + phNumList(P).map(([k, lb, mn, mx, st2]) => {
+        const v = phNumVal(P, k), off = phNumOff(card, k);
+        return `<label class="ph-sl-r${off ? " off" : ""}"><span>${lb.replace(/ \(.*\)$/, "")}</span>`
+          + `<input type="range" data-n="${k}" min="${mn}" max="${mx}" step="${st2}" value="${v}"${off ? " disabled" : ""}>`
+          + `<output data-o="${k}">${v}${PH_UNIT[k] || ""}</output></label>`;
+      }).join("") + `</div>`
+        + `<div class="ph-tip">${P.fit === "cover"
+          ? (bg ? "미리보기에서 사진을 끌면 위치, <b>Ctrl 또는 Shift + 휠</b>은 확대예요." : "미리보기에서 사진을 끌면 위치, <b>휠</b>은 확대, 사진 가장자리의 <b>점</b>을 끌면 크기예요.")
+          : "미리보기 사진 가장자리의 <b>점</b>을 끌면 크기가 바뀌어요."}</div>`;
+    }else{
       h += `<details${phNumOpen ? " open" : ""}><summary>🔢 숫자로 자세히 조절</summary>`
         + phNumList(P).map(([k, lb, mn, mx, st2]) => {
           const v = phNumVal(P, k), off = phNumOff(card, k) ? " disabled" : "";
@@ -3863,46 +3969,21 @@ function phPanel(card){
         + (P.fit === "cover" ? `<div class="ph-tip">컴퓨터는 사진 위를 그냥 끌면 보이는 부분이 움직여요. 폰은 아래 ‘보이는 부분 움직이기’를 켜고 끌어 주세요.</div>` : "")
         + `</details>`;
       if(card._adj) h += `<div class="ph-note" style="color:var(--sub)">위의 이미지에서 손가락·마우스로 끌면 보이는 부분이 움직여요</div>`;
-      h += `<div class="ph-row"><button type="button" class="ghost" data-a="pick">사진 바꾸기</button>`
-        + (P.fit === "cover" && !it.tmp ? `<button type="button" class="ghost" data-a="adj">${card._adj ? "✓ 움직이기 끝" : "보이는 부분 움직이기"}</button>` : "")
-        + `<button type="button" class="ghost" data-a="reset">숫자 처음으로</button>`
-        + (e && e.st === "fail" ? `<button type="button" class="ghost" data-a="retry">다시 불러오기</button>` : "")
-        + `<button type="button" class="ghost" data-a="rm">사진 빼기</button></div>`;
     }
-    struct = [it.tmp ? "t" : "i", e ? e.st : "", e && e.err || "", P.pos, P.sh, P.fit, ph && ph.shrunk ? 1 : 0, card._adj ? 1 : 0, phNumOpen ? 1 : 0, isWide() ? "w" : "n"].join("|");
+    h += `<div class="ph-row"><button type="button" class="ghost" data-a="pick">사진 바꾸기</button>`
+      + (!wide && P.fit === "cover" && !it.tmp ? `<button type="button" class="ghost" data-a="adj">${card._adj ? "✓ 움직이기 끝" : "보이는 부분 움직이기"}</button>` : "")
+      + `<button type="button" class="ghost" data-a="reset">${wide ? "처음 값으로" : "숫자 처음으로"}</button>`
+      + (e && e.st === "fail" ? `<button type="button" class="ghost" data-a="retry">다시 불러오기</button>` : "")
+      + `<button type="button" class="ghost" data-a="rm">사진 빼기</button></div>`;
+    struct = [it.tmp ? "t" : "i", e ? e.st : "", e && e.err || "", P.pos, P.sh, P.fit, ph && ph.shrunk ? 1 : 0, card._adj ? 1 : 0, phNumOpen ? 1 : 0, wide ? "w" : "n"].join("|");
   }
   const orph = c ? phOrphans(c, PHMAP.map(x => x && x.item)).length : 0;
   if(orph) h += `<div class="ph-note">지금 글에서 쓰이지 않는 사진이 ${orph}장 남아 있어요 <button type="button" class="ghost" data-a="clean" style="padding:3px 8px;font-size:11.5px;margin-left:4px">정리하기</button></div>`;
-  struct += "|" + orph;
-  /* 숫자 칸에 글자를 쓰는 중·밀대를 잡고 있는 중에는 칸을 새로 만들지 않고 값만 맞춰 줘요 (안 그러면 입력이 끊겨요) */
+  struct += "|" + orph + "|" + (wide ? "w" : "n");
+  /* 밀대를 잡고 있는 중·숫자 칸에 글자를 쓰는 중에는 칸을 새로 만들지 않고 값만 맞춰 줘요 (안 그러면 끊겨요) */
   const ae = document.activeElement;
   if(ae && card._pn.contains(ae) && ae.dataset && ae.dataset.n && card._pnS === struct){ phSyncVals(card); return; }
   card._pn.innerHTML = h; card._pnS = struct;
-}
-/* PC(넓은 화면)용 짧은 설정 칸: 선택 칸 한 줄 + 작은 숫자 칸들 + 버튼 한 줄. 크기·확대·위치는 미리보기에서 마우스로 바로 조절해요 */
-const PH_SHORT = {hp:"높이 %", wp:"너비 %", dm:"지름 px", rd:"모서리 px", bw:"테두리 px", gp:"간격 px", zm:"확대 %", fx:"가로 %", fy:"세로 %", op:"진하기 %"};
-function phCompact(card, it, P, e, st, ph){
-  const bg = P.pos === "bg", round = P.pos === "round";
-  const sel = (k, opts, cur, dis) => `<select data-s="${k}"${dis ? " disabled" : ""}>` + opts.map(([v, t]) => `<option value="${v}"${v === cur ? " selected" : ""}>${t}</option>`).join("") + `</select>`;
-  const cur = round ? ({230:"s", 300:"m", 380:"l"})[P.dm] : ({30:"s", 40:"m", 50:"l"})[P.hp];
-  let h = `<div class="ph-c"><div class="ph-c-r"><b>${st}${ph && ph.shrunk ? ` <span class="ph-note" style="margin:0">· 글이 길어서 사진을 줄였어요</span>` : ""}</b>`
-    + sel("pos", [["top", "사진 위·글 아래"], ["bottom", "글 위·사진 아래"], ["round", "동그란 작은 사진"], ["bg", "배경에 희미하게"]], P.pos)
-    + (bg ? "" : sel("sh", [["rect", "네모"], ["rounded", "둥근 네모"], ["circle", "동그라미"]], round ? "circle" : P.sh, round))
-    + sel("fit", [["cover", "꽉 채우기"], ["contain", "전체 보이기"]], P.fit) + `</div>`
-    + `<div class="ph-c-n">` + phNumList(P).map(([k, , mn, mx, st2]) => {
-      const off = phNumOff(card, k) ? " disabled" : "";
-      return `<label><span>${PH_SHORT[k]}</span><input type="number" data-n="${k}" inputmode="decimal" min="${mn}" max="${mx}" step="${st2}" value="${phNumVal(P, k)}"${off}></label>`;
-    }).join("") + `</div>`
-    + `<div class="ph-c-r">`
-    + (bg ? "" : `<div class="seg sm">` + [["s", "작게"], ["m", "보통"], ["l", "크게"]].map(([v, t]) => `<button type="button" data-k="sz" data-v="${v}" class="${v === cur ? "active" : ""}">${t}</button>`).join("") + `</div>`)
-    + `<button type="button" class="ghost" data-a="pick">사진 바꾸기</button>`
-    + `<button type="button" class="ghost" data-a="reset">숫자 처음으로</button>`
-    + (e && e.st === "fail" ? `<button type="button" class="ghost" data-a="retry">다시 불러오기</button>` : "")
-    + `<button type="button" class="ghost" data-a="rm">사진 빼기</button></div>`
-    + `<div class="ph-c-tip">${P.fit === "cover"
-      ? (bg ? "미리보기에서 사진을 끌면 위치, <b>Ctrl 또는 Shift + 휠</b>은 확대예요." : "미리보기에서 사진을 끌면 위치, <b>휠</b>은 확대, 사진 가장자리의 <b>점</b>을 끌면 크기예요.")
-      : "미리보기 사진 가장자리의 <b>점</b>을 끌면 크기가 바뀌어요."}</div></div>`;
-  return h;
 }
 /* 설정 칸의 숫자를 지금 값으로 맞춥니다 (지금 만지고 있는 항목은 그대로 둬요) */
 function phSyncVals(card, force){
@@ -3916,6 +3997,14 @@ function phSyncVals(card, force){
     const v = String(phNumVal(P, k));
     if(el.value !== v) el.value = v;
     el.disabled = phNumOff(card, k);
+    const lb = el.closest(".ph-sl-r");
+    if(lb) lb.classList.toggle("off", el.disabled);
+  });
+  card._pn.querySelectorAll("output[data-o]").forEach(o => {
+    const k = o.dataset.o;
+    if(k === on || P[k] == null) return;
+    const t = phNumVal(P, k) + (PH_UNIT[k] || "");
+    if(o.textContent !== t) o.textContent = t;
   });
 }
 /* 숫자 칸·밀대에서 값이 바뀌었을 때 */
@@ -3928,6 +4017,7 @@ function phNumInput(card, el, final){
   if(k === "fx" || k === "fy"){ v = phClamp01(Number(el.value) / 100); it[k] = v; v = Math.round(v * 100); }
   else{ v = phNumClamp(k, el.value); if(v == null) return; it[k] = v; }
   card._pn.querySelectorAll(`input[data-n="${k}"]`).forEach(o => { if(o !== el && o.value !== String(v)) o.value = v; });
+  card._pn.querySelectorAll(`output[data-o="${k}"]`).forEach(o => { o.textContent = v + (PH_UNIT[k] || ""); });
   if(final && el.value !== String(v)) el.value = v;
   phLiveSoon(card, !(k === "fx" || k === "fy" || k === "zm" || k === "op"));
   if(final) phCommit(card); else phCommitSoon(card);
@@ -4307,20 +4397,22 @@ document.addEventListener("dragover", ev => {
   if(!phHasFiles(ev)) return;
   ev.preventDefault();                                   /* 사진을 잘못 놓아 화면이 사진 파일로 바뀌는 일을 막아요 */
   const inList = !!(ev.target.closest && ev.target.closest("#list, #imgEmpty"));
-  const cd = phCan() && inList ? ev.target.closest(".card") : null;
+  const inDock = !!(ev.target.closest && ev.target.closest("#phDock"));         /* PC: 원글 위 설정 칸에 놓아도 지금 고른 장에 들어가요 */
+  const cd = phCan() ? (inList ? ev.target.closest(".card") : (inDock ? phOpenCard() : null)) : null;
   const next = cd && !cd._ig ? cd : null;
   if(next !== phDropCard){ phClearDrop(); phDropCard = next; if(next) next.classList.add("dropping"); }
-  ev.dataTransfer.dropEffect = phCan() && inList ? "copy" : "none";
+  ev.dataTransfer.dropEffect = phCan() && (inList || inDock) ? "copy" : "none";
 });
 document.addEventListener("dragleave", ev => { if(!ev.relatedTarget) phClearDrop(); });
 document.addEventListener("drop", ev => {
   if(!phHasFiles(ev)) return;
   ev.preventDefault();
   const under = ev.target.closest ? ev.target.closest("#list .card") : null;
-  const cd = phDropCard || (under && !under._ig ? under : null);
+  const inDock = !!(ev.target.closest && ev.target.closest("#phDock"));
+  const cd = phDropCard || (under && !under._ig ? under : null) || (inDock ? phOpenCard() : null);
   phClearDrop();
   const inList = !!(ev.target.closest && ev.target.closest("#list, #imgEmpty"));
-  if(!phCan() || !inList){ toast("사진은 미리보기의 장 위에 놓아 주세요", "bad"); return; }
+  if(!phCan() || !(inList || inDock)){ toast("사진은 미리보기의 장 위에 놓아 주세요", "bad"); return; }
   phAddFiles(ev.dataTransfer.files, cd ? cd._pi : 0);
 });
 document.addEventListener("paste", ev => {
@@ -4387,6 +4479,7 @@ function phThumb(it){
   return sp;
 }
 function phStripUpdate(){
+  phDockSync();
   const box = $("phStrip");
   if(!box) return;
   const c = S.cur, n = PHMAP.length;
@@ -4835,8 +4928,17 @@ const SAMPLE_TEXT = "채널 디자인 미리보기 (표지)\n\n두 번째 장 �
 const wideMQ = window.matchMedia("(min-width:1000px)");
 const isWide = () => wideMQ.matches;
 /* 화면 폭이 바뀌면(PC ↔ 폰 모양) 열려 있는 사진 설정 칸과 크기 점을 그 모양에 맞게 다시 만듭니다 */
-const phRelayout = () => [...$("list").children].forEach(cd => { if(cd._pn){ if(!cd._pn.hidden){ cd._pnS = ""; phPanel(cd); } phHandlesUpdate(cd); } });
+const phRelayout = () => {
+  const cards = [...$("list").children];
+  if(isWide()){ let first = null; cards.forEach(cd => { if(cd._pn && !cd._pn.hidden && !cd._ig){ if(first) cd._pn.hidden = true; else first = cd; } }); }
+  else cards.forEach(phHome);
+  cards.forEach(cd => { if(cd._pn){ if(!cd._pn.hidden){ cd._pnS = ""; phPanel(cd); } phHandlesUpdate(cd); } });
+  phDockSync();
+};
 wideMQ.addEventListener("change", phRelayout);
+$("phDkPrev").addEventListener("click", () => phDockGo(-1));
+$("phDkNext").addEventListener("click", () => phDockGo(1));
+$("phDkX").addEventListener("click", () => { const cd = phOpenCard(); if(cd) phClose(cd); });
 window.addEventListener("resize", () => { clearTimeout(phRelayout._t); phRelayout._t = setTimeout(() => [...$("list").children].forEach(cd => cd._pn && phHandlesUpdate(cd)), 120); });
 
 const S = {
@@ -5889,7 +5991,7 @@ function openContent(c, opt){
   const same = S.cur === c;
   S.cur = c;
   c.openedAt = Date.now();                               /* 폰에 내용까지 기억해 둘 글을 고를 때 쓰는 ‘최근에 연 순서’ */
-  if(!same){ fontRetries = 0; S.fOpen = {}; closePaste(); setActMsg(""); setCLoading(""); [...$("list").children].forEach(cd => { if(cd._pn){ cd._pn.hidden = true; cd._adj = false; cd._img.classList.remove("adj"); } }); }
+  if(!same){ fontRetries = 0; S.fOpen = {}; closePaste(); setActMsg(""); setCLoading(""); [...$("list").children].forEach(cd => { if(cd._pn){ cd._pn.hidden = true; cd._adj = false; cd._img.classList.remove("adj"); phHome(cd); } }); phDockSync(); }
   if(S.selMode){ S.selMode = false; S.sel.clear(); updateSelUI(); }
   document.body.classList.remove("nosel");
   const needLoad = !!c.id && c.full === false;           /* 목록만 받아 둔 글: 내용을 받아 와야 함 */
