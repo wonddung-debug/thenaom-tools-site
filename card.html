@@ -163,6 +163,27 @@
     -webkit-touch-callout:default; -webkit-user-select:auto; user-select:auto;
   }
 
+  /* 사진 칸: 장마다 붙는 ‘사진’ 버튼과 설정 칸 */
+  .card-acts{display:flex; gap:6px; align-items:center}
+  .card-head button.ph-btn.on{background:var(--accent-bg); color:var(--accent); border-color:var(--accent)}
+  .card-head button.ph-btn.bad{background:#fff1f1; color:#b42318; border-color:#e8a5a0}
+  .ph-pn{border:1px dashed var(--line); border-radius:8px; padding:10px; margin:0 0 8px; background:var(--bg); font-size:12.5px; line-height:1.5; color:var(--ink)}
+  .ph-pn[hidden]{display:none}
+  .ph-pn .ph-drop{border:1px dashed var(--line); border-radius:8px; padding:12px 10px; text-align:center; color:var(--sub); background:var(--panel)}
+  .ph-pn .ph-line{display:flex; align-items:center; gap:8px; margin:6px 0}
+  .ph-pn .ph-line > span{flex:0 0 36px; font-weight:700; color:var(--sub)}
+  .ph-pn .ph-line .seg{flex:1}
+  .ph-pn .seg button{padding:7px 2px; font-size:12px}
+  .ph-pn .ph-row{display:flex; gap:6px; flex-wrap:wrap; margin-top:8px}
+  .ph-pn .ph-row button{padding:7px 10px; font-size:12px; border-radius:8px}
+  .ph-pn .ph-head{display:flex; align-items:center; gap:8px; font-weight:700}
+  .ph-pn .ph-head canvas, .ph-pn .ph-head .th{width:44px; height:44px; border-radius:6px; object-fit:cover; background:var(--line); flex:0 0 auto}
+  .ph-pn .ph-note{margin-top:6px; color:#9A3412; font-weight:600}
+  .ph-pn .ph-bad{color:#b42318; font-weight:600}
+  .card.dropping{outline:2px dashed var(--accent); outline-offset:-2px}
+  .card img.adj{touch-action:none; cursor:grab; outline:2px solid var(--accent)}
+  #phFile{display:none}
+
   /* 마지막 이미지 아래 저장/공유 버튼 영역 */
   .bottom-actions{
     margin-top:16px; display:flex; flex-direction:column; gap:10px;
@@ -1025,6 +1046,24 @@
         </div>
       </div>
 
+      <div class="sec" data-tab="look" hidden>
+        <div class="sec-title">📷 사진 칸 (처음 모양)</div>
+        <div class="grid2">
+          <div><label class="lbl">사진 자리</label>
+            <select id="phPos"><option value="top">사진 위 · 글 아래</option><option value="bottom">글 위 · 사진 아래</option><option value="round">동그란 작은 사진 + 글</option></select></div>
+          <div><label class="lbl">사진 크기</label>
+            <select id="phSize"><option value="s">작게</option><option value="m">보통</option><option value="l">크게</option></select></div>
+          <div><label class="lbl">사진 모양</label>
+            <select id="phShape"><option value="rect">네모</option><option value="rounded">둥근 네모</option><option value="circle">동그라미</option></select></div>
+          <div><label class="lbl">테두리</label>
+            <select id="phBorder"><option value="none">없음</option><option value="thin">얇게</option><option value="thick">두껍게</option></select></div>
+          <div><label class="lbl">사진 맞춤</label>
+            <select id="phFit"><option value="cover">꽉 채우기 (넘치는 부분은 잘림)</option><option value="contain">사진 전체 보이기</option></select></div>
+        </div>
+        <label class="row-flex" style="margin-top:8px;gap:6px;"><input type="checkbox" id="phSample"> <span style="font-size:12.5px;font-weight:600;">미리보기에 예시 사진 자리 보기</span></label>
+        <p class="hint">글 쓰는 화면의 각 장에서 ‘＋ 사진’을 눌러 사진을 넣어요. 장마다 자리·크기·모양은 따로 바꿀 수 있고, 여기는 새 사진을 넣을 때의 처음 모양이에요. 테두리 색은 강조색을 따라가요.</p>
+      </div>
+
       <div class="sec" data-tab="font" hidden>
         <div class="sec-title">✨ 글자 효과</div>
         <div class="grid3">
@@ -1239,6 +1278,7 @@
 
 </main>
 
+<input type="file" id="phFile" accept="image/*" multiple>
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script>
@@ -1329,6 +1369,9 @@ FONTS.forEach((f,i)=>{
 let igRender = {key:"", off:false, noteOff:false};   /* 마지막으로 그린 글과 그때의 '인스타 자동 DM 안 씀'·'인스타 안내문구 뺌' 상태 */
 let ADS = {yt:"", ig:""};             /* 이 글의 ‘유튜브/인스타 마지막 광고’ 글 (그릴 때마다 render 가 새로 읽어 옵니다) */
 let NOTEOFF = {yt:false, ig:false};   /* 이 글에서 안내문구를 뺄지 (유튜브·인스타) */
+let PHMAP = [];                       /* 장 번호 → {item}: 이번에 그리는 글의 사진 배정 (render 가 정해 줍니다) */
+const PH = new Map();                 /* 사진 ID → {st:"loading"|"ok"|"fail", img, w, h, err, code}: 불러와 둔 사진 */
+let PHUP = 0;                         /* 지금 올리는 중인 사진 수 */
 let dzView = "gen";                   /* 채널 디자인 화면: "gen" 일반 글 / "rev" 후기 설정을 고치는 중 */
 let dzGenSub = null;                  /* 후기 설정을 고치는 동안 맡겨 둔 ‘일반 글’의 같은 항목들 */
 let dzRev = null;                     /* 이 채널의 후기 설정 (바뀐 항목만 따로 저장. 없으면 일반 글과 똑같이) */
@@ -1910,7 +1953,8 @@ const EXTRA = {letterSpacing:0, coverScale:1, textShadow:"none", strokeW:0, stro
   igNumOn:"on", igNumStyle:"circle", igNumColor:"hl", igNumCustom:"#ff6b6b", igNumSize:76,
   ytNumOn:"off", ytNumStyle:"circle", ytNumColor:"hl", ytNumCustom:"#ff6b6b", ytNumSize:76,
   ytAdStyle:"text", ytAdColor:"ink", ytAdCustom:"#ff6b6b", ytAdSize:34, ytAdAlign:"center", ytAdBold:"normal",
-  igAdStyle:"text", igAdColor:"ink", igAdCustom:"#ff6b6b", igAdSize:34, igAdAlign:"center", igAdBold:"normal"};
+  igAdStyle:"text", igAdColor:"ink", igAdCustom:"#ff6b6b", igAdSize:34, igAdAlign:"center", igAdBold:"normal",
+  phPos:"top", phSize:"m", phShape:"rounded", phBorder:"none", phFit:"cover"};
 function getOpt(k){
   const v = $(k).value;
   if(typeof EXTRA[k] !== "number") return v;
@@ -2681,6 +2725,326 @@ function drawFrameAndDeco(ctx, H, bgCol, inkCol, hlCol, padX, padY){
   }
 }
 
+/* =====================================================================
+   사진 칸: 글·배경과 따로 올리는 사진 한 장 (장마다 최대 1장)
+   - 사진 파일은 구글 드라이브 ‘카드 사진 보관함’에 두고, 글에는 목록(ID·자리·모양)만 저장해요 (card_photos 칸)
+   - 어느 장의 사진인지는 그 장의 첫 줄(k)로 찾고, 글을 고쳐서 첫 줄이 바뀌면 장 번호(pg)로 이어서 찾아요
+   ===================================================================== */
+const PH_ID = /^[A-Za-z0-9_-]{20,80}$/;
+const PH_POS = ["top", "bottom", "round"], PH_SZ = ["s", "m", "l"], PH_SH = ["rect", "rounded", "circle"], PH_FIT = ["cover", "contain"];
+const PH_FRAC = {s:0.30, m:0.40, l:0.50};         /* 글 칸 높이에 대한 사진 높이 */
+const PH_ROUND_D = {s:230, m:300, l:380};         /* 동그란 작은 사진의 지름 */
+const PH_GAP = 34;                                /* 사진과 글 사이 */
+const PH_MAX_ITEMS = 40;
+const PH_BORDER_W = {none:0, thin:6, thick:14};
+const phClamp01 = v => { v = Number(v); return isFinite(v) ? Math.max(0, Math.min(1, v)) : 0.5; };
+
+/* 저장된 한 줄 → 안전한 모양으로 (모르는 값은 버립니다) */
+function phNorm(x){
+  if(!x || typeof x !== "object" || !PH_ID.test(String(x.id || ""))) return null;
+  const it = {id:String(x.id), k:String(x.k || "").slice(0, 12), pg:Math.max(0, parseInt(x.pg, 10) || 0)};
+  if(PH_POS.includes(x.pos)) it.pos = x.pos;
+  if(PH_SZ.includes(x.sz)) it.sz = x.sz;
+  if(PH_SH.includes(x.sh)) it.sh = x.sh;
+  if(PH_FIT.includes(x.fit)) it.fit = x.fit;
+  if(x.fx != null) it.fx = phClamp01(x.fx);
+  if(x.fy != null) it.fy = phClamp01(x.fy);
+  return it;
+}
+/* 글에 붙은 사진 목록. 올리는 중인 것(tmp)은 이 기기 메모리에만 있고, 저장되는 목록에는 올리기가 끝난 뒤에 들어가요 */
+function phItems(c){
+  if(!c || !c.f) return [];
+  const src = c.f.card_photos || "";
+  if(!c._ph || c._phSrc !== src){
+    let items = [];
+    try{
+      const d = JSON.parse(src || "null");
+      if(d && Array.isArray(d.items)) items = d.items.slice(0, PH_MAX_ITEMS).map(phNorm).filter(Boolean);
+    }catch(e){}
+    const tmp = (c._ph ? c._ph.items : []).filter(x => x.tmp);
+    c._ph = {items:items.concat(tmp)}; c._phSrc = src;
+  }
+  return c._ph.items;
+}
+function phOut(it){
+  const o = {id:it.id, k:it.k, pg:it.pg};
+  ["pos", "sz", "sh", "fit"].forEach(k => { if(it[k]) o[k] = it[k]; });
+  if(it.fx != null) o.fx = Math.round(it.fx * 1000) / 1000;
+  if(it.fy != null) o.fy = Math.round(it.fy * 1000) / 1000;
+  return o;
+}
+/* 지금 목록을 글에 적고 서버로 보냅니다 (바뀐 게 없으면 아무것도 안 해요) */
+function phSave(c, delay){
+  if(!c || !c.f) return;
+  clearTimeout(c._phT); c._phT = null;
+  const doc = phItems(c).map(x => x.tmp ? x.prev : x).filter(Boolean).slice(0, PH_MAX_ITEMS).map(phOut);
+  const s = doc.length ? JSON.stringify({v:1, items:doc}) : "";
+  if(s === (c.f.card_photos || "")) return;
+  c.f.card_photos = s; c._phSrc = s;
+  queueSave(c, {postFields:{card_photos:s}}, delay == null ? 600 : delay);
+}
+function phSaveSoon(c, ms){ clearTimeout(c._phT); c._phT = setTimeout(() => phSave(c), ms || 1500); }
+
+/* 장의 ‘첫 줄’로 만든 짧은 이름표 */
+function phKeyOf(p){
+  const raw = pageToRawString(p).replace(/\*\*/g, "");
+  const line = (raw.split("\n").find(l => l.trim()) || "").replace(/\s+/g, " ").trim().slice(0, 30);
+  let h = 5381;
+  for(let i = 0; i < line.length; i++) h = ((h * 33) ^ line.charCodeAt(i)) >>> 0;
+  return h.toString(36);
+}
+/* 사진 ↔ 장 짝짓기: 첫 줄이 같은 장 먼저, 남은 사진은 장 번호가 같은 빈 장에 */
+function phAssign(items, keys){
+  const n = keys.length, out = new Array(n).fill(null), used = new Set();
+  items.forEach(it => {
+    if(!it.k) return;
+    const i = keys.findIndex((k, j) => k === it.k && !out[j]);
+    if(i >= 0){ out[i] = it; used.add(it); }
+  });
+  items.forEach(it => {
+    if(used.has(it)) return;
+    if(it.pg >= 0 && it.pg < n && !out[it.pg]){ out[it.pg] = it; used.add(it); }
+  });
+  return out;
+}
+function phOrphans(c, asg){ return phItems(c).filter(it => !it.tmp && !asg.includes(it)); }
+
+function phMapFor(pgs){
+  const out = new Array(pgs.length).fill(null);
+  if(S.mode !== "work"){
+    /* 채널 디자인 화면: 체크하면 예시 자리를 보여 줘서 모양을 눈으로 보며 고를 수 있어요 */
+    if($("phSample") && $("phSample").checked && pgs.length){
+      let i = pgs.findIndex((p, j) => j > 0 && p.type === "plain" && !p.cta);
+      if(i < 0) i = 0;
+      out[i] = {item:{id:"sample", sample:true}};
+    }
+    return out;
+  }
+  const c = S.cur;
+  if(!c || !c.f) return out;
+  const items = phItems(c);
+  if(PH.size > 24){                                  /* 기억해 둔 사진이 너무 많아지면 지금 글에 안 쓰는 것부터 비웁니다 */
+    const keep = new Set(items.map(x => x.id));
+    for(const [k, v] of [...PH]){ if(PH.size <= 24) break; if(!keep.has(k) && v.st !== "loading") PH.delete(k); }
+  }
+  if(!items.length) return out;
+  const keys = pgs.map(phKeyOf);
+  const asg = phAssign(items, keys);
+  let dirty = false;
+  asg.forEach((it, i) => {
+    if(!it) return;
+    out[i] = {item:it};
+    if(!it.tmp) phEnsure(it.id);
+    if(it.k !== keys[i] || it.pg !== i){ it.k = keys[i]; it.pg = i; dirty = true; }     /* 글이 바뀌어 장이 옮겨졌으면 이름표를 새로 적어 둡니다 */
+  });
+  if(dirty) phSaveSoon(c, 1500);
+  return out;
+}
+/* 그림 서명에 넣을 조각: 사진 설정과 불러온 상태가 바뀌면 그 장을 다시 그립니다 */
+function phSigOf(pi){
+  const m = PHMAP[pi];
+  if(!m) return "";
+  const it = m.item, e = it.sample ? null : PH.get(it.id);
+  return "|p" + [it.lid || it.id, it.pos || "", it.sz || "", it.sh || "", it.fit || "", it.fx == null ? "" : it.fx, it.fy == null ? "" : it.fy, e ? e.st : "s"].join(",");
+}
+function phParams(it){
+  return {
+    pos: it.pos || getOpt("phPos"), sz: it.sz || getOpt("phSize"), sh: it.sh || getOpt("phShape"),
+    fit: it.fit || getOpt("phFit"), border: getOpt("phBorder"),
+    fx: it.fx == null ? 0.5 : it.fx, fy: it.fy == null ? 0.5 : it.fy
+  };
+}
+
+/* ---------- 불러오기: 이 기기에 기억해 둔 것 → 없으면 서버(드라이브) ---------- */
+let phDbP = null;
+function phDb(){
+  if(phDbP) return phDbP;
+  phDbP = new Promise(res => {
+    try{
+      const rq = indexedDB.open("card_photo_cache", 1);
+      rq.onupgradeneeded = () => {
+        const db = rq.result;
+        if(!db.objectStoreNames.contains("p")){ const st = db.createObjectStore("p", {keyPath:"id"}); st.createIndex("t", "t"); }
+      };
+      rq.onsuccess = () => res(rq.result);
+      rq.onerror = () => res(null);
+      rq.onblocked = () => res(null);
+    }catch(e){ res(null); }
+  });
+  return phDbP;
+}
+async function phIdbGet(id){
+  const db = await phDb();
+  if(!db) return null;
+  return new Promise(res => {
+    try{
+      const q = db.transaction("p").objectStore("p").get(id);
+      q.onsuccess = () => res(q.result && q.result.blob ? q.result.blob : null);
+      q.onerror = () => res(null);
+    }catch(e){ res(null); }
+  });
+}
+async function phIdbPut(id, blob){
+  const db = await phDb();
+  if(!db) return;
+  try{
+    const tx = db.transaction("p", "readwrite"), st = tx.objectStore("p");
+    st.put({id, blob, t:Date.now()});
+    const cq = st.count();
+    cq.onsuccess = () => {                         /* 오래된 것부터 지워 150장까지만 기억 */
+      let extra = cq.result - 150;
+      if(extra <= 0) return;
+      const cur = st.index("t").openKeyCursor();
+      cur.onsuccess = () => { const k = cur.result; if(k && extra-- > 0){ st.delete(k.primaryKey); k.continue(); } };
+    };
+  }catch(e){}
+}
+function phB64ToBlob(b64, mime){
+  const bin = atob(b64), n = bin.length, u = new Uint8Array(n);
+  for(let i = 0; i < n; i++) u[i] = bin.charCodeAt(i);
+  return new Blob([u], {type:mime || "image/jpeg"});
+}
+function phBlobToB64(blob){
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(String(r.result).split(",")[1] || "");
+    r.onerror = () => rej(new Error("사진을 읽지 못했어요"));
+    r.readAsDataURL(blob);
+  });
+}
+function phDecode(blob){
+  const viaImg = () => new Promise((res, rej) => {
+    const u = URL.createObjectURL(blob), im = new Image();
+    im.onload = () => { URL.revokeObjectURL(u); res(im); };
+    im.onerror = () => { URL.revokeObjectURL(u); rej(new Error("사진을 읽지 못했어요")); };
+    im.src = u;
+  });
+  if(window.createImageBitmap){
+    return createImageBitmap(blob, {imageOrientation:"from-image"}).catch(() => createImageBitmap(blob)).catch(viaImg);
+  }
+  return viaImg();
+}
+const phDim = im => ({w:im.naturalWidth || im.width || 0, h:im.naturalHeight || im.height || 0});
+/* 한꺼번에 3장까지만 서버에서 받습니다 */
+let phBusy = 0; const phWaitQ = [];
+function phSlot(fn){
+  return new Promise((res, rej) => {
+    const go = () => {
+      phBusy++;
+      fn().then(res, rej).finally(() => { phBusy--; const nx = phWaitQ.shift(); if(nx) nx(); });
+    };
+    if(phBusy < 3) go(); else phWaitQ.push(go);
+  });
+}
+function phEnsure(id, force){
+  let e = PH.get(id);
+  if(e && (e.st === "ok" || e.st === "loading") && !force) return e;
+  e = {st:"loading", img:null, w:0, h:0, err:"", code:""};
+  PH.set(id, e);
+  phSlot(async () => {
+    let blob = await phIdbGet(id);
+    if(!blob){
+      const r = await callDbRead({action:"getImage", fileId:id}, {timeoutMs:60000});
+      if(!r || !r.ok) throw Object.assign(new Error((r && r.error) || "사진을 불러오지 못했어요"), {code:r && r.code});
+      blob = phB64ToBlob(r.data, r.mime);
+      phIdbPut(id, blob);
+    }
+    const im = await phDecode(blob);
+    const d = phDim(im);
+    if(!d.w || !d.h) throw new Error("사진을 읽지 못했어요");
+    e.img = im; e.w = d.w; e.h = d.h; e.st = "ok";
+  }).catch(err => {
+    e.st = "fail"; e.err = (err && err.message) || "사진을 불러오지 못했어요"; e.code = (err && err.code) || "";
+  }).finally(() => {
+    if(PH.get(id) === e) scheduleRender(false);      /* 불러온 사진(또는 실패 표시)으로 그 장을 다시 그립니다 */
+  });
+  return e;
+}
+
+/* ---------- 그리기 ---------- */
+const phRadius = r => Math.min(46, Math.min(r.w, r.h) * 0.12);
+function phShapePath(ctx, r, shape, rad){
+  ctx.beginPath();
+  if(shape === "circle") ctx.arc(r.x + r.w / 2, r.y + r.h / 2, Math.min(r.w, r.h) / 2, 0, Math.PI * 2);
+  else if(shape === "rounded") ctx.roundRect(r.x, r.y, r.w, r.h, rad == null ? phRadius(r) : rad);
+  else ctx.rect(r.x, r.y, r.w, r.h);
+}
+/* 사진 자리를 정합니다. 글이 길면 글을 먼저 줄이고, 그래도 모자라면 사진을 줄여요 (shrunk = 사진을 줄였음) */
+function phPlan(o){
+  const P = phParams(o.item), areaH = o.areaH, gap = PH_GAP;
+  let pos = P.pos;
+  if(o.page.cta && pos === "bottom") pos = "top";                 /* 마무리 장은 아래에 버튼이 있어요 */
+  const round = pos === "round";
+  const base = round ? Math.min(PH_ROUND_D[P.sz] || 300, Math.round(areaH * 0.5), o.maxW) : Math.round(areaH * (PH_FRAC[P.sz] || 0.4));
+  const minH = Math.min(base, round ? 130 : Math.round(areaH * 0.16));
+  let h = base;
+  if(o.page.type === "plain" && o.fitFn){
+    const r0 = o.fitFn(areaH);
+    const minF = getOpt("minFont");
+    const want = Math.min(r0.size, Math.max(minF, Math.round(r0.size * 0.7)));
+    const step = Math.max(8, Math.round(areaH * 0.03));
+    while(h > minH && o.fitFn(areaH - h - gap).size < want) h = Math.max(minH, h - step);
+  }else{
+    const ch = o.chars * (o.page.dir === "h" ? 1.5 : 1);
+    const lim = ch <= 90 ? 0.5 : ch <= 160 ? 0.34 : ch <= 240 ? 0.26 : 0.18;
+    h = Math.max(minH, Math.min(base, Math.round(areaH * lim)));
+  }
+  const circle = round || P.sh === "circle";
+  const rect = {x:circle ? Math.round((WIDTH - h) / 2) : o.padX, y:o.padY, w:circle ? h : o.maxW, h};
+  let tTop = o.padY + h + gap;
+  if(pos === "bottom"){ rect.y = o.padY + areaH - h; tTop = o.padY; }
+  return {P, pos, rect, shape:round ? "circle" : P.sh, tTop, tH:areaH - h - gap, shrunk:h < base, item:o.item};
+}
+/* 사진(또는 자리표시)을 그립니다. 그린 뒤의 실제 칸 크기와 사진이 넘치는 길이를 돌려줘요 (끌어서 옮길 때 씁니다) */
+function phPaint(ctx, plan, colors){
+  const P = plan.P, it = plan.item, e = it.sample ? null : PH.get(it.id);
+  const ready = !!(e && e.st === "ok" && e.img);
+  let fr = Object.assign({}, plan.rect), ow = 0, oh = 0;
+  if(ready && P.fit === "contain" && plan.shape !== "circle"){
+    /* 사진 전체 보이기: 칸을 사진 비율로 줄여서 테두리·모서리가 사진에 딱 붙게 */
+    const k = Math.min(fr.w / e.w, fr.h / e.h);
+    const w = Math.round(e.w * k), h = Math.round(e.h * k);
+    fr = {x:fr.x + Math.round((fr.w - w) / 2), y:fr.y + Math.round((fr.h - h) / 2), w, h};
+  }
+  ctx.save();
+  phShapePath(ctx, fr, plan.shape);
+  ctx.clip();
+  if(ready){
+    if(P.fit === "contain" && plan.shape === "circle"){
+      ctx.fillStyle = colors.ink; ctx.globalAlpha = 0.07; ctx.fillRect(fr.x, fr.y, fr.w, fr.h); ctx.globalAlpha = 1;
+    }
+    const k = P.fit === "contain" ? Math.min(fr.w / e.w, fr.h / e.h) : Math.max(fr.w / e.w, fr.h / e.h);
+    const dw = e.w * k, dh = e.h * k;
+    ow = Math.max(0, dw - fr.w); oh = Math.max(0, dh - fr.h);
+    const dx = fr.x - ow * P.fx + (P.fit === "contain" ? (fr.w - dw) / 2 : 0);
+    const dy = fr.y - oh * P.fy + (P.fit === "contain" ? (fr.h - dh) / 2 : 0);
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(e.img, dx, dy, dw, dh);
+  }else{
+    const g = ctx.createLinearGradient(fr.x, fr.y, fr.x + fr.w, fr.y + fr.h);
+    g.addColorStop(0, colors.hl); g.addColorStop(1, colors.ink);
+    ctx.globalAlpha = 0.16; ctx.fillStyle = g; ctx.fillRect(fr.x, fr.y, fr.w, fr.h);
+    ctx.globalAlpha = 0.55; ctx.fillStyle = colors.ink;
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    try{ ctx.letterSpacing = "0px"; }catch(err){}
+    const size = Math.max(22, Math.min(40, Math.round(Math.min(fr.w, fr.h) / 7)));
+    ctx.font = `600 ${size}px "Pretendard","Noto Sans KR",sans-serif`;
+    const label = it.sample ? "사진 자리 (예시)" : (e && e.st === "fail" ? "사진을 불러오지 못했어요" : "사진 불러오는 중…");
+    ctx.fillText(label, fr.x + fr.w / 2, fr.y + fr.h / 2);
+  }
+  ctx.restore();
+  const bw = PH_BORDER_W[P.border] || 0;
+  if(bw){
+    ctx.save();
+    const inset = {x:fr.x + bw / 2, y:fr.y + bw / 2, w:fr.w - bw, h:fr.h - bw};
+    phShapePath(ctx, inset, plan.shape, Math.max(0, phRadius(fr) - bw / 2));      /* 테두리 바깥 모서리가 사진 모서리와 딱 맞게 */
+    ctx.lineWidth = bw; ctx.strokeStyle = colors.hl; ctx.globalAlpha = 1;
+    ctx.stroke();
+    ctx.restore();
+  }
+  return {rect:fr, ow, oh, fit:P.fit, shrunk:plan.shrunk, pos:plan.pos, ready};
+}
+
 /* ig = true 이면 인스타 공유용 (마지막 장에 안내 줄 + VS 장이면 1·2 숫자). 기본은 유튜브용(다운로드) 이미지 */
 function draw(page, idx, total, f, ig){
   const H = getHeight();
@@ -2748,30 +3112,43 @@ function draw(page, idx, total, f, ig){
   }
   const areaH = adBox ? Math.max(240, bodyBottom - padY) : bodyBottom - padY;
 
+  /* 사진 칸: 사진을 그리고 남은 자리(tTop, tH)에 글을 넣습니다. 사진이 없으면 원래 자리(padY, areaH) 그대로예요 */
+  let tTop = padY, tH = areaH, phInfo = null;
+  const phM = PHMAP[idx];
+  if(phM && areaH > 380){
+    const plan = phPlan({
+      page, item:phM.item, areaH, padX, padY, maxW, chars:pageToRawString(page).length,
+      fitFn: page.type === "plain" ? (h => fit(ctx, css, [page.text], maxW, h - (page.cta ? 140 : 0), isCover ? maxFont * getOpt("coverScale") : maxFont, getOpt("minFont"), lhRatio)) : null
+    });
+    phInfo = phPaint(ctx, plan, {ink:inkCol, hl:hlCol});
+    tTop = plan.tTop; tH = plan.tH;
+  }
+  c._phi = phInfo;
+
   if(page.type === "plain"){
-    const ah = page.cta ? areaH - 140 : areaH;
+    const ah = page.cta ? tH - 140 : tH;
     const r = fit(ctx, css, [page.text], maxW, ah, isCover ? maxFont * getOpt("coverScale") : maxFont, getOpt("minFont"), lhRatio);
     const lines = r.all[0];
-    const startY = padY + (ah - lines.length*r.lh)/2 + r.lh/2;
+    const startY = tTop + (ah - lines.length*r.lh)/2 + r.lh/2;
     drawFormattedLines(ctx, lines, startY, r.lh, r.size, curAlign, padX, inkCol, hlCol, hlStyle, f, coverB);
     if(page.cta) drawCta(ctx, f, hlCol, padY, areaH);
   }else if(page.type === "choice"){
-    drawChoiceLayout(ctx, page, f, padX, padY, areaH, maxFont, lhRatio, bgCol, inkCol, hlCol, hlStyle);
+    drawChoiceLayout(ctx, page, f, padX, tTop, tH, maxFont, lhRatio, bgCol, inkCol, hlCol, hlStyle);
   }else if(page.dir === "h"){
-    drawSideBySide(ctx, page, f, css, padX, padY, areaH, maxFont, lhRatio, bgCol, inkCol, hlCol, hlStyle, igNum, pre);
+    drawSideBySide(ctx, page, f, css, padX, tTop, tH, maxFont, lhRatio, bgCol, inkCol, hlCol, hlStyle, igNum, pre);
   }else{
     const vsH = 110;
-    const halfH = (areaH - vsH)/2;
+    const halfH = (tH - vsH)/2;
     /* 인스타용이면 글 왼쪽에 1·2 숫자 자리를 비워 둡니다 */
     const bSize = igNum ? numSize(pre) : 0, bGap = igNum ? 28 : 0;
     const tX = padX + bSize + bGap, tW = maxW - bSize - bGap;
     const r = fit(ctx, css, [page.top, page.bottom], tW, halfH, Math.min(maxFont, 58), 20, lhRatio);
     const tl = r.all[0], bl = r.all[1];
 
-    const topY = padY + (halfH - tl.length*r.lh)/2 + r.lh/2;
+    const topY = tTop + (halfH - tl.length*r.lh)/2 + r.lh/2;
     drawFormattedLines(ctx, tl, topY, r.lh, r.size, curAlign, padX, inkCol, hlCol, hlStyle, f, false, igNum ? tX : null, igNum ? tW : null);
 
-    const botY = padY + halfH + vsH + (halfH - bl.length*r.lh)/2 + r.lh/2;
+    const botY = tTop + halfH + vsH + (halfH - bl.length*r.lh)/2 + r.lh/2;
     drawFormattedLines(ctx, bl, botY, r.lh, r.size, curAlign, padX, inkCol, hlCol, hlStyle, f, false, igNum ? tX : null, igNum ? tW : null);
 
     if(igNum){
@@ -2779,7 +3156,7 @@ function draw(page, idx, total, f, ig){
       drawNumBadge(ctx, "2", padX + bSize/2, botY - r.lh/2 + bl.length*r.lh/2, bSize, f, hlCol, inkCol, pre);
     }
 
-    const cy = padY + halfH + vsH/2;
+    const cy = tTop + halfH + vsH/2;
     ctx.save();
     ctx.strokeStyle = inkCol;
     ctx.globalAlpha = 0.35;
@@ -2929,11 +3306,67 @@ function makeCard(){
   left.append(num, type);
   const dl = document.createElement("button");
   dl.type = "button"; dl.className = "ghost"; dl.textContent = "저장";
-  head.append(left, dl);
+  const pb = document.createElement("button");
+  pb.type = "button"; pb.className = "ghost ph-btn"; pb.textContent = "＋ 사진"; pb.hidden = true;
+  const acts = document.createElement("div");
+  acts.className = "card-acts";
+  acts.append(pb, dl);
+  head.append(left, acts);
+  const pn = document.createElement("div");
+  pn.className = "ph-pn"; pn.hidden = true;
   const img = document.createElement("img");
   img.decoding = "async";
-  card.append(head, img);
+  card.append(head, pn, img);
   card._num = num; card._type = type; card._dl = dl; card._img = img; card._sig = "";
+  card._pb = pb; card._pn = pn; card._pi = 0; card._ig = false; card._phi = null; card._adj = false; card._drag = null;
+  /* 사진 칸: 버튼을 누르면 설정 칸이 열리고 닫혀요 */
+  pb.addEventListener("click", () => {
+    if(!phCan()) return;
+    pn.hidden = !pn.hidden;
+    if(pn.hidden){ card._adj = false; img.classList.remove("adj"); } else phPanel(card);
+  });
+  pn.addEventListener("click", ev => {
+    const b = ev.target.closest("button");
+    const c = S.cur;
+    if(!b || b.disabled || !c) return;
+    const pi = card._pi;
+    if(b.dataset.k){ phSet(c, pi, {[b.dataset.k]: b.dataset.v}); return; }
+    const a = b.dataset.a;
+    if(a === "pick") phPick(pi);
+    else if(a === "rm") phRemove(c, pi);
+    else if(a === "clean") phClean(c);
+    else if(a === "adj"){ card._adj = !card._adj; phCardUpdate(card); }
+    else if(a === "retry"){
+      const m = PHMAP[pi];
+      if(m && !m.item.sample && !m.item.tmp){ phEnsure(m.item.id, true); scheduleRender(false); }
+    }
+  });
+  /* 사진이 ‘꽉 채우기’일 때, ‘보이는 부분 움직이기’를 켜 두면 이미지 위에서 끌어서 보이는 부분을 옮겨요 */
+  img.addEventListener("pointerdown", ev => {
+    const m = PHMAP[card._pi], ph = card._phi;
+    if(!card._adj || !m || m.item.sample || !ph || ph.fit !== "cover" || !(ph.ow > 1 || ph.oh > 1)) return;
+    const rc = img.getBoundingClientRect();
+    if(!rc.width) return;
+    const P = phParams(m.item);
+    card._drag = {id:ev.pointerId, x:ev.clientX, y:ev.clientY, fx:P.fx, fy:P.fy, sc:WIDTH / rc.width, ow:ph.ow, oh:ph.oh};
+    try{ img.setPointerCapture(ev.pointerId); }catch(e){}
+    ev.preventDefault();
+  });
+  img.addEventListener("pointermove", ev => {
+    const d = card._drag, m = PHMAP[card._pi];
+    if(!d || ev.pointerId !== d.id || !m) return;
+    const dx = (ev.clientX - d.x) * d.sc, dy = (ev.clientY - d.y) * d.sc;
+    if(d.ow > 1) m.item.fx = phClamp01(d.fx - dx / d.ow);
+    if(d.oh > 1) m.item.fy = phClamp01(d.fy - dy / d.oh);
+    scheduleRender(false);
+  });
+  const endDrag = ev => {
+    if(!card._drag || ev.pointerId !== card._drag.id) return;
+    card._drag = null;
+    if(S.cur) phSave(S.cur);
+  };
+  img.addEventListener("pointerup", endDrag);
+  img.addEventListener("pointercancel", endDrag);
   return card;
 }
 
@@ -2943,6 +3376,7 @@ async function render(){
   const list = $("list");
   syncLastQuick();
   if(!snapPages.length){
+    PHMAP = [];
     canvases = []; blobs = []; igBlobs = [];
     list.textContent = "";
     $("bottomActions").hidden = true;
@@ -2968,6 +3402,7 @@ async function render(){
   NOTEOFF = S.mode === "work" ? noteOffOf(S.cur) : {yt:false, ig:false};     /* 이 글에서 안내문구를 뺀 쪽 */
   igRender = {key: S.cur ? S.cur.key : "", off: igOffNow, noteOff: NOTEOFF.ig};
   ADS = currentAds();
+  PHMAP = phMapFor(snapPages);
   /* 인스타용 마지막 장은 유튜브용(다운로드)과 다를 때만 한 장 더 만듭니다:
      - 인스타 쪽에 넣을 것이 있을 때 (안내문구, VS 숫자, 또는 이 글의 ‘인스타 마지막 광고’)
      - 유튜브 쪽에 넣을 것이 있을 때 (유튜브 안내문구·VS 숫자, 또는 이 글의 ‘유튜브 마지막 광고’) → 인스타 공유 이미지에 유튜브용 문구가 섞이지 않게 */
@@ -2981,7 +3416,7 @@ async function render(){
     const ig = i === n;
     const pi = ig ? n - 1 : i;
     const adSig = pi === n - 1 ? (ig ? ADS.ig : ADS.yt) + "|" + (NOTEOFF[ig ? "ig" : "yt"] ? "nn" : "") : "";   /* 광고 글·안내문구 빼기가 바뀌면 마지막 장을 새로 그립니다 */
-    const sig = dsig + "|" + (ig ? "ig|" + (igOffNow ? "off|" : "") : "") + pi + "|" + n + "|" + JSON.stringify(snapPages[pi]) + "|" + adSig;
+    const sig = dsig + "|" + (ig ? "ig|" + (igOffNow ? "off|" : "") : "") + pi + "|" + n + "|" + JSON.stringify(snapPages[pi]) + "|" + adSig + phSigOf(pi);
     const hit = imgCache.get(sig);
     if(hit){ imgCache.delete(sig); imgCache.set(sig, hit); entries[i] = hit; }
     else todo.push({i, sig, c: draw(snapPages[pi], pi, n, f, ig)});
@@ -2990,7 +3425,7 @@ async function render(){
     const made = await Promise.all(todo.map(t => toBlob(t.c)));
     if(myJob !== renderJobId) return;     /* 그사이 새 그리기가 시작됐으면 이번 것은 버립니다 */
     todo.forEach((t, k)=>{
-      const e = {sig: t.sig, blob: made[k], url: URL.createObjectURL(made[k])};
+      const e = {sig: t.sig, blob: made[k], url: URL.createObjectURL(made[k]), ph: t.c._phi || null};
       entries[t.i] = e;
       if(fontsOk) imgCache.set(t.sig, e);
     });
@@ -3011,6 +3446,8 @@ async function render(){
     }
     card._img.alt = ig ? `${n}번 이미지 (인스타용)` : `${i+1}번 이미지`;
     card._dl.onclick = () => { download(e.blob, fname(pi, n)); markUsed("dl"); };
+    card._pi = pi; card._ig = ig; card._phi = e.ph;
+    phCardUpdate(card);
   }
   while(list.children.length > m) list.lastElementChild.remove();
 
@@ -3045,6 +3482,271 @@ async function render(){
   afterRender();
 }
 
+/* ---------- 사진 칸: 장마다 붙는 ‘＋ 사진’ 버튼 · 설정 칸 · 올리기 · 끌어놓기 · 붙여넣기 ---------- */
+const phCan = () => S.mode === "work" && !!S.cur && pages.length > 0 && !document.body.classList.contains("gate");
+const phRnd = () => Math.random().toString(36).slice(2, 10);
+let phPickAt = 0, phMsgOn = false;
+
+function phErrMsg(e){
+  if(e && e.code === "BAD_ACTION") return "서버에 사진 기능이 아직 안 올라가 있어요 (관리자 확인 필요)";
+  return (e && e.message) || "알 수 없는 오류";
+}
+function phOpenCard(){ return [...$("list").children].find(cd => !cd._ig && cd._pn && !cd._pn.hidden) || null; }
+function phStatus(){
+  if(PHUP > 0){ setActMsg(`📷 사진 올리는 중… ${PHUP}장 (끝날 때까지 이 화면을 닫지 마세요)`, "info"); phMsgOn = true; }
+  else if(phMsgOn){ phMsgOn = false; setActMsg(""); }
+}
+window.addEventListener("beforeunload", e => { if(PHUP > 0){ e.preventDefault(); e.returnValue = ""; return ""; } });
+
+/* 장 카드의 ‘사진’ 버튼 글자·색, 열려 있으면 설정 칸도 새로 그립니다 */
+function phCardUpdate(card){
+  const show = !card._ig && S.mode === "work" && !!S.cur;
+  card._pb.hidden = !show;
+  if(!show){
+    card._pn.hidden = true;
+    if(card._adj){ card._adj = false; card._img.classList.remove("adj"); }
+    return;
+  }
+  const m = PHMAP[card._pi], it = m && m.item, e = it && !it.sample ? PH.get(it.id) : null;
+  const fail = !!(e && e.st === "fail");
+  card._pb.classList.toggle("on", !!it && !fail);
+  card._pb.classList.toggle("bad", fail);
+  const shrunk = !!(card._phi && card._phi.shrunk);
+  card._pb.textContent = !it ? "＋ 사진" : (it.tmp ? "올리는 중…" : (fail ? "⚠ 사진" : (shrunk ? "📷 사진 (줄임)" : "📷 사진")));
+  card._pb.title = shrunk ? "글이 길어서 사진을 줄였어요" : "";
+  if(!it && card._adj) card._adj = false;
+  card._img.classList.toggle("adj", !!card._adj);
+  if(!card._pn.hidden) phPanel(card);
+}
+function phSeg(k, label, opts, cur, off){
+  return `<div class="ph-line"><span>${label}</span><div class="seg">`
+    + opts.map(([v, t]) => `<button type="button" data-k="${k}" data-v="${v}" class="${v === cur ? "active" : ""}"${off ? " disabled" : ""}>${t}</button>`).join("")
+    + `</div></div>`;
+}
+function phPanel(card){
+  const c = S.cur, m = PHMAP[card._pi], it = m && m.item, e = it ? PH.get(it.id) : null;
+  let h = "";
+  if(!it){
+    h = `<div class="ph-drop">여기에 사진을 <b>끌어다 놓거나</b> <b>붙여넣기(Ctrl+V)</b> 해요.<br>여러 장을 한꺼번에 놓으면 이 장부터 차례로 들어가요.</div>`
+      + `<div class="ph-row"><button type="button" class="ghost" data-a="pick">📁 사진 고르기 (폰은 앨범)</button></div>`;
+  }else if(it.sample){
+    h = `<div class="ph-head">채널 디자인 미리보기용 예시 자리예요</div>`;
+  }else{
+    const P = phParams(it);
+    const st = it.tmp ? "올리는 중…" : (e && e.st === "loading" ? "사진 불러오는 중…" : (e && e.st === "fail" ? `<span class="ph-bad">불러오지 못했어요${e.err ? " · " + esc(e.err) : ""}</span>` : "사진이 들어 있어요"));
+    h = `<div class="ph-head">${st}</div>`
+      + phSeg("pos", "자리", [["top", "사진 위"], ["bottom", "사진 아래"], ["round", "동그란 작은 사진"]], P.pos)
+      + phSeg("sz", "크기", [["s", "작게"], ["m", "보통"], ["l", "크게"]], P.sz)
+      + phSeg("sh", "모양", [["rect", "네모"], ["rounded", "둥근 네모"], ["circle", "동그라미"]], P.pos === "round" ? "circle" : P.sh, P.pos === "round")
+      + phSeg("fit", "맞춤", [["cover", "꽉 채우기"], ["contain", "전체 보이기"]], P.fit);
+    const ph = card._phi;
+    if(ph && ph.shrunk) h += `<div class="ph-note">글이 길어서 사진을 줄였어요</div>`;
+    if(card._adj) h += `<div class="ph-note" style="color:var(--sub)">위의 이미지에서 손가락·마우스로 끌면 보이는 부분이 움직여요</div>`;
+    h += `<div class="ph-row"><button type="button" class="ghost" data-a="pick">사진 바꾸기</button>`
+      + (P.fit === "cover" && !it.tmp ? `<button type="button" class="ghost" data-a="adj">${card._adj ? "✓ 움직이기 끝" : "보이는 부분 움직이기"}</button>` : "")
+      + (e && e.st === "fail" ? `<button type="button" class="ghost" data-a="retry">다시 불러오기</button>` : "")
+      + `<button type="button" class="ghost" data-a="rm">사진 빼기</button></div>`;
+  }
+  const orph = c ? phOrphans(c, PHMAP.map(x => x && x.item)).length : 0;
+  if(orph) h += `<div class="ph-note">지금 글에서 쓰이지 않는 사진이 ${orph}장 남아 있어요 <button type="button" class="ghost" data-a="clean" style="padding:3px 8px;font-size:11.5px;margin-left:4px">정리하기</button></div>`;
+  card._pn.innerHTML = h;
+}
+function phSet(c, pi, patch){
+  const m = PHMAP[pi];
+  if(!m || m.item.sample) return;
+  Object.assign(m.item, patch);
+  if("fit" in patch){ delete m.item.fx; delete m.item.fy; }
+  phSave(c);
+  scheduleRender(false);
+}
+function phRemove(c, pi){
+  const m = PHMAP[pi];
+  if(!m || m.item.sample) return;
+  const it = m.item, items = phItems(c), ix = items.indexOf(it);
+  if(ix >= 0) items.splice(ix, 1);
+  if(it.tmp){ it.cancelled = true; if(it.prev) phTrash(it.prev.id); }
+  else phTrash(it.id);
+  phSave(c);
+  scheduleRender(false);
+}
+function phClean(c){
+  const asg = PHMAP.map(x => x && x.item);
+  const orph = phOrphans(c, asg);
+  if(!orph.length) return;
+  const items = phItems(c);
+  orph.forEach(o => { const ix = items.indexOf(o); if(ix >= 0) items.splice(ix, 1); phTrash(o.id); });
+  phSave(c);
+  scheduleRender(false);
+}
+function phPick(pi){ phPickAt = pi; const f = $("phFile"); f.value = ""; f.click(); }
+$("phFile").addEventListener("change", ev => {
+  const files = [...ev.target.files];
+  ev.target.value = "";
+  if(files.length) phAddFiles(files, phPickAt);
+});
+
+/* ---------- 사진 올리기: 1080px 이하로 줄이고 JPG 로 만든 뒤 구글 드라이브 보관함에 올립니다 ---------- */
+async function phPrepare(file){
+  const bmp = await phDecode(file);
+  const d = phDim(bmp);
+  if(!d.w || !d.h) throw new Error("사진을 읽지 못했어요");
+  const k = Math.min(1, 1080 / d.w, 1620 / d.h);
+  const w = Math.max(1, Math.round(d.w * k)), h = Math.max(1, Math.round(d.h * k));
+  const cv = document.createElement("canvas");
+  cv.width = w; cv.height = h;
+  const g = cv.getContext("2d");
+  g.fillStyle = "#ffffff"; g.fillRect(0, 0, w, h);
+  g.imageSmoothingQuality = "high";
+  g.drawImage(bmp, 0, 0, w, h);
+  if(bmp.close) try{ bmp.close(); }catch(e){}
+  const mk = q => new Promise(r => cv.toBlob(r, "image/jpeg", q));
+  let q = 0.86, blob = await mk(q);
+  while(blob && blob.size > 2.4 * 1024 * 1024 && q > 0.5){ q -= 0.12; blob = await mk(q); }
+  if(!blob) throw new Error("사진을 줄이지 못했어요");
+  return {blob, canvas:cv, w, h};
+}
+async function phUpload(c, prep){
+  const data = await phBlobToB64(prep.blob);
+  const r = await callDb({action:"putImage", data, mime:"image/jpeg", name:c.id || ""}, {timeoutMs:90000});
+  if(!r || !r.ok) throw Object.assign(new Error((r && r.error) || "올리지 못했어요"), {code:r && r.code});
+  if(!r.fileId || !PH_ID.test(r.fileId)) throw new Error("서버 답이 올바르지 않아요");
+  return r.fileId;
+}
+/* 사진 여러 장: start 번째 장부터 차례로 한 장에 한 장씩 */
+async function phAddFiles(files, start){
+  const c = S.cur;
+  if(!c || !phCan()){ toast("먼저 글을 열어서 장이 만들어진 뒤에 넣어 주세요", "bad"); return; }
+  const imgs = [...files].filter(f => /^image\//.test(f.type || "") || /\.(jpe?g|png|webp|gif|bmp|heic|heif)$/i.test(f.name || ""));
+  if(!imgs.length){ toast("사진 파일이 아니에요", "bad"); return; }
+  const n = pages.length;
+  start = Math.max(0, Math.min(n - 1, start | 0));
+  const take = imgs.slice(0, n - start);
+  if(take.length < imgs.length) toast(`장이 ${n}장뿐이라 사진 ${imgs.length - take.length}장은 넣지 못했어요`, "bad");
+  const keys = pages.map(phKeyOf);
+  await Promise.all(take.map((file, k) => phAddOne(c, file, start + k, keys)));
+}
+async function phAddOne(c, file, pi, keys){
+  let prep;
+  try{ prep = await phPrepare(file); }
+  catch(e){ toast(`${pi + 1}번 장 사진을 읽지 못했어요 (JPG·PNG 사진을 써 주세요)`, "bad"); return; }
+  const items = phItems(c);
+  const old = phAssign(items, keys)[pi];
+  const it = {id:"tmp_" + phRnd() + phRnd(), lid:"l" + phRnd(), tmp:true, k:keys[pi], pg:pi};
+  if(old){                                          /* 같은 장의 사진을 바꾸는 경우: 자리·크기·모양은 그대로, 올리기가 끝나면 이전 사진은 정리 */
+    ["pos", "sz", "sh", "fit"].forEach(k => { if(old[k]) it[k] = old[k]; });
+    if(old.tmp){ old.cancelled = true; it.prev = old.prev || null; }
+    else it.prev = old;
+    items.splice(items.indexOf(old), 1);
+  }
+  items.push(it);
+  const tmpId = it.id;
+  PH.set(tmpId, {st:"ok", img:prep.canvas, w:prep.w, h:prep.h, err:"", code:""});     /* 올리는 동안은 이 기기의 사진으로 바로 보여 줘요 */
+  PHUP++; phStatus(); scheduleRender(false);
+  let fileId = "";
+  try{
+    fileId = await phUpload(c, prep);
+  }catch(e){
+    PHUP--;
+    if(!it.cancelled){
+      const list = phItems(c), ix = list.indexOf(it);
+      if(ix >= 0){ if(it.prev) list.splice(ix, 1, it.prev); else list.splice(ix, 1); }
+      PH.delete(tmpId);
+      toast(`${pi + 1}번 장 사진을 올리지 못했어요: ${phErrMsg(e)}`, "bad");
+    }
+    phStatus(); scheduleRender(false);
+    return;
+  }
+  PHUP--;
+  if(it.cancelled){ phTrash(fileId); phStatus(); return; }
+  const prev = it.prev;
+  delete it.prev; delete it.tmp;
+  it.id = fileId;
+  PH.set(fileId, PH.get(tmpId)); PH.delete(tmpId);
+  phIdbPut(fileId, prep.blob);
+  if(prev && !prev.tmp) phTrash(prev.id);
+  phSave(c, 300);
+  phStatus();
+  if(PHUP === 0) toast("✓ 사진을 올렸어요");
+  scheduleRender(false);
+}
+
+/* ---------- 쓰지 않게 된 사진은 저장이 끝난 뒤에 보관함에서 지웁니다 (휴지통으로 이동) ---------- */
+let phSweepT = null;
+const phTrashQ = () => { const q = LS.get(keyOf("phtrash"), []); return Array.isArray(q) ? q.filter(id => PH_ID.test(String(id))) : []; };
+function phTrash(id){
+  if(!id || !S.uid || !PH_ID.test(id)) return;
+  const q = phTrashQ();
+  if(!q.includes(id)){ q.push(id); LS.set(keyOf("phtrash"), q.slice(-200)); }
+  phSweepSoon(12000);
+}
+function phSweepSoon(ms){ clearTimeout(phSweepT); phSweepT = setTimeout(phSweep, ms || 12000); }
+async function phSweep(){
+  if(!S.uid) return;
+  const q = phTrashQ();
+  if(!q.length) return;
+  if(Object.keys(OUT).length || flushRun || PHUP){ phSweepSoon(8000); return; }       /* 글 저장이 모두 끝난 뒤에만 */
+  const used = new Set();
+  S.contents.concat(S.cur ? [S.cur] : []).forEach(c => phItems(c).forEach(it => { used.add(it.id); if(it.prev) used.add(it.prev.id); }));
+  const ids = q.filter(id => !used.has(id)).slice(0, 20);
+  const keep = q.filter(id => used.has(id));
+  if(!ids.length){ LS.set(keyOf("phtrash"), keep); return; }
+  try{
+    const r = await callDb({action:"delImages", fileIds:ids});
+    if(r && r.ok){ LS.set(keyOf("phtrash"), phTrashQ().filter(id => !ids.includes(id))); if(phTrashQ().length) phSweepSoon(5000); }
+    else phSweepSoon(120000);
+  }catch(e){ phSweepSoon(120000); }
+}
+
+/* ---------- 다운로드·공유 전에: 사진이 아직 오는 중이거나 못 불러온 장이 있으면 막고 알려 줍니다 ---------- */
+function phBlockMsg(){
+  let loading = 0; const fail = [];
+  PHMAP.forEach((m, i) => {
+    if(!m || m.item.sample) return;
+    const e = PH.get(m.item.id);
+    if(!e) return;
+    if(e.st === "loading") loading++;
+    else if(e.st === "fail") fail.push(i + 1);
+  });
+  if(loading) return "사진을 아직 불러오는 중이에요. 잠시 뒤에 다시 눌러 주세요";
+  if(fail.length) return `${fail.join(", ")}번 장의 사진을 불러오지 못했어요. 그 장의 ‘⚠ 사진’ 버튼에서 다시 불러오거나 사진을 빼 주세요`;
+  return "";
+}
+
+/* ---------- 끌어놓기 · 붙여넣기 ---------- */
+const phHasFiles = ev => !!(ev.dataTransfer && [...(ev.dataTransfer.types || [])].includes("Files"));
+let phDropCard = null;
+const phClearDrop = () => { if(phDropCard){ phDropCard.classList.remove("dropping"); phDropCard = null; } };
+document.addEventListener("dragover", ev => {
+  if(!phHasFiles(ev)) return;
+  ev.preventDefault();                                   /* 사진을 잘못 놓아 화면이 사진 파일로 바뀌는 일을 막아요 */
+  const inList = !!(ev.target.closest && ev.target.closest("#list, #imgEmpty"));
+  const cd = phCan() && inList ? ev.target.closest(".card") : null;
+  const next = cd && !cd._ig ? cd : null;
+  if(next !== phDropCard){ phClearDrop(); phDropCard = next; if(next) next.classList.add("dropping"); }
+  ev.dataTransfer.dropEffect = phCan() && inList ? "copy" : "none";
+});
+document.addEventListener("dragleave", ev => { if(!ev.relatedTarget) phClearDrop(); });
+document.addEventListener("drop", ev => {
+  if(!phHasFiles(ev)) return;
+  ev.preventDefault();
+  const under = ev.target.closest ? ev.target.closest("#list .card") : null;
+  const cd = phDropCard || (under && !under._ig ? under : null);
+  phClearDrop();
+  const inList = !!(ev.target.closest && ev.target.closest("#list, #imgEmpty"));
+  if(!phCan() || !inList){ toast("사진은 미리보기의 장 위에 놓아 주세요", "bad"); return; }
+  phAddFiles(ev.dataTransfer.files, cd ? cd._pi : 0);
+});
+document.addEventListener("paste", ev => {
+  if(!phCan()) return;
+  const files = [...((ev.clipboardData && ev.clipboardData.files) || [])].filter(f => /^image\//.test(f.type || ""));
+  if(!files.length) return;                              /* 글자 붙여넣기는 그대로 둡니다 */
+  ev.preventDefault();
+  const open = phOpenCard();
+  let at = open ? open._pi : PHMAP.findIndex(m => !m);
+  if(at < 0) at = 0;
+  phAddFiles(files, at);
+});
+
 function download(blob, name){
   // 호환 모드용 일반 브라우저 다운로드
   const url = URL.createObjectURL(blob);
@@ -3060,6 +3762,8 @@ function download(blob, name){
 let saving = false;
 async function saveAllImages(btn){
   if(saving || !blobs.length) return;
+  const phb = phBlockMsg();
+  if(phb){ setActMsg(phb, "bad"); toast(phb, "bad"); return; }
   saving = true;
   const c = S.cur;
   /* 다운로드를 누른 바로 그 순간에 유튜브 게시글을 먼저 복사합니다 (폰은 누른 순간에만 복사가 허용돼요).
@@ -3101,6 +3805,8 @@ async function saveAllImages(btn){
    인스타 캡션이 있으면 같이 복사해 둡니다(인스타에서 바로 붙여넣기). 결과는 이미지 위·아래 결과 줄에 남깁니다. */
 function shareImages(){
   if(!igBlobs.length) return;
+  const phb = phBlockMsg();
+  if(phb){ setActMsg(phb, "bad"); toast(phb, "bad"); return; }
   const c = S.cur;
   const snapBlobs = [...igBlobs];
   const n = snapBlobs.length;
@@ -3259,6 +3965,9 @@ Object.keys(EXTRA).forEach(k=>{
   $(k).addEventListener("input", ()=>scheduleRender(false));
   $(k).addEventListener("change", ()=>scheduleRender(false));
 });
+/* 채널 디자인에서 사진 모양을 바꾸면, 눈으로 볼 수 있게 예시 사진 자리를 자동으로 켭니다 */
+["phPos", "phSize", "phShape", "phBorder", "phFit"].forEach(id => $(id).addEventListener("change", () => { if(S.mode === "design") $("phSample").checked = true; }));
+$("phSample").addEventListener("change", () => scheduleRender(false));
 /* 채널 디자인 → 마지막 장 (유튜브·인스타 똑같이): ‘직접 고르기’일 때만 색 선택 칸, 숫자 ‘안 붙이기’면 모양·색·크기 흐리게 */
 function updateIgNumUI(){
   ["ig", "yt"].forEach(p => {
@@ -3309,7 +4018,9 @@ const FIELDS = [
   /* 이 글에서 안내문구(채널 디자인)를 뺄 쪽 목록(JSON, 예: ["yt","ig"]). 비어 있으면 아직 안 만진 글 → 예전 방식을 따릅니다 */
   {kind:"note_off",            label:"안내문구 안 넣기",   short:"", hidden:true, flag:true},
   /* 후기 글이 붙어 있는 원글의 ID (후기가 아닌 글은 비어 있음) */
-  {kind:"review_of",          label:"원글 (후기일 때)",   short:"", hidden:true, flag:true}
+  {kind:"review_of",          label:"원글 (후기일 때)",   short:"", hidden:true, flag:true},
+  /* 장마다 붙인 사진 목록(JSON). 사진 파일은 구글 드라이브 ‘카드 사진 보관함’에 있고 여기엔 그 ID와 자리·모양만 적어요 */
+  {kind:"card_photos",        label:"카드 사진",          short:"", hidden:true, flag:true}
 ];
 const AD_BOXES = [{kind:"yt_last_ad", id:"adYt"}, {kind:"ig_last_ad", id:"adIg"}];
 /* 칸마다 어느 매체의 쿠팡 링크를 쓰는지: 유튜브 칸 → 유튜브 링크(yt), 인스타·스레드 칸 → 인스타 링크(ig).
@@ -3757,6 +4468,7 @@ function flush(opt){
       return;
     }
     retryDelay = 4000;
+    if(typeof phTrashQ === "function" && phTrashQ().length) phSweepSoon(5000);      /* 쓰지 않게 된 사진 정리 */
     if(flushAgain){ flushAgain = false; return flush(opt); }
     if(res.invalid) setSaveSt("invalid", res.invalid);
     else setSaveSt("ok");
@@ -3802,6 +4514,7 @@ function boot(silent){
       const m = mergeServer(Array.isArray(r.contents) ? r.contents : [], t0, !!r.lite);
       S.loaded = true;
       writeCacheNow();
+      if(phTrashQ().length) phSweepSoon(8000);       /* 지난번에 빼 둔 사진이 남아 있으면 정리 */
       syncAdminUI();
       renderChanFilter();
       renderList();
@@ -4431,7 +5144,7 @@ function openContent(c, opt){
   const same = S.cur === c;
   S.cur = c;
   c.openedAt = Date.now();                               /* 폰에 내용까지 기억해 둘 글을 고를 때 쓰는 ‘최근에 연 순서’ */
-  if(!same){ fontRetries = 0; S.fOpen = {}; closePaste(); setActMsg(""); setCLoading(""); }
+  if(!same){ fontRetries = 0; S.fOpen = {}; closePaste(); setActMsg(""); setCLoading(""); [...$("list").children].forEach(cd => { if(cd._pn){ cd._pn.hidden = true; cd._adj = false; cd._img.classList.remove("adj"); } }); }
   if(S.selMode){ S.selMode = false; S.sel.clear(); updateSelUI(); }
   document.body.classList.remove("nosel");
   const needLoad = !!c.id && c.full === false;           /* 목록만 받아 둔 글: 내용을 받아 와야 함 */
