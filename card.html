@@ -182,6 +182,36 @@
   .ph-pn .ph-bad{color:#b42318; font-weight:600}
   .card.dropping{outline:2px dashed var(--accent); outline-offset:-2px}
   .card img.adj{touch-action:none; cursor:grab; outline:2px solid var(--accent)}
+  .card img.can-drag{cursor:grab}
+  body.wmdrag.design .card img{touch-action:none; outline:2px dashed var(--accent)}
+  .card img.grabbing{cursor:grabbing}
+  .card{position:relative}
+  .card canvas.ph-live{position:absolute; display:none; pointer-events:none; border-radius:5px}
+  .ph-pn .seg.two{display:grid; grid-template-columns:1fr 1fr}
+  .ph-pn .seg.two button{border-top:1px solid var(--line)}
+  .ph-pn .seg.two button:nth-child(-n+2){border-top:0}
+  .ph-pn details{margin-top:8px; border-top:1px dashed var(--line); padding-top:6px}
+  .ph-pn summary{cursor:pointer; font-weight:700; color:var(--accent); padding:3px 0}
+  .ph-pn .ph-num{display:grid; grid-template-columns:minmax(92px,34%) 1fr 62px; gap:6px; align-items:center; margin:4px 0}
+  .ph-pn .ph-num > span{font-weight:700; color:var(--sub); font-size:12px}
+  .ph-pn .ph-num input[type=range]{width:100%; margin:0; min-width:0}
+  .ph-pn .ph-num input[type=number]{width:62px; padding:5px 4px; font-size:12.5px; text-align:right}
+  .ph-pn .ph-num input:disabled{opacity:.4}
+  .ph-strip{margin:10px 0 0; padding:8px 10px; border:1px solid var(--line); border-radius:10px; background:var(--panel)}
+  .ph-strip[hidden]{display:none}
+  .ph-strip .ph-sh{font-size:12.5px; font-weight:700}
+  .ph-strip .ph-sh small{font-weight:500; color:var(--sub); font-size:11.5px; margin-left:6px}
+  .ph-slots{display:flex; gap:6px; overflow-x:auto; padding:6px 2px 4px; -webkit-overflow-scrolling:touch}
+  .ph-slot{flex:0 0 auto; position:relative; width:56px; height:56px; border:1.5px dashed var(--line); border-radius:8px; background:var(--bg); padding:0; cursor:pointer; overflow:hidden; color:var(--sub); font-size:18px; font-weight:600}
+  .ph-slot.has{border-style:solid}
+  .ph-slot.sel{outline:2px solid var(--accent); outline-offset:1px}
+  .ph-slot.over{outline:2px dashed var(--accent); outline-offset:1px}
+  .ph-slot .n{position:absolute; left:3px; top:2px; font-size:10.5px; font-weight:700; background:rgba(0,0,0,.6); color:#fff; border-radius:4px; padding:0 4px; line-height:15px}
+  .ph-slot.empty .n{background:transparent; color:var(--sub)}
+  .ph-slot canvas{width:100%; height:100%; display:block}
+  .ph-act{display:flex; flex-wrap:wrap; gap:6px; margin-top:6px}
+  .ph-act button{padding:6px 9px; font-size:12px; border-radius:8px}
+  .ph-tip{margin:6px 0 0; font-size:11.5px; color:var(--sub)}
   #phFile{display:none}
 
   /* 마지막 이미지 아래 저장/공유 버튼 영역 */
@@ -256,6 +286,7 @@
     width:42px; height:42px; border-radius:50%; object-fit:cover;
     border:1px solid var(--line); background:#fff; display:none;
   }
+  .logo-preview{width:auto; max-width:96px; height:42px; border-radius:6px; object-fit:contain}
 
   /* 하단 아이디 바: 입력 후에는 거의 보이지 않는 작은 표시만 남김 */
   .uid-bar{margin:34px auto 6px; text-align:center;}
@@ -768,6 +799,7 @@
       <b>마지막 장</b>
       <select id="lastQuick" aria-label="마지막 장 모양"></select>
     </div>
+    <div class="ph-strip" id="phStrip" hidden></div>
     <div id="imgEmpty" class="empty">원글을 넣으면 여기에 이미지가 바로 만들어집니다.</div>
     <div class="list" id="list"></div>
     <div class="bottom-actions" id="bottomActions" hidden>
@@ -864,17 +896,17 @@
           <div>
             <label class="lbl">로고 모양</label>
             <select id="logoShape">
-              <option value="circle" selected>원형</option>
-              <option value="round">둥근사각</option>
-              <option value="orig">원본</option>
+              <option value="orig" selected>원본 그대로</option>
+              <option value="round">원본+둥근 모서리</option>
+              <option value="circle">원형(가운데만)</option>
             </select>
           </div>
           <div>
-            <label class="lbl">크기(px)</label>
+            <label class="lbl">글자 크기(px)</label>
             <input type="number" id="wmSize" value="30" min="12" max="100">
           </div>
           <div>
-            <label class="lbl">투명도(%)</label>
+            <label class="lbl">글자 투명도(%)</label>
             <input type="number" id="wmAlpha" value="45" min="5" max="100">
           </div>
           <div>
@@ -882,6 +914,32 @@
             <input type="number" id="wmMargin" value="44" min="10" max="200">
           </div>
         </div>
+
+        <div class="sec-title" style="margin-top:14px;">🖼 로고 · 채널명 자세히 (원본 비율 그대로)</div>
+        <div class="grid2">
+          <div><label class="lbl" for="lgSize">로고 크기 (px, 긴 쪽)</label>
+            <input type="number" id="lgSize" value="44" step="2" min="8" max="800"></div>
+          <div><label class="lbl" for="lgAlpha">로고 투명도 (%, 100=선명)</label>
+            <input type="number" id="lgAlpha" value="100" step="5" min="5" max="100"></div>
+          <div><label class="lbl" for="lgMode">로고 위치</label>
+            <select id="lgMode"><option value="auto">자동 (채널명 옆)</option><option value="free">직접 지정</option></select></div>
+          <div></div>
+          <div><label class="lbl" for="lgX">로고 가로 위치 (%, 가운데 기준)</label>
+            <input type="number" id="lgX" value="88" step="0.5" min="0" max="100"></div>
+          <div><label class="lbl" for="lgY">로고 세로 위치 (%, 가운데 기준)</label>
+            <input type="number" id="lgY" value="94" step="0.5" min="0" max="100"></div>
+          <div><label class="lbl" for="txMode">채널명 위치</label>
+            <select id="txMode"><option value="auto">자동 (위의 기준 위치)</option><option value="free">직접 지정</option></select></div>
+          <div></div>
+          <div><label class="lbl" for="txX">채널명 가로 위치 (%, 가운데 기준)</label>
+            <input type="number" id="txX" value="50" step="0.5" min="0" max="100"></div>
+          <div><label class="lbl" for="txY">채널명 세로 위치 (%, 가운데 기준)</label>
+            <input type="number" id="txY" value="94" step="0.5" min="0" max="100"></div>
+        </div>
+        <div class="row-flex" style="margin-top:8px;gap:8px;flex-wrap:wrap;">
+          <button type="button" class="ghost" id="wmDragBtn" style="padding:7px 12px;font-size:12.5px;">👆 손가락으로 끌어 옮기기 (폰) 켜기</button>
+        </div>
+        <p class="hint">오른쪽(또는 위) 미리보기에서 로고·채널명을 끌어서 옮길 수도 있어요. 컴퓨터는 마우스로 바로 끌고, 폰은 위 버튼을 켠 뒤 손가락으로 끌어요. 가로 0%=맨 왼쪽, 100%=맨 오른쪽 / 세로 0%=맨 위, 100%=맨 아래예요. 로고는 원본 비율 그대로 크기만 바뀌고, ‘원형(가운데만)’을 고를 때만 동그랗게 잘려요.</p>
       </div>
 
       <!-- 2. 색상 테마 템플릿 (12종) & 디자인 효과 -->
@@ -1050,18 +1108,28 @@
         <div class="sec-title">📷 사진 칸 (처음 모양)</div>
         <div class="grid2">
           <div><label class="lbl">사진 자리</label>
-            <select id="phPos"><option value="top">사진 위 · 글 아래</option><option value="bottom">글 위 · 사진 아래</option><option value="round">동그란 작은 사진 + 글</option></select></div>
-          <div><label class="lbl">사진 크기</label>
-            <select id="phSize"><option value="s">작게</option><option value="m">보통</option><option value="l">크게</option></select></div>
+            <select id="phPos"><option value="top">사진 위 · 글 아래</option><option value="bottom">글 위 · 사진 아래</option><option value="round">동그란 작은 사진 + 글</option><option value="bg">배경에 희미하게 깔기</option></select></div>
           <div><label class="lbl">사진 모양</label>
             <select id="phShape"><option value="rect">네모</option><option value="rounded">둥근 네모</option><option value="circle">동그라미</option></select></div>
-          <div><label class="lbl">테두리</label>
-            <select id="phBorder"><option value="none">없음</option><option value="thin">얇게</option><option value="thick">두껍게</option></select></div>
           <div><label class="lbl">사진 맞춤</label>
             <select id="phFit"><option value="cover">꽉 채우기 (넘치는 부분은 잘림)</option><option value="contain">사진 전체 보이기</option></select></div>
+          <div><label class="lbl" for="phH">사진 높이 (글 칸의 %)</label>
+            <input type="number" id="phH" value="40" step="1" min="5" max="90"></div>
+          <div><label class="lbl" for="phW">사진 너비 (글 칸의 %)</label>
+            <input type="number" id="phW" value="100" step="1" min="20" max="100"></div>
+          <div><label class="lbl" for="phDia">동그란 사진 지름 (px)</label>
+            <input type="number" id="phDia" value="300" step="10" min="80" max="900"></div>
+          <div><label class="lbl" for="phRad">모서리 둥글기 (px)</label>
+            <input type="number" id="phRad" value="46" step="2" min="0" max="300"></div>
+          <div><label class="lbl" for="phBW">테두리 두께 (px, 0=없음)</label>
+            <input type="number" id="phBW" value="0" step="1" min="0" max="40"></div>
+          <div><label class="lbl" for="phGap">사진과 글 사이 (px)</label>
+            <input type="number" id="phGap" value="34" step="2" min="0" max="200"></div>
+          <div><label class="lbl" for="phOp">배경 사진 진하기 (%)</label>
+            <input type="number" id="phOp" value="25" step="1" min="3" max="100"></div>
         </div>
         <label class="row-flex" style="margin-top:8px;gap:6px;"><input type="checkbox" id="phSample"> <span style="font-size:12.5px;font-weight:600;">미리보기에 예시 사진 자리 보기</span></label>
-        <p class="hint">글 쓰는 화면의 각 장에서 ‘＋ 사진’을 눌러 사진을 넣어요. 장마다 자리·크기·모양은 따로 바꿀 수 있고, 여기는 새 사진을 넣을 때의 처음 모양이에요. 테두리 색은 강조색을 따라가요.</p>
+        <p class="hint">글 쓰는 화면의 각 장에서 ‘＋ 사진’을 눌러 사진을 넣어요. 장마다 자리·크기·모양·숫자는 따로 바꿀 수 있고, 여기는 새 사진을 넣을 때의 처음 값이에요. 테두리 색은 강조색을 따라가요. ‘배경에 희미하게 깔기’는 숫자가 작을수록 더 흐려요.</p>
       </div>
 
       <div class="sec" data-tab="font" hidden>
@@ -1371,6 +1439,8 @@ let ADS = {yt:"", ig:""};             /* 이 글의 ‘유튜브/인스타 마�
 let NOTEOFF = {yt:false, ig:false};   /* 이 글에서 안내문구를 뺄지 (유튜브·인스타) */
 let PHMAP = [];                       /* 장 번호 → {item}: 이번에 그리는 글의 사진 배정 (render 가 정해 줍니다) */
 const PH = new Map();                 /* 사진 ID → {st:"loading"|"ok"|"fail", img, w, h, err, code}: 불러와 둔 사진 */
+let LASTWM = null;                    /* 마지막으로 그린 로고·채널명 자리 (‘직접 지정’으로 바꿀 때 지금 자리에서 시작하려고) */
+let RC = null;                         /* 마지막으로 그린 때의 장 목록·글꼴 (사진을 끌 때 한 장만 바로 다시 그리는 데 씁니다) */
 let PHUP = 0;                         /* 지금 올리는 중인 사진 수 */
 let dzView = "gen";                   /* 채널 디자인 화면: "gen" 일반 글 / "rev" 후기 설정을 고치는 중 */
 let dzGenSub = null;                  /* 후기 설정을 고치는 동안 맡겨 둔 ‘일반 글’의 같은 항목들 */
@@ -1420,7 +1490,7 @@ function defaultPresets(){
       name:"사랑추구권",
       aspectRatio:"1:1",
       wmType:"text", wmText:"사랑추구권", wmPos:"br",
-      logoDataUrl:"", logoShape:"circle", wmSize:30, wmAlpha:45, wmMargin:44,
+      logoDataUrl:"", logoShape:"orig", wmSize:30, wmAlpha:45, wmMargin:44,
       fontIdx:0, bodyBold:false, textAlign:"left", wrapMode:"auto",
       lineHeight:1.6, padX:110, padY:110, maxFont:66, coverCenter:true, coverBold:true,
       pageNumStyle:"slash", pageNumX:540, pageNumY:58, pageNumSize:32,
@@ -1556,7 +1626,7 @@ function applySettings(p){
   $("wmType").value = p.wmType ?? "text";
   $("wmText").value = p.wmText ?? "";
   $("wmPos").value = p.wmPos ?? "br";
-  $("logoShape").value = p.logoShape ?? "circle";
+  $("logoShape").value = p.logoShape ?? "orig";
   $("wmSize").value = p.wmSize ?? 30;
   $("wmAlpha").value = p.wmAlpha ?? 45;
   $("wmMargin").value = p.wmMargin ?? 44;
@@ -1599,6 +1669,10 @@ function applySettings(p){
   }
   $("splitDelim").value = p.splitDelim ?? "---";
   $("lastPageType").value = p.lastPageType ?? "auto";
+  /* 예전 채널: 사진 ‘작게·보통·크게’ / ‘테두리 없음·얇게·두껍게’ 는 숫자로 바꿔서 이어받습니다 */
+  if(p.phH == null && PH_LEG_H[p.phSize]) p = Object.assign({}, p, {phH:PH_LEG_H[p.phSize], phDia:PH_LEG_D[p.phSize]});
+  if(p.lgSize == null && p.wmSize != null) p = Object.assign({}, p, {lgSize:Math.max(8, Math.round(p.wmSize * 1.45))});     /* 예전엔 로고가 글자 크기의 1.45배 */
+  if(p.phBW == null && p.phBorder in PH_LEG_BW) p = Object.assign({}, p, {phBW:PH_LEG_BW[p.phBorder]});
   Object.keys(EXTRA).forEach(k=>{ $(k).value = p[k] ?? EXTRA[k]; });
   /* 쓰는 설명 칸 기본값: 저장된 값이 없는 예전 채널은 ‘새 글이 지금 시작하는 값’(가장 최근 글 설정)을 보여 줍니다 */
   const offList = Array.isArray(p.offFields) ? p.offFields : defaultOffFor(p, null);
@@ -1639,17 +1713,21 @@ $("logoFile").onchange = e => {
   reader.onload = ev => {
     const tempImg = new Image();
     tempImg.onload = ()=>{
-      const maxD = 240;
-      let w = tempImg.width, h = tempImg.height;
-      if(w > maxD || h > maxD){
-        if(w > h){ h = Math.round(h * maxD / w); w = maxD; }
-        else { w = Math.round(w * maxD / h); h = maxD; }
+      /* 원본 비율 그대로 줄입니다. 확대해도 덜 흐리도록 긴 쪽 512px 까지 두고, 저장 용량이 크면 더 줄여요 */
+      let url = "";
+      for(const maxD of [512, 384, 256]){
+        const k = Math.min(1, maxD / Math.max(tempImg.width, tempImg.height));
+        const w = Math.max(1, Math.round(tempImg.width * k)), h = Math.max(1, Math.round(tempImg.height * k));
+        const tc = document.createElement("canvas");
+        tc.width = w; tc.height = h;
+        const g = tc.getContext("2d");
+        g.imageSmoothingQuality = "high";
+        g.drawImage(tempImg, 0, 0, w, h);
+        url = tc.toDataURL("image/png");
+        if(url.length < 250000) break;
       }
-      const tc = document.createElement("canvas");
-      tc.width = w; tc.height = h;
-      tc.getContext("2d").drawImage(tempImg, 0, 0, w, h);
       if($("wmType").value === "text") $("wmType").value = "both";
-      setLogoFromDataUrl(tc.toDataURL("image/png"));
+      setLogoFromDataUrl(url);
     };
     tempImg.src = ev.target.result;
   };
@@ -1954,7 +2032,8 @@ const EXTRA = {letterSpacing:0, coverScale:1, textShadow:"none", strokeW:0, stro
   ytNumOn:"off", ytNumStyle:"circle", ytNumColor:"hl", ytNumCustom:"#ff6b6b", ytNumSize:76,
   ytAdStyle:"text", ytAdColor:"ink", ytAdCustom:"#ff6b6b", ytAdSize:34, ytAdAlign:"center", ytAdBold:"normal",
   igAdStyle:"text", igAdColor:"ink", igAdCustom:"#ff6b6b", igAdSize:34, igAdAlign:"center", igAdBold:"normal",
-  phPos:"top", phSize:"m", phShape:"rounded", phBorder:"none", phFit:"cover"};
+  phPos:"top", phShape:"rounded", phFit:"cover", phH:40, phW:100, phDia:300, phRad:46, phBW:0, phGap:34, phOp:25,
+  lgMode:"auto", lgSize:44, lgAlpha:100, lgX:88, lgY:94, txMode:"auto", txX:50, txY:94};
 function getOpt(k){
   const v = $(k).value;
   if(typeof EXTRA[k] !== "number") return v;
@@ -2731,12 +2810,16 @@ function drawFrameAndDeco(ctx, H, bgCol, inkCol, hlCol, padX, padY){
    - 어느 장의 사진인지는 그 장의 첫 줄(k)로 찾고, 글을 고쳐서 첫 줄이 바뀌면 장 번호(pg)로 이어서 찾아요
    ===================================================================== */
 const PH_ID = /^[A-Za-z0-9_-]{20,80}$/;
-const PH_POS = ["top", "bottom", "round"], PH_SZ = ["s", "m", "l"], PH_SH = ["rect", "rounded", "circle"], PH_FIT = ["cover", "contain"];
-const PH_FRAC = {s:0.30, m:0.40, l:0.50};         /* 글 칸 높이에 대한 사진 높이 */
-const PH_ROUND_D = {s:230, m:300, l:380};         /* 동그란 작은 사진의 지름 */
-const PH_GAP = 34;                                /* 사진과 글 사이 */
+const PH_POS = ["top", "bottom", "round", "bg"], PH_SZ = ["s", "m", "l"], PH_SH = ["rect", "rounded", "circle"], PH_FIT = ["cover", "contain"];
+const PH_LEG_H = {s:30, m:40, l:50};              /* ‘작게·보통·크게’ = 글 칸 높이에 대한 사진 높이(%) */
+const PH_LEG_D = {s:230, m:300, l:380};           /* 동그란 작은 사진의 지름(px) */
+const PH_LEG_BW = {none:0, thin:6, thick:14};     /* 예전 ‘테두리 없음·얇게·두껍게’ */
 const PH_MAX_ITEMS = 40;
-const PH_BORDER_W = {none:0, thin:6, thick:14};
+/* 숫자로 조절하는 항목 [최소, 최대]: hp 사진 높이(%) · wp 사진 너비(%) · dm 동그란 사진 지름(px) · rd 모서리 둥글기(px)
+   bw 테두리 두께(px) · gp 사진과 글 사이(px) · zm 확대(%) · op 배경 사진 진하기(%) */
+const PH_NUM = {hp:[5, 90], wp:[20, 100], dm:[80, 900], rd:[0, 300], bw:[0, 40], gp:[0, 200], zm:[100, 500], op:[3, 100]};
+const PH_STYLE_KEYS = ["pos", "sz", "sh", "fit", "hp", "wp", "dm", "rd", "bw", "gp", "zm", "op"];
+const phNumClamp = (k, v) => { const r = PH_NUM[k]; v = Number(v); return r && isFinite(v) ? Math.max(r[0], Math.min(r[1], Math.round(v))) : null; };
 const phClamp01 = v => { v = Number(v); return isFinite(v) ? Math.max(0, Math.min(1, v)) : 0.5; };
 
 /* 저장된 한 줄 → 안전한 모양으로 (모르는 값은 버립니다) */
@@ -2747,6 +2830,7 @@ function phNorm(x){
   if(PH_SZ.includes(x.sz)) it.sz = x.sz;
   if(PH_SH.includes(x.sh)) it.sh = x.sh;
   if(PH_FIT.includes(x.fit)) it.fit = x.fit;
+  Object.keys(PH_NUM).forEach(k => { if(x[k] != null){ const n = phNumClamp(k, x[k]); if(n != null) it[k] = n; } });
   if(x.fx != null) it.fx = phClamp01(x.fx);
   if(x.fy != null) it.fy = phClamp01(x.fy);
   return it;
@@ -2768,7 +2852,7 @@ function phItems(c){
 }
 function phOut(it){
   const o = {id:it.id, k:it.k, pg:it.pg};
-  ["pos", "sz", "sh", "fit"].forEach(k => { if(it[k]) o[k] = it[k]; });
+  PH_STYLE_KEYS.forEach(k => { if(it[k] != null && it[k] !== "") o[k] = it[k]; });
   if(it.fx != null) o.fx = Math.round(it.fx * 1000) / 1000;
   if(it.fy != null) o.fy = Math.round(it.fy * 1000) / 1000;
   return o;
@@ -2798,7 +2882,8 @@ function phAssign(items, keys){
   const n = keys.length, out = new Array(n).fill(null), used = new Set();
   items.forEach(it => {
     if(!it.k) return;
-    const i = keys.findIndex((k, j) => k === it.k && !out[j]);
+    let i = it.pg >= 0 && it.pg < n && keys[it.pg] === it.k && !out[it.pg] ? it.pg : -1;      /* 첫 줄이 같은 장이 여럿이면 원래 자리 먼저 */
+    if(i < 0) i = keys.findIndex((k, j) => k === it.k && !out[j]);
     if(i >= 0){ out[i] = it; used.add(it); }
   });
   items.forEach(it => {
@@ -2845,12 +2930,19 @@ function phSigOf(pi){
   const m = PHMAP[pi];
   if(!m) return "";
   const it = m.item, e = it.sample ? null : PH.get(it.id);
-  return "|p" + [it.lid || it.id, it.pos || "", it.sz || "", it.sh || "", it.fit || "", it.fx == null ? "" : it.fx, it.fy == null ? "" : it.fy, e ? e.st : "s"].join(",");
+  return "|p" + [it.lid || it.id, it.pos || "", it.sz || "", it.sh || "", it.fit || "", it.fx == null ? "" : it.fx, it.fy == null ? "" : it.fy,
+    ...Object.keys(PH_NUM).map(k => it[k] == null ? "" : it[k]), e ? e.st : "s"].join(",");
 }
+/* 이 사진의 실제 값: 사진마다 정한 값 → 없으면 채널 디자인의 처음 값 */
 function phParams(it){
+  const g = (k, ch) => it[k] != null ? it[k] : phNumClamp(k, getOpt(ch));
+  const leg = PH_SZ.includes(it.sz) ? it.sz : "";
   return {
-    pos: it.pos || getOpt("phPos"), sz: it.sz || getOpt("phSize"), sh: it.sh || getOpt("phShape"),
-    fit: it.fit || getOpt("phFit"), border: getOpt("phBorder"),
+    pos: it.pos || getOpt("phPos"), sh: it.sh || getOpt("phShape"), fit: it.fit || getOpt("phFit"),
+    hp: it.hp != null ? it.hp : (leg ? PH_LEG_H[leg] : phNumClamp("hp", getOpt("phH"))),
+    dm: it.dm != null ? it.dm : (leg ? PH_LEG_D[leg] : phNumClamp("dm", getOpt("phDia"))),
+    wp: g("wp", "phW"), rd: g("rd", "phRad"), bw: g("bw", "phBW"), gp: g("gp", "phGap"), op: g("op", "phOp"),
+    zm: it.zm != null ? it.zm : 100,
     fx: it.fx == null ? 0.5 : it.fx, fy: it.fy == null ? 0.5 : it.fy
   };
 }
@@ -2859,14 +2951,18 @@ function phParams(it){
 let phDbP = null;
 function phDb(){
   if(phDbP) return phDbP;
-  phDbP = new Promise(res => {
+  const me = phDbP = new Promise(res => {
     try{
       const rq = indexedDB.open("card_photo_cache", 1);
       rq.onupgradeneeded = () => {
         const db = rq.result;
         if(!db.objectStoreNames.contains("p")){ const st = db.createObjectStore("p", {keyPath:"id"}); st.createIndex("t", "t"); }
       };
-      rq.onsuccess = () => res(rq.result);
+      rq.onsuccess = () => {
+        const db = rq.result;
+        db.onversionchange = () => { try{ db.close(); }catch(e){} if(phDbP === me) phDbP = null; };      /* 다른 곳에서 보관함을 지우거나 새로 만들 때 길을 비켜 줍니다 */
+        res(db);
+      };
       rq.onerror = () => res(null);
       rq.onblocked = () => res(null);
     }catch(e){ res(null); }
@@ -2962,7 +3058,7 @@ function phEnsure(id, force){
 }
 
 /* ---------- 그리기 ---------- */
-const phRadius = r => Math.min(46, Math.min(r.w, r.h) * 0.12);
+const phRadius = (r, rd) => Math.max(0, Math.min(rd == null ? 46 : rd, Math.min(r.w, r.h) / 2));
 function phShapePath(ctx, r, shape, rad){
   ctx.beginPath();
   if(shape === "circle") ctx.arc(r.x + r.w / 2, r.y + r.h / 2, Math.min(r.w, r.h) / 2, 0, Math.PI * 2);
@@ -2971,11 +3067,11 @@ function phShapePath(ctx, r, shape, rad){
 }
 /* 사진 자리를 정합니다. 글이 길면 글을 먼저 줄이고, 그래도 모자라면 사진을 줄여요 (shrunk = 사진을 줄였음) */
 function phPlan(o){
-  const P = phParams(o.item), areaH = o.areaH, gap = PH_GAP;
+  const P = phParams(o.item), areaH = o.areaH, gap = P.gp;
   let pos = P.pos;
   if(o.page.cta && pos === "bottom") pos = "top";                 /* 마무리 장은 아래에 버튼이 있어요 */
   const round = pos === "round";
-  const base = round ? Math.min(PH_ROUND_D[P.sz] || 300, Math.round(areaH * 0.5), o.maxW) : Math.round(areaH * (PH_FRAC[P.sz] || 0.4));
+  const base = round ? Math.min(P.dm, Math.round(areaH * 0.75), o.maxW) : Math.round(areaH * P.hp / 100);
   const minH = Math.min(base, round ? 130 : Math.round(areaH * 0.16));
   let h = base;
   if(o.page.type === "plain" && o.fitFn){
@@ -2990,15 +3086,22 @@ function phPlan(o){
     h = Math.max(minH, Math.min(base, Math.round(areaH * lim)));
   }
   const circle = round || P.sh === "circle";
-  const rect = {x:circle ? Math.round((WIDTH - h) / 2) : o.padX, y:o.padY, w:circle ? h : o.maxW, h};
+  const w = circle ? h : Math.max(40, Math.round(o.maxW * P.wp / 100));
+  const rect = {x:circle ? Math.round((WIDTH - h) / 2) : o.padX + Math.round((o.maxW - w) / 2), y:o.padY, w, h};
   let tTop = o.padY + h + gap;
   if(pos === "bottom"){ rect.y = o.padY + areaH - h; tTop = o.padY; }
-  return {P, pos, rect, shape:round ? "circle" : P.sh, tTop, tH:areaH - h - gap, shrunk:h < base, item:o.item};
+  return {P, pos, rect, shape:round ? "circle" : P.sh, tTop, tH:areaH - h - gap, shrunk:h < base, item:o.item, alpha:1};
+}
+/* 배경 사진: 장 전체에 깔고 글 자리는 그대로 둡니다 */
+function phPlanBg(item, H){
+  const P = phParams(item);
+  return {P, pos:"bg", rect:{x:0, y:0, w:WIDTH, h:H}, shape:"rect", tTop:0, tH:0, shrunk:false, item, alpha:P.op / 100, bg:true};
 }
 /* 사진(또는 자리표시)을 그립니다. 그린 뒤의 실제 칸 크기와 사진이 넘치는 길이를 돌려줘요 (끌어서 옮길 때 씁니다) */
 function phPaint(ctx, plan, colors){
   const P = plan.P, it = plan.item, e = it.sample ? null : PH.get(it.id);
   const ready = !!(e && e.st === "ok" && e.img);
+  const bg = !!plan.bg;
   let fr = Object.assign({}, plan.rect), ow = 0, oh = 0;
   if(ready && P.fit === "contain" && plan.shape !== "circle"){
     /* 사진 전체 보이기: 칸을 사진 비율로 줄여서 테두리·모서리가 사진에 딱 붙게 */
@@ -3006,47 +3109,128 @@ function phPaint(ctx, plan, colors){
     const w = Math.round(e.w * k), h = Math.round(e.h * k);
     fr = {x:fr.x + Math.round((fr.w - w) / 2), y:fr.y + Math.round((fr.h - h) / 2), w, h};
   }
+  const rad = plan.shape === "rounded" ? phRadius(fr, P.rd) : 0;
   ctx.save();
-  phShapePath(ctx, fr, plan.shape);
+  phShapePath(ctx, fr, plan.shape, rad);
   ctx.clip();
   if(ready){
+    ctx.globalAlpha = plan.alpha;
     if(P.fit === "contain" && plan.shape === "circle"){
-      ctx.fillStyle = colors.ink; ctx.globalAlpha = 0.07; ctx.fillRect(fr.x, fr.y, fr.w, fr.h); ctx.globalAlpha = 1;
+      ctx.fillStyle = colors.ink; ctx.globalAlpha = 0.07 * plan.alpha; ctx.fillRect(fr.x, fr.y, fr.w, fr.h); ctx.globalAlpha = plan.alpha;
     }
-    const k = P.fit === "contain" ? Math.min(fr.w / e.w, fr.h / e.h) : Math.max(fr.w / e.w, fr.h / e.h);
+    const cov = P.fit !== "contain";
+    const k = cov ? Math.max(fr.w / e.w, fr.h / e.h) * (P.zm / 100) : Math.min(fr.w / e.w, fr.h / e.h);
     const dw = e.w * k, dh = e.h * k;
     ow = Math.max(0, dw - fr.w); oh = Math.max(0, dh - fr.h);
-    const dx = fr.x - ow * P.fx + (P.fit === "contain" ? (fr.w - dw) / 2 : 0);
-    const dy = fr.y - oh * P.fy + (P.fit === "contain" ? (fr.h - dh) / 2 : 0);
+    const dx = fr.x - ow * P.fx + (cov ? 0 : (fr.w - dw) / 2);
+    const dy = fr.y - oh * P.fy + (cov ? 0 : (fr.h - dh) / 2);
     ctx.imageSmoothingQuality = "high";
     ctx.drawImage(e.img, dx, dy, dw, dh);
   }else{
     const g = ctx.createLinearGradient(fr.x, fr.y, fr.x + fr.w, fr.y + fr.h);
     g.addColorStop(0, colors.hl); g.addColorStop(1, colors.ink);
-    ctx.globalAlpha = 0.16; ctx.fillStyle = g; ctx.fillRect(fr.x, fr.y, fr.w, fr.h);
+    ctx.globalAlpha = bg ? 0.12 : 0.16; ctx.fillStyle = g; ctx.fillRect(fr.x, fr.y, fr.w, fr.h);
     ctx.globalAlpha = 0.55; ctx.fillStyle = colors.ink;
     ctx.textAlign = "center"; ctx.textBaseline = "middle";
     try{ ctx.letterSpacing = "0px"; }catch(err){}
-    const size = Math.max(22, Math.min(40, Math.round(Math.min(fr.w, fr.h) / 7)));
+    const size = bg ? 34 : Math.max(22, Math.min(40, Math.round(Math.min(fr.w, fr.h) / 7)));
     ctx.font = `600 ${size}px "Pretendard","Noto Sans KR",sans-serif`;
-    const label = it.sample ? "사진 자리 (예시)" : (e && e.st === "fail" ? "사진을 불러오지 못했어요" : "사진 불러오는 중…");
-    ctx.fillText(label, fr.x + fr.w / 2, fr.y + fr.h / 2);
+    const label = it.sample ? (bg ? "배경 사진 자리 (예시)" : "사진 자리 (예시)") : (e && e.st === "fail" ? "사진을 불러오지 못했어요" : "사진 불러오는 중…");
+    ctx.fillText(label, fr.x + fr.w / 2, bg ? fr.y + 60 : fr.y + fr.h / 2);
   }
   ctx.restore();
-  const bw = PH_BORDER_W[P.border] || 0;
-  if(bw){
+  const bw = bg ? 0 : P.bw;
+  if(bw > 0){
     ctx.save();
     const inset = {x:fr.x + bw / 2, y:fr.y + bw / 2, w:fr.w - bw, h:fr.h - bw};
-    phShapePath(ctx, inset, plan.shape, Math.max(0, phRadius(fr) - bw / 2));      /* 테두리 바깥 모서리가 사진 모서리와 딱 맞게 */
+    phShapePath(ctx, inset, plan.shape, Math.max(0, rad - bw / 2));      /* 테두리 바깥 모서리가 사진 모서리와 딱 맞게 */
     ctx.lineWidth = bw; ctx.strokeStyle = colors.hl; ctx.globalAlpha = 1;
     ctx.stroke();
     ctx.restore();
   }
-  return {rect:fr, ow, oh, fit:P.fit, shrunk:plan.shrunk, pos:plan.pos, ready};
+  return {rect:fr, ow, oh, fit:P.fit, shrunk:plan.shrunk, pos:plan.pos, ready, bg};
+}
+
+/* 워터마크(로고 + 채널명). 로고는 원본 비율 그대로 크기만 바꾸고, 위치는 ‘자동(채널명 옆)’ 또는 ‘직접 지정(가로·세로 %)’이에요.
+   그린 로고·채널명의 자리(x, y, w, h)를 돌려줘요 (미리보기에서 끌어 옮길 때 씁니다) */
+function drawWatermark(ctx, H, f, inkCol){
+  const out = {logo:null, text:null};
+  const wmType = $("wmType").value;
+  if(wmType === "none") return out;
+  const wmText = $("wmText").value.trim();
+  const wmPos = $("wmPos").value;
+  const wmSize = Number($("wmSize").value) || 30;
+  const wmAlpha = (Number($("wmAlpha").value) || 45) / 100;
+  const margin = Number($("wmMargin").value) || 44;
+  const shape = $("logoShape").value;
+  const showLogo = (wmType === "both" || wmType === "logo") && !!logoImg;
+  const showText = (wmType === "both" || wmType === "text") && !!wmText;
+  if(!showLogo && !showText) return out;
+  const lgFree = showLogo && getOpt("lgMode") === "free";
+  const txFree = showText && getOpt("txMode") === "free";
+  const pct = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+  ctx.save();
+  try{ ctx.letterSpacing = "0px"; }catch(e){}
+  ctx.fillStyle = inkCol;
+  ctx.font = `${f.wmWeight ?? f.weight} ${wmSize}px "${f.family}", "Pretendard", sans-serif`;
+  ctx.textBaseline = "middle";
+  const textW = showText ? ctx.measureText(wmText).width : 0;
+  /* 로고 크기: 원본 가로세로 비율 그대로, 긴 쪽이 ‘로고 크기’. (원형만 가운데를 동그랗게 잘라 정사각형이 됩니다) */
+  let lw = 0, lh = 0, iw = 0, ih = 0;
+  if(showLogo){
+    iw = logoImg.naturalWidth || logoImg.width; ih = logoImg.naturalHeight || logoImg.height;
+    const S0 = Math.max(8, getOpt("lgSize")), k = S0 / Math.max(iw, ih, 1);
+    if(shape === "circle") lw = lh = S0;
+    else{ lw = Math.max(1, Math.round(iw * k)); lh = Math.max(1, Math.round(ih * k)); }
+  }
+  /* 자동 자리: 로고(자동일 때)와 채널명(자동일 때)을 한 줄로 묶어 기준 위치에 */
+  const inLogo = showLogo && !lgFree, inText = showText && !txFree;
+  const gap = inLogo && inText ? 10 : 0;
+  const groupW = (inLogo ? lw : 0) + gap + (inText ? textW : 0);
+  const rowH = Math.max(inText ? wmSize : 0, inLogo ? lh : 0, wmSize);
+  const top = wmPos === "tc" || wmPos === "tr";
+  const gy = top ? margin + rowH / 2 : H - margin - rowH / 2;
+  let gx = WIDTH - margin - groupW;
+  if(wmPos === "bl") gx = margin;
+  else if(wmPos === "tc") gx = (WIDTH - groupW) / 2;
+  let lx = gx, ly = gy - lh / 2;
+  if(lgFree){ lx = pct(getOpt("lgX"), 0, 100) / 100 * WIDTH - lw / 2; ly = pct(getOpt("lgY"), 0, 100) / 100 * H - lh / 2; }
+  if(showLogo){
+    ctx.save();
+    ctx.globalAlpha = pct(getOpt("lgAlpha"), 0, 100) / 100;
+    ctx.imageSmoothingQuality = "high";
+    if(shape === "circle"){
+      ctx.beginPath(); ctx.arc(lx + lw / 2, ly + lh / 2, lw / 2, 0, Math.PI * 2); ctx.closePath(); ctx.clip();
+      const sq = Math.min(iw, ih);
+      ctx.drawImage(logoImg, (iw - sq) / 2, (ih - sq) / 2, sq, sq, lx, ly, lw, lh);
+    }else{
+      if(shape === "round"){ ctx.beginPath(); ctx.roundRect(lx, ly, lw, lh, Math.min(lw, lh) * 0.22); ctx.closePath(); ctx.clip(); }
+      ctx.drawImage(logoImg, lx, ly, lw, lh);
+    }
+    ctx.restore();
+    out.logo = {x:lx, y:ly, w:lw, h:lh};
+  }
+  if(showText){
+    ctx.globalAlpha = wmAlpha;
+    let tx, ty;
+    if(txFree){
+      ctx.textAlign = "center";
+      tx = pct(getOpt("txX"), 0, 100) / 100 * WIDTH; ty = pct(getOpt("txY"), 0, 100) / 100 * H;
+      out.text = {x:tx - textW / 2, y:ty - wmSize / 2, w:textW, h:wmSize};
+    }else{
+      ctx.textAlign = "left";
+      tx = gx + (inLogo ? lw + gap : 0); ty = gy;
+      out.text = {x:tx, y:ty - wmSize / 2, w:textW, h:wmSize};
+    }
+    ctx.fillText(wmText, tx, ty + 1);
+  }
+  ctx.restore();
+  return out;
 }
 
 /* ig = true 이면 인스타 공유용 (마지막 장에 안내 줄 + VS 장이면 1·2 숫자). 기본은 유튜브용(다운로드) 이미지 */
-function draw(page, idx, total, f, ig){
+function draw(page, idx, total, f, ig, opt){
+  opt = opt || {};          /* opt.skipBg = 바탕색 안 깔기, opt.skipPhoto = 사진 안 그리기, opt.skipWm = 로고·채널명 안 그리기 (그 부분만 빠르게 다시 그릴 때 씁니다) */
   const H = getHeight();
   const c = document.createElement("canvas");
   c.width = WIDTH;
@@ -3067,8 +3251,16 @@ function draw(page, idx, total, f, ig){
   const lhRatio = Number($("lineHeight").value) || 1.6;
   const footH = 70;
 
-  ctx.fillStyle = bgCol;
-  ctx.fillRect(0, 0, WIDTH, H);
+  if(!opt.skipBg){
+    ctx.fillStyle = bgCol;
+    ctx.fillRect(0, 0, WIDTH, H);
+  }
+
+  /* 배경 사진: 바탕색 바로 위에 희미하게 깔고, 그 위에 무늬·틀·글을 얹습니다. 글 자리는 그대로예요 */
+  const phM = PHMAP[idx];
+  const phBg = !!(phM && phParams(phM.item).pos === "bg");
+  let phInfo = null;
+  if(phBg && !opt.skipPhoto) phInfo = phPaint(ctx, phPlanBg(phM.item, H), {ink:inkCol, hl:hlCol});
 
   drawBgPattern(ctx, H, inkCol, hlCol, getOpt("bgPattern"));
   drawFrameAndDeco(ctx, H, bgCol, inkCol, hlCol, padX, padY);
@@ -3113,17 +3305,17 @@ function draw(page, idx, total, f, ig){
   const areaH = adBox ? Math.max(240, bodyBottom - padY) : bodyBottom - padY;
 
   /* 사진 칸: 사진을 그리고 남은 자리(tTop, tH)에 글을 넣습니다. 사진이 없으면 원래 자리(padY, areaH) 그대로예요 */
-  let tTop = padY, tH = areaH, phInfo = null;
-  const phM = PHMAP[idx];
-  if(phM && areaH > 380){
+  let tTop = padY, tH = areaH, phPlanned = null;
+  if(phM && !phBg && areaH > 380){
     const plan = phPlan({
       page, item:phM.item, areaH, padX, padY, maxW, chars:pageToRawString(page).length,
       fitFn: page.type === "plain" ? (h => fit(ctx, css, [page.text], maxW, h - (page.cta ? 140 : 0), isCover ? maxFont * getOpt("coverScale") : maxFont, getOpt("minFont"), lhRatio)) : null
     });
-    phInfo = phPaint(ctx, plan, {ink:inkCol, hl:hlCol});
+    if(!opt.skipPhoto) phInfo = phPaint(ctx, plan, {ink:inkCol, hl:hlCol});
+    phPlanned = plan;
     tTop = plan.tTop; tH = plan.tH;
   }
-  c._phi = phInfo;
+  c._phi = phInfo; c._plan = phPlanned;
 
   if(page.type === "plain"){
     const ah = page.cta ? tH - 140 : tH;
@@ -3211,63 +3403,7 @@ function draw(page, idx, total, f, ig){
     ctx.restore();
   }
 
-  const wmType = $("wmType").value;
-  if(wmType !== "none"){
-    const wmText = $("wmText").value.trim();
-    const wmPos = $("wmPos").value;
-    const wmSize = Number($("wmSize").value) || 30;
-    const wmAlpha = (Number($("wmAlpha").value) || 45) / 100;
-    const margin = Number($("wmMargin").value) || 44;
-    const shape = $("logoShape").value;
-
-    const showLogo = (wmType === "both" || wmType === "logo") && logoImg;
-    const showText = (wmType === "both" || wmType === "text") && wmText;
-
-    if(showLogo || showText){
-      ctx.save();
-      try{ ctx.letterSpacing = "0px"; }catch(e){}
-      ctx.globalAlpha = wmAlpha;
-      ctx.fillStyle = inkCol;
-      ctx.font = `${f.wmWeight ?? f.weight} ${wmSize}px "${f.family}", "Pretendard", sans-serif`;
-      ctx.textBaseline = "middle";
-
-      const textW = showText ? ctx.measureText(wmText).width : 0;
-      const iconS = showLogo ? Math.round(wmSize * 1.45) : 0;
-      const gap = (showLogo && showText) ? 10 : 0;
-      const groupW = iconS + gap + textW;
-
-      let gx = WIDTH - margin - groupW;
-      let gy = H - margin - wmSize/2;
-
-      if(wmPos === "bl"){ gx = margin; gy = H - margin - wmSize/2; }
-      else if(wmPos === "tc"){ gx = (WIDTH - groupW)/2; gy = margin + wmSize/2; }
-      else if(wmPos === "tr"){ gx = WIDTH - margin - groupW; gy = margin + wmSize/2; }
-
-      if(showLogo){
-        const ix = gx, iy = gy - iconS/2;
-        ctx.save();
-        if(shape === "circle"){
-          ctx.beginPath();
-          ctx.arc(ix + iconS/2, gy, iconS/2, 0, Math.PI*2);
-          ctx.closePath();
-          ctx.clip();
-        }else if(shape === "round"){
-          ctx.beginPath();
-          ctx.roundRect(ix, iy, iconS, iconS, iconS * 0.22);
-          ctx.closePath();
-          ctx.clip();
-        }
-        ctx.drawImage(logoImg, ix, iy, iconS, iconS);
-        ctx.restore();
-      }
-
-      if(showText){
-        ctx.textAlign = "left";
-        ctx.fillText(wmText, gx + iconS + gap, gy + 1);
-      }
-      ctx.restore();
-    }
-  }
+  c._wm = opt.skipWm ? null : drawWatermark(ctx, H, f, inkCol);
 
   return c;
 }
@@ -3316,9 +3452,12 @@ function makeCard(){
   pn.className = "ph-pn"; pn.hidden = true;
   const img = document.createElement("img");
   img.decoding = "async";
-  card.append(head, pn, img);
+  const lv = document.createElement("canvas");
+  lv.className = "ph-live";
+  card.append(head, pn, img, lv);
+  card._lv = lv; card._live = null; card._lvRaf = 0; card._lvFull = false; card._cmT = 0; card._pnS = "";
   card._num = num; card._type = type; card._dl = dl; card._img = img; card._sig = "";
-  card._pb = pb; card._pn = pn; card._pi = 0; card._ig = false; card._phi = null; card._adj = false; card._drag = null;
+  card._pb = pb; card._pn = pn; card._pi = 0; card._ig = false; card._phi = null; card._adj = false; card._drag = null; card._wm = null; card._wd = null;
   /* 사진 칸: 버튼을 누르면 설정 칸이 열리고 닫혀요 */
   pb.addEventListener("click", () => {
     if(!phCan()) return;
@@ -3335,38 +3474,70 @@ function makeCard(){
     if(a === "pick") phPick(pi);
     else if(a === "rm") phRemove(c, pi);
     else if(a === "clean") phClean(c);
+    else if(a === "reset") phReset(c, pi);
     else if(a === "adj"){ card._adj = !card._adj; phCardUpdate(card); }
     else if(a === "retry"){
       const m = PHMAP[pi];
       if(m && !m.item.sample && !m.item.tmp){ phEnsure(m.item.id, true); scheduleRender(false); }
     }
   });
-  /* 사진이 ‘꽉 채우기’일 때, ‘보이는 부분 움직이기’를 켜 두면 이미지 위에서 끌어서 보이는 부분을 옮겨요 */
+  /* 숫자 칸·밀대: 움직이는 동안은 이 장만 바로 다시 그려 보여 주고, 멈추면 저장·미리보기 이미지를 새로 만들어요 */
+  pn.addEventListener("input", ev => { if(ev.target.dataset && ev.target.dataset.n) phNumInput(card, ev.target, false); });
+  pn.addEventListener("change", ev => { if(ev.target.dataset && ev.target.dataset.n) phNumInput(card, ev.target, true); });
+  pn.addEventListener("toggle", ev => { if(ev.target.tagName === "DETAILS") phNumOpen = ev.target.open; }, true);
+  /* 사진이 ‘꽉 채우기’일 때 보이는 부분 옮기기: 컴퓨터는 사진 위를 그냥 끌면 되고, 폰은 ‘보이는 부분 움직이기’를 켠 뒤 끌어요 */
   img.addEventListener("pointerdown", ev => {
-    const m = PHMAP[card._pi], ph = card._phi;
-    if(!card._adj || !m || m.item.sample || !ph || ph.fit !== "cover" || !(ph.ow > 1 || ph.oh > 1)) return;
-    const rc = img.getBoundingClientRect();
-    if(!rc.width) return;
-    const P = phParams(m.item);
-    card._drag = {id:ev.pointerId, x:ev.clientX, y:ev.clientY, fx:P.fx, fy:P.fy, sc:WIDTH / rc.width, ow:ph.ow, oh:ph.oh};
+    const wh = wmHit(card, ev);
+    if(wh){
+      const r = card._wm[wh.t];
+      card._wd = {id:ev.pointerId, t:wh.t, x:ev.clientX, y:ev.clientY, sc:wh.sc, cx:r.x + r.w / 2, cy:r.y + r.h / 2};
+      img.classList.add("grabbing");
+      try{ img.setPointerCapture(ev.pointerId); }catch(e){}
+      ev.preventDefault();
+      return;
+    }
+    const hit = phHit(card, ev);
+    if(!hit) return;
+    const m = PHMAP[card._pi], P = phParams(m.item);
+    card._drag = {id:ev.pointerId, x:ev.clientX, y:ev.clientY, fx:P.fx, fy:P.fy, sc:hit.sc, ow:card._phi.ow, oh:card._phi.oh};
+    img.classList.add("grabbing");
     try{ img.setPointerCapture(ev.pointerId); }catch(e){}
     ev.preventDefault();
   });
   img.addEventListener("pointermove", ev => {
-    const d = card._drag, m = PHMAP[card._pi];
-    if(!d || ev.pointerId !== d.id || !m) return;
+    const w = card._wd;
+    if(w){
+      if(ev.pointerId !== w.id) return;
+      wmDragTo(card, w, w.cx + (ev.clientX - w.x) * w.sc, w.cy + (ev.clientY - w.y) * w.sc);
+      return;
+    }
+    const d = card._drag;
+    if(!d){ if(ev.pointerType === "mouse") img.classList.toggle("can-drag", !!wmHit(card, ev) || !!phHit(card, ev)); return; }
+    const m = PHMAP[card._pi];
+    if(ev.pointerId !== d.id || !m) return;
     const dx = (ev.clientX - d.x) * d.sc, dy = (ev.clientY - d.y) * d.sc;
     if(d.ow > 1) m.item.fx = phClamp01(d.fx - dx / d.ow);
     if(d.oh > 1) m.item.fy = phClamp01(d.fy - dy / d.oh);
-    scheduleRender(false);
+    phLiveSoon(card, false);
   });
   const endDrag = ev => {
-    if(!card._drag || ev.pointerId !== card._drag.id) return;
+    const w = card._wd;
+    if(w){
+      if(ev.pointerId !== w.id) return;
+      card._wd = null; img.classList.remove("grabbing");
+      wmDragEnd(card, w);
+      return;
+    }
+    const d = card._drag;
+    if(!d || ev.pointerId !== d.id) return;
     card._drag = null;
-    if(S.cur) phSave(S.cur);
+    img.classList.remove("grabbing");
+    phCommit(card);
   };
   img.addEventListener("pointerup", endDrag);
   img.addEventListener("pointercancel", endDrag);
+  img.addEventListener("pointerleave", () => { if(!card._drag) img.classList.remove("can-drag"); });
+  img.addEventListener("dragstart", ev => { if(card._drag || card._wd) ev.preventDefault(); });
   return card;
 }
 
@@ -3376,7 +3547,8 @@ async function render(){
   const list = $("list");
   syncLastQuick();
   if(!snapPages.length){
-    PHMAP = [];
+    PHMAP = []; RC = null;
+    phStripUpdate();
     canvases = []; blobs = []; igBlobs = [];
     list.textContent = "";
     $("bottomActions").hidden = true;
@@ -3403,6 +3575,7 @@ async function render(){
   igRender = {key: S.cur ? S.cur.key : "", off: igOffNow, noteOff: NOTEOFF.ig};
   ADS = currentAds();
   PHMAP = phMapFor(snapPages);
+  RC = {pages:snapPages, n, f};
   /* 인스타용 마지막 장은 유튜브용(다운로드)과 다를 때만 한 장 더 만듭니다:
      - 인스타 쪽에 넣을 것이 있을 때 (안내문구, VS 숫자, 또는 이 글의 ‘인스타 마지막 광고’)
      - 유튜브 쪽에 넣을 것이 있을 때 (유튜브 안내문구·VS 숫자, 또는 이 글의 ‘유튜브 마지막 광고’) → 인스타 공유 이미지에 유튜브용 문구가 섞이지 않게 */
@@ -3425,7 +3598,8 @@ async function render(){
     const made = await Promise.all(todo.map(t => toBlob(t.c)));
     if(myJob !== renderJobId) return;     /* 그사이 새 그리기가 시작됐으면 이번 것은 버립니다 */
     todo.forEach((t, k)=>{
-      const e = {sig: t.sig, blob: made[k], url: URL.createObjectURL(made[k]), ph: t.c._phi || null};
+      const e = {sig: t.sig, blob: made[k], url: URL.createObjectURL(made[k]), ph: t.c._phi || null, wm: t.c._wm || null};
+      if(t.c._wm) LASTWM = t.c._wm;
       entries[t.i] = e;
       if(fontsOk) imgCache.set(t.sig, e);
     });
@@ -3443,10 +3617,12 @@ async function render(){
       /* 이미지 크기를 미리 알려 두면 그리는 동안 화면이 밀리지 않습니다 */
       card._img.width = WIDTH; card._img.height = getHeight();
       card._img.src = e.url; card._sig = e.sig;
-    }
+      card._live = null;
+      if(card._lvOn && !card._drag && !card._wd){ const off = () => phLiveOff(card); card._img.decode ? card._img.decode().then(off, off) : off(); }
+    }else if(card._lvOn && !card._drag && !card._wd) phLiveOff(card);
     card._img.alt = ig ? `${n}번 이미지 (인스타용)` : `${i+1}번 이미지`;
     card._dl.onclick = () => { download(e.blob, fname(pi, n)); markUsed("dl"); };
-    card._pi = pi; card._ig = ig; card._phi = e.ph;
+    card._pi = pi; card._ig = ig; card._phi = e.ph; card._wm = e.wm;
     phCardUpdate(card);
   }
   while(list.children.length > m) list.lastElementChild.remove();
@@ -3463,6 +3639,7 @@ async function render(){
     }
   }
 
+  phStripUpdate();
   canvases = [];
   blobs = entries.slice(0, n).map(e => e.blob);                       /* 다운로드 = 유튜브용 (원래 이미지) */
   igBlobs = withIg ? blobs.slice(0, n - 1).concat([entries[n].blob]) : blobs.slice();   /* 공유 = 인스타용 */
@@ -3518,44 +3695,276 @@ function phCardUpdate(card){
   card._img.classList.toggle("adj", !!card._adj);
   if(!card._pn.hidden) phPanel(card);
 }
-function phSeg(k, label, opts, cur, off){
-  return `<div class="ph-line"><span>${label}</span><div class="seg">`
+function phSeg(k, label, opts, cur, off, cls){
+  return `<div class="ph-line"><span>${label}</span><div class="seg${cls ? " " + cls : ""}">`
     + opts.map(([v, t]) => `<button type="button" data-k="${k}" data-v="${v}" class="${v === cur ? "active" : ""}"${off ? " disabled" : ""}>${t}</button>`).join("")
     + `</div></div>`;
 }
+let phNumOpen = true;                     /* ‘숫자로 자세히 조절’ 칸을 열어 둘지 */
+/* 숫자로 조절하는 줄: [항목, 이름, 최소, 최대, 한 칸] — 지금 자리·모양에 필요한 것만 */
+function phNumList(P){
+  const rows = [];
+  if(P.pos === "bg") rows.push(["op", "진하기 (%)", 3, 100, 1]);
+  else if(P.pos === "round") rows.push(["dm", "지름 (px)", 80, 900, 5]);
+  else{
+    rows.push(["hp", "사진 높이 (%)", 5, 90, 1]);
+    if(P.sh !== "circle") rows.push(["wp", "사진 너비 (%)", 20, 100, 1]);
+  }
+  if(P.pos !== "bg"){
+    if(P.sh === "rounded" && P.pos !== "round") rows.push(["rd", "모서리 둥글기 (px)", 0, 300, 1]);
+    rows.push(["bw", "테두리 (px)", 0, 40, 1]);
+    rows.push(["gp", "사진과 글 사이 (px)", 0, 200, 2]);
+  }
+  if(P.fit === "cover"){
+    rows.push(["zm", "확대 (%)", 100, 500, 5]);
+    rows.push(["fx", "가로 위치 (%)", 0, 100, 1]);
+    rows.push(["fy", "세로 위치 (%)", 0, 100, 1]);
+  }
+  return rows;
+}
+const phNumVal = (P, k) => k === "fx" || k === "fy" ? Math.round(P[k] * 100) : P[k];
+/* 가로·세로 위치는 사진이 그 방향으로 넘칠 때만 움직일 수 있어요 */
+function phNumOff(card, k){
+  const ph = card._phi;
+  if(k === "fx") return !(ph && ph.ow > 1);
+  if(k === "fy") return !(ph && ph.oh > 1);
+  return false;
+}
 function phPanel(card){
   const c = S.cur, m = PHMAP[card._pi], it = m && m.item, e = it ? PH.get(it.id) : null;
-  let h = "";
+  let h = "", P = null, struct = "n";
   if(!it){
     h = `<div class="ph-drop">여기에 사진을 <b>끌어다 놓거나</b> <b>붙여넣기(Ctrl+V)</b> 해요.<br>여러 장을 한꺼번에 놓으면 이 장부터 차례로 들어가요.</div>`
       + `<div class="ph-row"><button type="button" class="ghost" data-a="pick">📁 사진 고르기 (폰은 앨범)</button></div>`;
   }else if(it.sample){
     h = `<div class="ph-head">채널 디자인 미리보기용 예시 자리예요</div>`;
+    struct = "s";
   }else{
-    const P = phParams(it);
+    P = phParams(it);
     const st = it.tmp ? "올리는 중…" : (e && e.st === "loading" ? "사진 불러오는 중…" : (e && e.st === "fail" ? `<span class="ph-bad">불러오지 못했어요${e.err ? " · " + esc(e.err) : ""}</span>` : "사진이 들어 있어요"));
-    h = `<div class="ph-head">${st}</div>`
-      + phSeg("pos", "자리", [["top", "사진 위"], ["bottom", "사진 아래"], ["round", "동그란 작은 사진"]], P.pos)
-      + phSeg("sz", "크기", [["s", "작게"], ["m", "보통"], ["l", "크게"]], P.sz)
-      + phSeg("sh", "모양", [["rect", "네모"], ["rounded", "둥근 네모"], ["circle", "동그라미"]], P.pos === "round" ? "circle" : P.sh, P.pos === "round")
-      + phSeg("fit", "맞춤", [["cover", "꽉 채우기"], ["contain", "전체 보이기"]], P.fit);
+    const bg = P.pos === "bg", round = P.pos === "round";
     const ph = card._phi;
+    h = `<div class="ph-head">${st}</div>`
+      + phSeg("pos", "자리", [["top", "사진 위"], ["bottom", "사진 아래"], ["round", "동그란 작은 사진"], ["bg", "배경에 희미하게"]], P.pos, false, "two");
+    if(!bg){
+      const cur = round ? ({230:"s", 300:"m", 380:"l"})[P.dm] : ({30:"s", 40:"m", 50:"l"})[P.hp];
+      h += phSeg("sz", "크기", [["s", "작게"], ["m", "보통"], ["l", "크게"]], cur || "")
+        + phSeg("sh", "모양", [["rect", "네모"], ["rounded", "둥근 네모"], ["circle", "동그라미"]], round ? "circle" : P.sh, round);
+    }
+    h += phSeg("fit", "맞춤", [["cover", "꽉 채우기"], ["contain", "전체 보이기"]], P.fit);
     if(ph && ph.shrunk) h += `<div class="ph-note">글이 길어서 사진을 줄였어요</div>`;
+    if(bg) h += `<div class="ph-tip">글 자리는 그대로이고, 사진이 장 전체에 깔려요. 숫자가 작을수록 더 흐려요.</div>`;
+    h += `<details${phNumOpen ? " open" : ""}><summary>🔢 숫자로 자세히 조절</summary>`
+      + phNumList(P).map(([k, lb, mn, mx, st2]) => {
+        const v = phNumVal(P, k), off = phNumOff(card, k) ? " disabled" : "";
+        return `<div class="ph-num"><span>${lb}</span><input type="range" data-n="${k}" min="${mn}" max="${mx}" step="${st2}" value="${v}"${off}>`
+          + `<input type="number" data-n="${k}" inputmode="decimal" min="${mn}" max="${mx}" step="${st2}" value="${v}"${off}></div>`;
+      }).join("")
+      + (P.fit === "cover" ? `<div class="ph-tip">컴퓨터는 사진 위를 그냥 끌면 보이는 부분이 움직여요. 폰은 아래 ‘보이는 부분 움직이기’를 켜고 끌어 주세요.</div>` : "")
+      + `</details>`;
     if(card._adj) h += `<div class="ph-note" style="color:var(--sub)">위의 이미지에서 손가락·마우스로 끌면 보이는 부분이 움직여요</div>`;
     h += `<div class="ph-row"><button type="button" class="ghost" data-a="pick">사진 바꾸기</button>`
       + (P.fit === "cover" && !it.tmp ? `<button type="button" class="ghost" data-a="adj">${card._adj ? "✓ 움직이기 끝" : "보이는 부분 움직이기"}</button>` : "")
+      + `<button type="button" class="ghost" data-a="reset">숫자 처음으로</button>`
       + (e && e.st === "fail" ? `<button type="button" class="ghost" data-a="retry">다시 불러오기</button>` : "")
       + `<button type="button" class="ghost" data-a="rm">사진 빼기</button></div>`;
+    struct = [it.tmp ? "t" : "i", e ? e.st : "", e && e.err || "", P.pos, P.sh, P.fit, ph && ph.shrunk ? 1 : 0, card._adj ? 1 : 0, phNumOpen ? 1 : 0].join("|");
   }
   const orph = c ? phOrphans(c, PHMAP.map(x => x && x.item)).length : 0;
   if(orph) h += `<div class="ph-note">지금 글에서 쓰이지 않는 사진이 ${orph}장 남아 있어요 <button type="button" class="ghost" data-a="clean" style="padding:3px 8px;font-size:11.5px;margin-left:4px">정리하기</button></div>`;
-  card._pn.innerHTML = h;
+  struct += "|" + orph;
+  /* 숫자 칸에 글자를 쓰는 중·밀대를 잡고 있는 중에는 칸을 새로 만들지 않고 값만 맞춰 줘요 (안 그러면 입력이 끊겨요) */
+  const ae = document.activeElement;
+  if(ae && card._pn.contains(ae) && ae.dataset && ae.dataset.n && card._pnS === struct){ phSyncVals(card); return; }
+  card._pn.innerHTML = h; card._pnS = struct;
 }
+/* 설정 칸의 숫자를 지금 값으로 맞춥니다 (지금 만지고 있는 항목은 그대로 둬요) */
+function phSyncVals(card, force){
+  const m = PHMAP[card._pi];
+  if(!m || m.item.sample || card._pn.hidden) return;
+  const P = phParams(m.item), ae = document.activeElement;
+  const on = !force && ae && card._pn.contains(ae) && ae.dataset ? ae.dataset.n : "";
+  card._pn.querySelectorAll("input[data-n]").forEach(el => {
+    const k = el.dataset.n;
+    if(k === on || P[k] == null) return;
+    const v = String(phNumVal(P, k));
+    if(el.value !== v) el.value = v;
+    el.disabled = phNumOff(card, k);
+  });
+}
+/* 숫자 칸·밀대에서 값이 바뀌었을 때 */
+function phNumInput(card, el, final){
+  const c = S.cur, m = PHMAP[card._pi];
+  if(!c || !m || m.item.sample) return;
+  const k = el.dataset.n, it = m.item;
+  if(el.value === "" || !isFinite(Number(el.value))){ if(final) phSyncVals(card, true); return; }
+  let v;
+  if(k === "fx" || k === "fy"){ v = phClamp01(Number(el.value) / 100); it[k] = v; v = Math.round(v * 100); }
+  else{ v = phNumClamp(k, el.value); if(v == null) return; it[k] = v; }
+  card._pn.querySelectorAll(`input[data-n="${k}"]`).forEach(o => { if(o !== el && o.value !== String(v)) o.value = v; });
+  if(final && el.value !== String(v)) el.value = v;
+  phLiveSoon(card, !(k === "fx" || k === "fy" || k === "zm" || k === "op"));
+  if(final) phCommit(card); else phCommitSoon(card);
+}
+/* 설정을 저장하고 미리보기 이미지를 새로 만듭니다 */
+function phCommit(card){
+  clearTimeout(card._cmT); card._cmT = 0;
+  if(S.cur) phSave(S.cur);
+  scheduleRender(false);
+}
+function phCommitSoon(card){ clearTimeout(card._cmT); card._cmT = setTimeout(() => phCommit(card), 450); }
+
+/* ---------- 바로 보기: 사진 끌기·숫자 바꾸기 중에는 PNG 를 만들지 않고, 이 장만 화면 위에 바로 다시 그려요 ---------- */
+function phHit(card, ev){
+  const m = PHMAP[card._pi], ph = card._phi;
+  if(card._ig || !m || m.item.sample || !ph || !ph.ready || ph.fit !== "cover" || !(ph.ow > 1 || ph.oh > 1)) return null;
+  const rc = card._img.getBoundingClientRect();
+  if(!rc.width) return null;
+  const sc = WIDTH / rc.width;
+  if(ev.pointerType !== "mouse") return card._adj ? {sc} : null;          /* 손가락·펜: ‘보이는 부분 움직이기’를 켠 때만 (아니면 화면 스크롤) */
+  if(ph.bg && card._pn.hidden) return null;                               /* 배경 사진은 설정 칸을 열었을 때만 마우스로 끌어요 */
+  const x = (ev.clientX - rc.left) * sc, y = (ev.clientY - rc.top) * sc, r = ph.rect;
+  return x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h ? {sc} : null;
+}
+function phLiveSoon(card, full){
+  card._lvFull = card._lvFull || !!full;
+  if(card._lvRaf) return;
+  card._lvRaf = requestAnimationFrame(() => {
+    card._lvRaf = 0;
+    const fl = card._lvFull; card._lvFull = false;
+    try{ phLiveFrame(card, fl); }
+    catch(err){ phLiveOff(card); scheduleRender(false); }
+  });
+}
+function phLiveFrame(card, full){
+  const pi = card._pi, m = PHMAP[pi], R = RC;
+  if(!m || m.item.sample || !R || !R.pages[pi] || card._ig) return;
+  const lv = card._lv, H = getHeight(), img = card._img;
+  if(lv.width !== WIDTH || lv.height !== H){ lv.width = WIDTH; lv.height = H; card._live = null; }
+  const g = lv.getContext("2d");
+  const P = phParams(m.item), colors = {ink:$("inkColor").value, hl:$("hlColor").value};
+  if(full){
+    card._live = null;                                        /* 칸 크기·글 자리가 바뀌는 항목: 한 장을 통째로 다시 그려요 */
+    const cv = draw(R.pages[pi], pi, R.n, R.f, false);
+    g.clearRect(0, 0, WIDTH, H); g.drawImage(cv, 0, 0);
+    card._phi = cv._phi;
+  }else{
+    /* 사진만 바뀌는 항목(보이는 부분·확대·진하기): 글·틀은 한 번만 그려 두고 사진만 겹쳐서 다시 그려요 */
+    const bg = P.pos === "bg";
+    let L = card._live;
+    if(!L || L.bg !== bg){
+      L = card._live = {bg};
+      if(bg) L.layer = draw(R.pages[pi], pi, R.n, R.f, false, {skipBg:true, skipPhoto:true});
+      else{ L.base = draw(R.pages[pi], pi, R.n, R.f, false, {skipPhoto:true}); L.plan = L.base._plan; }
+    }
+    g.clearRect(0, 0, WIDTH, H);
+    if(bg){
+      g.fillStyle = $("bgColor").value; g.fillRect(0, 0, WIDTH, H);
+      card._phi = phPaint(g, phPlanBg(m.item, H), colors);
+      g.drawImage(L.layer, 0, 0);
+    }else{
+      g.drawImage(L.base, 0, 0);
+      if(L.plan){ L.plan.P = P; card._phi = phPaint(g, L.plan, colors); }
+    }
+  }
+  phLiveShow(card);
+  phSyncVals(card);
+}
+/* 임시 캔버스를 미리보기 이미지 바로 위에 맞춰 보여 줍니다 */
+function phLiveShow(card){
+  const lv = card._lv, img = card._img;
+  lv.style.left = (img.offsetLeft + img.clientLeft) + "px";
+  lv.style.top = (img.offsetTop + img.clientTop) + "px";
+  lv.style.width = img.clientWidth + "px";
+  lv.style.height = img.clientHeight + "px";
+  lv.style.display = "block";
+  card._lvOn = true;
+}
+
+/* ---------- 채널 디자인: 미리보기에서 로고·채널명 끌어 옮기기 ---------- */
+let wmFinger = false;
+function wmHit(card, ev){
+  if(S.mode !== "design" || !card._wm) return null;
+  if(ev.pointerType !== "mouse" && !wmFinger) return null;
+  const rc = card._img.getBoundingClientRect();
+  if(!rc.width) return null;
+  const sc = WIDTH / rc.width, x = (ev.clientX - rc.left) * sc, y = (ev.clientY - rc.top) * sc, pad = 14 * sc / 1.6;
+  const inR = r => r && x >= r.x - pad && x <= r.x + r.w + pad && y >= r.y - pad && y <= r.y + r.h + pad;
+  if(inR(card._wm.logo)) return {t:"logo", sc};
+  if(inR(card._wm.text)) return {t:"text", sc};
+  return null;
+}
+/* 끄는 중: 숫자 칸을 바꿔 두고, 이 장만 로고·채널명을 다시 얹어 바로 보여 줘요 */
+function wmDragTo(card, w, cx, cy){
+  const H = getHeight(), kx = w.t === "logo" ? "lg" : "tx";
+  $(kx + "Mode").value = "free";
+  $(kx + "X").value = Math.round(Math.max(0, Math.min(100, cx / WIDTH * 100)) * 10) / 10;
+  $(kx + "Y").value = Math.round(Math.max(0, Math.min(100, cy / H * 100)) * 10) / 10;
+  if(card._lvRaf) return;
+  card._lvRaf = requestAnimationFrame(() => {
+    card._lvRaf = 0;
+    const R = RC, pi = card._pi;
+    if(!R || !R.pages[pi]) return;
+    try{
+      const H2 = getHeight(), lv = card._lv;
+      if(lv.width !== WIDTH || lv.height !== H2){ lv.width = WIDTH; lv.height = H2; card._live = null; }
+      if(!card._live || !card._live.wmBase) card._live = {wmBase: draw(R.pages[pi], pi, R.n, R.f, card._ig, {skipWm:true})};
+      const g = lv.getContext("2d");
+      g.clearRect(0, 0, WIDTH, H2); g.drawImage(card._live.wmBase, 0, 0);
+      card._wm = drawWatermark(g, H2, R.f, $("inkColor").value);
+      phLiveShow(card);
+    }catch(err){ phLiveOff(card); scheduleRender(false); }
+  });
+}
+function wmDragEnd(card, w){
+  const kx = w.t === "logo" ? "lg" : "tx";
+  ["Mode", "X", "Y"].forEach(k => $(kx + k).dispatchEvent(new Event("input", {bubbles:true})));      /* 저장 표시 + 이미지 새로 만들기 (‘바꿈’ 알림은 안 보내요: 지금 자리를 덮어쓰지 않게) */
+  scheduleRender(false);
+}
+/* ‘직접 지정’으로 바꿀 때는 지금 보이는 자리에서 시작해요 (갑자기 튀지 않게) */
+["lg", "tx"].forEach(kx => {
+  $(kx + "Mode").addEventListener("change", () => {
+    if($(kx + "Mode").value !== "free" || !LASTWM) return;
+    const r = LASTWM[kx === "lg" ? "logo" : "text"], H = getHeight();
+    if(!r) return;
+    $(kx + "X").value = Math.round(Math.max(0, Math.min(100, (r.x + r.w / 2) / WIDTH * 100)) * 10) / 10;
+    $(kx + "Y").value = Math.round(Math.max(0, Math.min(100, (r.y + r.h / 2) / H * 100)) * 10) / 10;
+  });
+  /* 가로·세로 숫자를 직접 고치면 자동으로 ‘직접 지정’ */
+  ["X", "Y"].forEach(a => $(kx + a).addEventListener("input", () => { if($(kx + "Mode").value !== "free") $(kx + "Mode").value = "free"; }));
+});
+$("wmDragBtn").onclick = () => {
+  wmFinger = !wmFinger;
+  document.body.classList.toggle("wmdrag", wmFinger);
+  $("wmDragBtn").textContent = wmFinger ? "👆 손가락으로 끌어 옮기기 (폰) 끄기" : "👆 손가락으로 끌어 옮기기 (폰) 켜기";
+  $("wmDragBtn").classList.toggle("hl", wmFinger);
+};
+function phLiveOff(card){
+  if(card._lvRaf){ cancelAnimationFrame(card._lvRaf); card._lvRaf = 0; }
+  card._lvFull = false; card._lvOn = false; card._live = null;
+  card._lv.style.display = "none";
+}
+
+/* 한 장의 사진 설정 바꾸기 (글 쓰는 화면의 버튼들) */
 function phSet(c, pi, patch){
   const m = PHMAP[pi];
   if(!m || m.item.sample) return;
-  Object.assign(m.item, patch);
-  if("fit" in patch){ delete m.item.fx; delete m.item.fy; }
+  const it = m.item;
+  patch = Object.assign({}, patch);
+  if(patch.sz){                                   /* 작게·보통·크게 = 높이(%) 또는 동그란 사진의 지름 값을 한 번에 */
+    const v = patch.sz; delete patch.sz; delete it.sz;
+    if(phParams(it).pos === "round" || patch.pos === "round") it.dm = PH_LEG_D[v]; else it.hp = PH_LEG_H[v];
+  }
+  Object.assign(it, patch);
+  if("fit" in patch){ delete it.fx; delete it.fy; delete it.zm; }
+  phSave(c);
+  scheduleRender(false);
+}
+/* 이 사진의 숫자 값을 채널 디자인의 처음 값으로 되돌립니다 */
+function phReset(c, pi){
+  const m = PHMAP[pi];
+  if(!m || m.item.sample) return;
+  ["sz", "hp", "wp", "dm", "rd", "bw", "gp", "zm", "op", "fx", "fy"].forEach(k => { delete m.item[k]; });
   phSave(c);
   scheduleRender(false);
 }
@@ -3633,7 +4042,7 @@ async function phAddOne(c, file, pi, keys){
   const old = phAssign(items, keys)[pi];
   const it = {id:"tmp_" + phRnd() + phRnd(), lid:"l" + phRnd(), tmp:true, k:keys[pi], pg:pi};
   if(old){                                          /* 같은 장의 사진을 바꾸는 경우: 자리·크기·모양은 그대로, 올리기가 끝나면 이전 사진은 정리 */
-    ["pos", "sz", "sh", "fit"].forEach(k => { if(old[k]) it[k] = old[k]; });
+    PH_STYLE_KEYS.forEach(k => { if(k !== "zm" && old[k] != null) it[k] = old[k]; });
     if(old.tmp){ old.cancelled = true; it.prev = old.prev || null; }
     else it.prev = old;
     items.splice(items.indexOf(old), 1);
@@ -3746,6 +4155,160 @@ document.addEventListener("paste", ev => {
   if(at < 0) at = 0;
   phAddFiles(files, at);
 });
+
+/* ---------- 사진 자리 줄: 미리보기 위에서 장마다 사진이 있는지 보고, 사진을 다른 장으로 옮기거나 서로 바꿔요 ---------- */
+let phSel = -1, phSelKey = "";
+/* 사진들을 새 장 번호로 옮깁니다. moves = [[사진, 새 장 번호], …] (자리가 겹치지 않게 호출하는 쪽에서 맞춰요) */
+function phApplyMoves(c, moves){
+  if(!moves.length) return;
+  const keys = (RC ? RC.pages : pages).map(phKeyOf);
+  moves.forEach(([it, to]) => {
+    it.pg = to; it.k = keys[to] || "";
+    if(it.prev){ it.prev.pg = to; it.prev.k = keys[to] || ""; }
+  });
+  phSave(c);
+  scheduleRender(false);
+}
+/* from 장의 사진을 to 장으로 (to 에 사진이 있으면 서로 바꿔요) */
+function phMovePhoto(c, from, to){
+  const n = PHMAP.length, a = PHMAP[from], b = PHMAP[to];
+  if(!c || from === to || from < 0 || to < 0 || from >= n || to >= n || !a || a.item.sample || (b && b.item.sample)) return false;
+  const moves = [[a.item, to]];
+  if(b) moves.push([b.item, from]);
+  phApplyMoves(c, moves);
+  return true;
+}
+/* at 장부터 이어진 사진 줄을 뒤(dir = 1)로 한 칸씩 밀기 / 비어 있는 at 장 뒤에 이어진 사진 줄을 앞(dir = -1)으로 한 칸씩 당기기 */
+function phShift(c, at, dir){
+  const n = PHMAP.length, has = i => !!(PHMAP[i] && !PHMAP[i].item.sample), moves = [];
+  if(dir > 0){
+    let j = at;
+    while(j < n && has(j)) j++;
+    if(j >= n){ toast("뒤쪽에 빈 장이 없어서 더 밀 수 없어요. 맨 뒤 사진을 먼저 옮기거나 빼 주세요", "bad"); return false; }
+    for(let i = j - 1; i >= at; i--) moves.push([PHMAP[i].item, i + 1]);
+  }else{
+    if(has(at)) return false;
+    for(let i = at + 1; i < n && has(i); i++) moves.push([PHMAP[i].item, i - 1]);
+  }
+  if(!moves.length) return false;
+  phApplyMoves(c, moves);
+  return true;
+}
+function phThumb(it){
+  const e = PH.get(it.id);
+  if(e && e.st === "ok" && e.img){
+    const cv = document.createElement("canvas");
+    cv.width = 112; cv.height = 112;
+    const g = cv.getContext("2d"), k = Math.max(112 / e.w, 112 / e.h);
+    g.imageSmoothingQuality = "high";
+    g.drawImage(e.img, (112 - e.w * k) / 2, (112 - e.h * k) / 2, e.w * k, e.h * k);
+    return cv;
+  }
+  const sp = document.createElement("span");
+  sp.textContent = e && e.st === "fail" ? "⚠" : "…";
+  return sp;
+}
+function phStripUpdate(){
+  const box = $("phStrip");
+  if(!box) return;
+  const c = S.cur, n = PHMAP.length;
+  const any = PHMAP.some(m => m && !m.item.sample);
+  if(!phCan() || n < 2 || !any){ box.hidden = true; box.textContent = ""; phSel = -1; return; }
+  if(phSelKey !== (c ? c.key : "")){ phSelKey = c ? c.key : ""; phSel = -1; }
+  if(phSel >= n) phSel = -1;
+  box.hidden = false;
+  box.textContent = "";
+  const head = document.createElement("div");
+  head.className = "ph-sh";
+  head.innerHTML = `🖼 사진 자리 <small>사진을 누른 뒤 옮길 장을 누르거나, 아래 버튼으로 옮겨요</small>`;
+  const slots = document.createElement("div");
+  slots.className = "ph-slots";
+  for(let i = 0; i < n; i++){
+    const m = PHMAP[i], has = !!m;
+    const b = document.createElement("button");
+    b.type = "button"; b.dataset.i = i;
+    b.className = "ph-slot " + (has ? "has" : "empty") + (i === phSel ? " sel" : "");
+    b.title = has ? `${i + 1}번 장 · 사진 있음` : `${i + 1}번 장 · 사진 없음`;
+    b.draggable = has;
+    const no = document.createElement("span");
+    no.className = "n"; no.textContent = i + 1;
+    b.append(has ? phThumb(m.item) : document.createTextNode("＋"), no);
+    slots.appendChild(b);
+  }
+  box.append(head, slots);
+  if(phSel >= 0){
+    const has = !!PHMAP[phSel];
+    const act = document.createElement("div");
+    act.className = "ph-act";
+    const btn = (a, t, dis) => `<button type="button" class="ghost" data-a="${a}"${dis ? " disabled" : ""}>${t}</button>`;
+    act.innerHTML = has
+      ? `<b style="font-size:12px;align-self:center">${phSel + 1}번 장 사진</b>`
+        + btn("prev", "◀ 앞 장으로", phSel === 0) + btn("next", "▶ 뒤 장으로", phSel === n - 1)
+        + btn("push", "이 장 비우기 (뒤 사진은 한 칸씩 밀기)") + btn("pick", "사진 바꾸기") + btn("rm", "사진 빼기")
+      : `<b style="font-size:12px;align-self:center">${phSel + 1}번 장 (사진 없음)</b>`
+        + btn("pick", "＋ 사진 넣기") + btn("pull", "이 빈 칸 없애기 (뒤 사진은 한 칸씩 앞으로)", phSel === n - 1);
+    box.appendChild(act);
+    const tip = document.createElement("p");
+    tip.className = "ph-tip";
+    tip.textContent = has ? "옮길 장을 위에서 누르면 그 장으로 가요. 그 장에 사진이 있으면 서로 바뀌어요." : "다른 사진을 누르면 그 사진을 고를 수 있어요.";
+    box.appendChild(tip);
+  }
+}
+(function(){
+  const box = $("phStrip");
+  box.addEventListener("click", ev => {
+    const c = S.cur;
+    if(!c) return;
+    const slot = ev.target.closest(".ph-slot");
+    if(slot){
+      const i = Number(slot.dataset.i);
+      if(i === phSel){ phSel = -1; phStripUpdate(); return; }
+      if(phSel >= 0 && PHMAP[phSel]){                            /* 사진을 고른 상태에서 다른 장을 누르면 그 장으로 옮김 */
+        const from = phSel;
+        if(phMovePhoto(c, from, i)){ phSel = i; phStripUpdate(); }
+        return;
+      }
+      phSel = i; phStripUpdate();
+      return;
+    }
+    const b = ev.target.closest("button[data-a]");
+    if(!b || b.disabled || phSel < 0) return;
+    const a = b.dataset.a, at = phSel;
+    if(a === "prev"){ if(phMovePhoto(c, at, at - 1)) phSel = at - 1; }
+    else if(a === "next"){ if(phMovePhoto(c, at, at + 1)) phSel = at + 1; }
+    else if(a === "push") phShift(c, at, 1);
+    else if(a === "pull"){ phShift(c, at, -1); }
+    else if(a === "pick") phPick(at);
+    else if(a === "rm"){ phRemove(c, at); phSel = -1; }
+    phStripUpdate();
+  });
+  /* 컴퓨터에서는 사진 칸을 끌어서 다른 칸에 놓아도 돼요 */
+  let dragFrom = -1;
+  box.addEventListener("dragstart", ev => {
+    const slot = ev.target.closest && ev.target.closest(".ph-slot");
+    if(!slot || !PHMAP[Number(slot.dataset.i)]){ ev.preventDefault(); return; }
+    dragFrom = Number(slot.dataset.i);
+    try{ ev.dataTransfer.setData("text/plain", "ph:" + dragFrom); ev.dataTransfer.effectAllowed = "move"; }catch(e){}
+  });
+  box.addEventListener("dragover", ev => {
+    if(dragFrom < 0) return;
+    const slot = ev.target.closest && ev.target.closest(".ph-slot");
+    if(!slot) return;
+    ev.preventDefault();
+    box.querySelectorAll(".ph-slot.over").forEach(x => { if(x !== slot) x.classList.remove("over"); });
+    slot.classList.add("over");
+  });
+  box.addEventListener("dragleave", ev => { if(!ev.relatedTarget || !box.contains(ev.relatedTarget)) box.querySelectorAll(".ph-slot.over").forEach(x => x.classList.remove("over")); });
+  box.addEventListener("drop", ev => {
+    if(dragFrom < 0) return;
+    ev.preventDefault();
+    const slot = ev.target.closest && ev.target.closest(".ph-slot");
+    const from = dragFrom; dragFrom = -1;
+    box.querySelectorAll(".ph-slot.over").forEach(x => x.classList.remove("over"));
+    if(slot && S.cur && phMovePhoto(S.cur, from, Number(slot.dataset.i))){ phSel = Number(slot.dataset.i); phStripUpdate(); }
+  });
+  box.addEventListener("dragend", () => { dragFrom = -1; box.querySelectorAll(".ph-slot.over").forEach(x => x.classList.remove("over")); });
+})();
 
 function download(blob, name){
   // 호환 모드용 일반 브라우저 다운로드
@@ -3966,7 +4529,7 @@ Object.keys(EXTRA).forEach(k=>{
   $(k).addEventListener("change", ()=>scheduleRender(false));
 });
 /* 채널 디자인에서 사진 모양을 바꾸면, 눈으로 볼 수 있게 예시 사진 자리를 자동으로 켭니다 */
-["phPos", "phSize", "phShape", "phBorder", "phFit"].forEach(id => $(id).addEventListener("change", () => { if(S.mode === "design") $("phSample").checked = true; }));
+["phPos", "phShape", "phFit", "phH", "phW", "phDia", "phRad", "phBW", "phGap", "phOp"].forEach(id => $(id).addEventListener("change", () => { if(S.mode === "design") $("phSample").checked = true; }));
 $("phSample").addEventListener("change", () => scheduleRender(false));
 /* 채널 디자인 → 마지막 장 (유튜브·인스타 똑같이): ‘직접 고르기’일 때만 색 선택 칸, 숫자 ‘안 붙이기’면 모양·색·크기 흐리게 */
 function updateIgNumUI(){
