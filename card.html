@@ -4993,12 +4993,16 @@ function toast(msg, kind, action){
 }
 
 /* ---------- 저장 상태 표시 (맨 위 오른쪽) ---------- */
+let saveKind = "ok";
+const hhmm = t => { const d = new Date(t); return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0"); };
 function setSaveSt(kind, detail){
   const el = $("saveSt");
   if(kind === "ok" && Object.keys(OUT).length) kind = "wait";
-  const text = {ok:"✓ 저장됨", wait:"저장 대기…", saving:"저장 중…", fail:"저장 안 됨 · 다시 시도 중", offline:"오프라인 · 폰에 임시 저장됨", invalid:"저장 안 됨: " + (detail || "")}[kind] || "";
+  saveKind = kind;
+  /* 저장됨 옆에 ‘서버와 마지막으로 맞춰 본 시각’ — 폰에서 PC에서 넣은 내용이 안 보일 때 최신 확인이 됐는지 알 수 있어요 */
+  const text = {ok:"✓ 저장됨" + (lastBootAt ? " · " + hhmm(lastBootAt) : ""), wait:"저장 대기…", saving:"저장 중…", fail:"저장 안 됨 · 다시 시도 중", offline:"오프라인 · 폰에 임시 저장됨", invalid:"저장 안 됨: " + (detail || "")}[kind] || "";
   el.textContent = text;
-  el.title = detail || "";
+  el.title = detail || (kind === "ok" && lastBootAt ? "서버와 마지막으로 맞춘 시각 " + hhmm(lastBootAt) : "");
   el.className = (kind === "fail" || kind === "offline" || kind === "invalid") ? "bad" : "";
 }
 
@@ -5118,7 +5122,8 @@ function fromServer(s, key){
   return {key, id:s.id, clientId:s.clientId || "", title:s.title || "", channelId:s.channelId || "", channel:s.channel || "",
     rawText:s.rawText || "", f:pp.f, extra:pp.extra, publishAt:s.publishAt || "", doneAt:s.doneAt || "",
     splitMode:s.splitMode || "", lastPageType:s.lastPageType || "", splitDelim:s.splitDelim || "",
-    createdAt:s.createdAt || "", updatedAt:s.updatedAt || "", ownerId:s.ownerId || "", full:true, stale:false};
+    createdAt:s.createdAt || "", updatedAt:s.updatedAt || "", ownerId:s.ownerId || "", full:true, stale:false,
+    _srvAt:s.updatedAt || "", _vAt:Date.now()};
 }
 /* 가벼운 목록 한 줄 → 글. 내용(원글·설명)은 글을 열 때 따로 받아 옵니다. fl = 글이 들어 있는 칸, off = 안 쓰는 칸 */
 function liteFromServer(s, key){
@@ -5126,7 +5131,7 @@ function liteFromServer(s, key){
     rawText:"", f:emptyF(), extra:[], publishAt:s.publishAt || "", doneAt:s.doneAt || "",
     splitMode:"", lastPageType:"", splitDelim:"",
     createdAt:s.createdAt || "", updatedAt:s.updatedAt || "", ownerId:s.ownerId || "",
-    full:false, stale:false, fl:Array.isArray(s.fl) ? s.fl : [], off:Array.isArray(s.off) ? s.off : [], un:s.un ? 1 : 0};
+    full:false, stale:false, _srvAt:s.updatedAt || "", fl:Array.isArray(s.fl) ? s.fl : [], off:Array.isArray(s.off) ? s.off : [], un:s.un ? 1 : 0};
 }
 const filledOf = c => FIELDS.filter(x => !x.hidden && hasField(c, x.kind)).map(x => x.kind);
 function fixCached(c){
@@ -5135,6 +5140,7 @@ function fixCached(c){
   if(c.full === undefined) c.full = true;            /* 예전 저장본의 글은 모두 내용이 들어 있었어요 */
   c.rawText = c.rawText || "";
   c.splitMode = c.splitMode || ""; c.lastPageType = c.lastPageType || ""; c.splitDelim = c.splitDelim || "";
+  if(c._srvAt === undefined) c._srvAt = c.updatedAt || "";
   if(c.full === false){ c.fl = Array.isArray(c.fl) ? c.fl : []; c.off = Array.isArray(c.off) ? c.off : []; c.un = c.un ? 1 : 0; }
   else{ delete c.fl; delete c.off; delete c.un; }
   return c;
@@ -5143,7 +5149,7 @@ function fixCached(c){
 function stripC(c, keep){
   const base = {key:c.key, id:c.id, clientId:c.clientId, title:c.title, channelId:c.channelId, channel:c.channel,
     publishAt:c.publishAt, doneAt:c.doneAt, createdAt:c.createdAt, updatedAt:c.updatedAt, ownerId:c.ownerId,
-    stale:!!c.stale, openedAt:c.openedAt || 0};
+    stale:!!c.stale, openedAt:c.openedAt || 0, _srvAt:c._srvAt || ""};
   if(keep && c.full !== false){
     return Object.assign(base, {full:true, rawText:c.rawText, f:c.f, extra:c.extra, splitMode:c.splitMode, lastPageType:c.lastPageType, splitDelim:c.splitDelim});
   }
@@ -5264,6 +5270,7 @@ function flush(opt){
         if(c){
           if(sc.id && !c.id){ c.id = sc.id; c._idAt = Date.now(); }
           c.updatedAt = sc.updatedAt || c.updatedAt;
+          if(sc.updatedAt) c._srvAt = sc.updatedAt;        /* 서버가 정한 시각(폰 시계와 무관)을 따로 기억 */
           c.createdAt = c.createdAt || sc.createdAt || "";
           c.ownerId = c.ownerId || sc.ownerId || "";
           if(sc.title) c.title = sc.title;
@@ -5377,7 +5384,9 @@ function boot(silent){
       if(m.curStale && S.cur && S.cur.id) refreshCur(S.cur);       /* 열려 있는 글을 다른 기기에서 고쳤다면 최신 내용으로 */
       if(S.mode === "design") syncDesignAfterBoot();
       if(!S.cur && isWide() && S.mode === "work") newDraft({silent:true, focus:true});
+      scheduleRefreshStale();
       schedulePrefetch();
+      if(saveKind === "ok") setSaveSt("ok");        /* ‘확인 시각’ 갱신 */
     }catch(e){
       if(!silent || !S.loaded) toast("목록을 불러오지 못했어요: " + (e.message || e), "bad");
       if(!S.loaded){ S.loaded = true; renderList(); }
@@ -5390,6 +5399,9 @@ function boot(silent){
 /* 서버 목록과 폰에 있던 목록을 합칩니다. 아직 못 보낸 수정은 폰 쪽이 이깁니다.
    lite=true 면 서버가 가벼운 목록(제목·날짜·채워진 칸)만 보낸 것이라, 글 내용은 열 때 따로 받습니다.
    이미 내용을 갖고 있는 글은 서버 쪽이 더 최신일 때만 ‘다시 받아야 함(stale)’으로 표시합니다. */
+/* 서버 목록(fl)이 알려 주는 ‘채워진 칸’ 종류 — 서버 liteInfo_ 와 같아야 합니다 */
+const LITE_KINDS = ["youtube_description", "coupang_description", "instagram_caption", "instagram_pin", "auto_dm", "threads_post", "threads_comment", "etc"];
+const flSig = a => (Array.isArray(a) ? a : []).filter(k => LITE_KINDS.includes(k)).slice().sort().join(",");
 function mergeServer(list, t0, lite){
   const T = v => Date.parse(v) || 0;
   const byId = new Map(), byCid = new Map();
@@ -5413,10 +5425,23 @@ function mergeServer(list, t0, lite){
       if(!old.id) old.id = s.id;
       if(pend && !pend.id) pend.id = s.id;
       const isFull = old.full !== false;
-      const srvNewer = T(s.updatedAt) > T(old.updatedAt), localNewer = T(old.updatedAt) > T(s.updatedAt);
+      /* 글이 서버에서 마지막으로 바뀐 시각을 폰이 ‘서버가 알려 준 값’으로만 비교합니다. (폰 시계로 적어 둔 값과는 섞지 않아요)
+         _srvAt = 폰이 갖고 있는 내용이 서버의 어느 시점 것인지 */
+      const srvT = T(s.updatedAt), mineT = T(old._srvAt);
+      const localNewer = mineT > srvT;           /* 목록을 받는 사이에 폰에서 저장해서, 받은 목록이 더 옛날 것 */
       if(!pend && !localNewer) adoptMeta(old, s);          /* 못 보낸 수정이 있거나 폰 쪽이 더 최신이면 폰 값 유지 */
-      if(isFull){ if(srvNewer) old.stale = true; }
-      else{ old.fl = Array.isArray(s.fl) ? s.fl : []; old.off = Array.isArray(s.off) ? s.off : []; old.un = s.un ? 1 : 0; }
+      if(isFull){
+        if(!pend && !localNewer){
+          if(srvT > mineT) old.stale = true;
+          /* 시각이 같아 보여도, 서버에 채워진 칸 목록과 폰의 칸 목록이 다르면 다시 받아야 하는 글로 봅니다 */
+          const sigS = flSig(s.fl);
+          if(old._flSeen !== sigS && flSig(LITE_KINDS.filter(k => hasField(old, k))) !== sigS) old.stale = true;
+          old._flSeen = sigS;
+        }
+      }else{
+        old.fl = Array.isArray(s.fl) ? s.fl : []; old.off = Array.isArray(s.off) ? s.off : []; old.un = s.un ? 1 : 0;
+        if(!pend && !localNewer) old._srvAt = s.updatedAt || old._srvAt || "";
+      }
       if(old === S.cur && old.stale) curStale = true;
       keep(old);
       return;
@@ -5425,7 +5450,7 @@ function mergeServer(list, t0, lite){
     const fresh = fromServer(s, old ? old.key : s.id);
     const pend = OUT[fresh.key];
     if(pend){ applyFields(fresh, pend.fields); if(!pend.id) pend.id = fresh.id; }
-    else if(old && T(old.updatedAt) > T(fresh.updatedAt)){ keep(old); return; }   /* 폰 쪽이 더 최신 */
+    else if(old && T(old._srvAt || old.updatedAt) > T(fresh.updatedAt)){ keep(old); return; }   /* 폰 쪽이 더 최신 */
     if(old){
       if(old === S.cur && contentSig(old) !== contentSig(fresh)) curChanged = true;
       Object.assign(old, fresh);
@@ -5448,7 +5473,7 @@ function mergeServer(list, t0, lite){
 function applyFull(c, s){
   const T = v => Date.parse(v) || 0;
   const pend = OUT[c.key];
-  if(c.full !== false && !pend && T(c.updatedAt) > T(s.updatedAt)) return false;      /* 폰 쪽이 더 최신 */
+  if(c.full !== false && !pend && c._srvAt && T(c._srvAt) > T(s.updatedAt)) return false;      /* 받은 것이 폰이 갖고 있는 것보다 옛날 것 (서버 시각끼리 비교) */
   const fresh = fromServer(s, c.key);
   if(pend) applyFields(fresh, pend.fields);
   Object.assign(c, fresh);
@@ -5518,15 +5543,55 @@ async function startLoad(c, opt){
   afterFullLoaded(c, {scroll: opt && opt.restore ? opt.scroll : null});
   if(opt && opt.focus) focusSrc();
 }
-/* 내용은 있지만 다른 기기에서 고친 글: 보이는 건 그대로 두고 뒤에서 최신으로 */
+/* 내용은 있지만 다른 기기에서 고쳤을 수 있는 글: 보이는 건 그대로 두고 뒤에서 최신으로. 바뀐 게 없으면 화면은 건드리지 않아요 */
 async function refreshCur(c){
   if(!c.id || c._loading) return;
   c._loading = true;
+  const before = contentSig(c), wasStale = !!c.stale;
   let r;
   try{ r = await loadFull([c.id]); }finally{ c._loading = false; }
-  if(!r.ok || S.cur !== c) return;
+  if(!r.ok){
+    if(wasStale && S.cur === c) toast("다른 곳에서 고친 내용을 아직 못 받았어요. 인터넷을 확인해 주세요", "bad");
+    return;
+  }
+  if(S.cur !== c) return;
   if(r.gone.includes(c.id)){ removeLocal(c, "열려 있던 글이 목록에서 사라졌어요 (삭제됐거나 채널 권한이 바뀜)"); return; }
+  if(contentSig(c) === before){ writeCacheSoon(); scheduleListRender(); return; }
   afterFullLoaded(c, {});
+  toast("다른 곳에서 고친 내용을 받아 왔어요");
+}
+/* 목록을 받고 나서: 다른 기기에서 고친 글(stale)을 바로 최신으로 받아 둡니다. 목록의 칸 표시(유·인·DM…)도 이때 맞춰져요.
+   보이는 목록의 위쪽 글부터, 한 번에 12개씩 */
+let rsTimer = null, rsBusy = false;
+function scheduleRefreshStale(ms){ clearTimeout(rsTimer); rsTimer = setTimeout(refreshStale, ms == null ? 400 : ms); }
+async function refreshStale(){
+  if(rsBusy || !S.uid || navigator.onLine === false) return;
+  if(booted || flushRun){ scheduleRefreshStale(1500); return; }
+  rsBusy = true;
+  let changedCur = false, total = 0;
+  try{
+    for(let round = 0; round < 4; round++){
+      const order = new Map((S.visKeys || []).map((k, i) => [k, i]));
+      const todo = S.contents.filter(c => c.id && c.full !== false && c.stale && !c._loading)
+        .sort((a, b) => (order.has(a.key) ? order.get(a.key) : 1e9) - (order.has(b.key) ? order.get(b.key) : 1e9)).slice(0, 12);
+      if(!todo.length) break;
+      const sigs = todo.map(c => contentSig(c));
+      todo.forEach(c => { c._loading = true; });
+      let r;
+      try{ r = await loadFull(todo.map(c => c.id), true); }finally{ todo.forEach(c => { c._loading = false; }); }
+      if(!r.ok) break;
+      total += todo.length;
+      todo.forEach((c, i) => {
+        if(r.gone.includes(c.id)) return;
+        if(S.cur === c && contentSig(c) !== sigs[i]) changedCur = true;
+      });
+      if(todo.every(c => c.stale)) break;           /* 받았는데도 그대로면 (서버가 못 준 글) 계속 되풀이하지 않음 */
+    }
+  }catch(e){}
+  rsBusy = false;
+  writeCacheSoon();
+  scheduleListRender();
+  if(changedCur && S.cur && S.mode === "work"){ afterFullLoaded(S.cur, {}); toast("다른 곳에서 고친 내용을 받아 왔어요"); }
 }
 $("loadRetry").onclick = () => { const c = S.cur; if(c && c.id && c.full === false) startLoad(c, {}); };
 /* 목록 맨 위 글 몇 개는 미리 받아 둡니다 (눌렀을 때 바로 열리게).
@@ -6010,7 +6075,8 @@ function openContent(c, opt){
   if(needLoad) startLoad(c, opt);
   else{
     if(opt.focus) focusSrc();
-    if(c.id && c.stale) refreshCur(c);                   /* 다른 기기에서 고친 글: 보이는 건 그대로 두고 뒤에서 최신으로 */
+    /* 열 때마다 서버에서 최신인지 뒤에서 확인 (보이는 건 그대로 두고, 바뀐 게 있을 때만 갱신). 방금(30초 안) 확인한 글은 건너뜀 */
+    if(c.id && (c.stale || !c._vAt || Date.now() - c._vAt > 30000)) refreshCur(c);
   }
 }
 function fillDetail(){
@@ -6939,13 +7005,27 @@ document.addEventListener("visibilitychange", () => {
     saveState(); writeCacheNow();
     if(Object.keys(OUT).length) flush({keepalive:true});
   }else{
-    /* 다른 앱에 갔다 올 때마다(20초만 지나도) 전체 목록을 새로 받으면 글이 쌓일수록 느려져서, 2분이 지났을 때만 자동으로 새로 받아요.
+    /* 다른 앱에 갔다 올 때: 마지막으로 서버와 맞춘 지 30초가 넘었으면 목록을 새로 받아요 (목록만 가볍게 받고, 바뀐 글만 내용을 받습니다).
        바로 최신으로 보고 싶으면 위의 ‘콘텐츠 작업실’ 글자를 누르거나 목록을 아래로 당기면 됩니다 */
-    if(Date.now() - lastBootAt > 120000) boot(true);
+    if(Date.now() - lastBootAt > 30000) boot(true);
     else if(Object.keys(OUT).length) flush();
   }
 });
 window.addEventListener("pagehide", () => { if(S.uid){ saveState(); writeCacheNow(); } });
+/* 화면을 켜 둔 채로 있어도 (폰으로 목록을 보는 동안 PC에서 고친 내용이 들어오도록) 90초마다 서버를 조용히 확인합니다.
+   글을 쓰는 중이거나, 저장 중이거나, 채널 디자인 화면이면 건너뛰어요. */
+let lastInputAt = 0, pollTimer = null;
+["input", "keydown", "pointerdown", "touchstart"].forEach(t => document.addEventListener(t, () => { lastInputAt = Date.now(); }, {capture:true, passive:true}));
+function pollTick(){
+  clearTimeout(pollTimer);
+  pollTimer = setTimeout(pollTick, POLL_MS);
+  if(!S.uid || !S.loaded || document.visibilityState !== "visible" || navigator.onLine === false) return;
+  if(S.mode !== "work" || booted || flushRun || Object.keys(OUT).length) return;
+  if(Date.now() - lastInputAt < 8000 || Date.now() - lastBootAt < POLL_MS - 5000) return;
+  boot(true);
+}
+const POLL_MS = 90000;
+pollTimer = setTimeout(pollTick, POLL_MS);
 window.addEventListener("online", () => flush());
 window.addEventListener("offline", () => { if(Object.keys(OUT).length) setSaveSt("offline"); });
 
