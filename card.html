@@ -2020,6 +2020,29 @@ function splitVS(p){
   return {top:sents.slice(0,half).join("").trim(), bottom:sents.slice(half).join("").trim()};
 }
 
+/* VS 장에 ‘어떻게 해야 할까요?’ 같은 질문 줄이 같이 들어 있으면 선택지 글과 섞이지 않게 따로 뽑습니다.
+   질문 줄은 장의 맨 첫 줄 또는 맨 끝 줄이고, 물음표(또는 ~할까요 같은 끝맺음)로 끝나며 ‘어떻게·여러분·선택’ 같은 말이 들어 있을 때만 질문으로 봅니다.
+   뽑고 난 뒤에도 위·아래 선택지가 둘 다 남아야 하고, 질문이 없으면 아무것도 바꾸지 않습니다 */
+const VS_Q_WORDS = /(어떻게|어떡|어쩌|어느\s*쪽|어떤\s*(선택|쪽|게|걸)|뭐가\s*(맞|옳|나)|무엇이|누가|누구|여러분|당신|생각|의견|선택|고르|골라|판단|하시겠|어때)/;
+function isVsQuestion(line){
+  const t = String(line || "").replace(/\*\*/g, "").trim();
+  if(!t || t.length > 60) return false;
+  const core = t.replace(/[\s"'”’)\]]+$/, "").replace(/[\s~!.…‍️\p{Extended_Pictographic}]+$/u, "");
+  if(!(/[?？]$/.test(core) || /(까요|나요|가요|죠|할까|일까)$/.test(core))) return false;
+  return VS_Q_WORDS.test(core);
+}
+function pullVsQuestion(p){
+  const lines = p.trim().split("\n").map(s => s.trim()).filter(Boolean);
+  if(lines.length < 2) return null;
+  const tries = [[0, lines.slice(1), "top"], [lines.length - 1, lines.slice(0, -1), "bottom"]];
+  for(const [qi, rest, pos] of tries){
+    if(!isVsQuestion(lines[qi])) continue;
+    const v = splitVS(rest.join("\n"));
+    if(v.top && v.bottom) return {q:lines[qi], qPos:pos, top:v.top, bottom:v.bottom};
+  }
+  return null;
+}
+
 function formatBodyText(str){
   return wrapMode === "merge" ? str.replace(/\s*\n\s*/g, " ") : str;
 }
@@ -2048,19 +2071,19 @@ function parse(raw){
     }
 
     if(isLast && (lastType === "ab" || lastType === "ox")){
-      const v = splitVS(p);
-      if(v.bottom) return {type:"vs", dir:"h", ox:lastType === "ox", top:formatBodyText(v.top), bottom:formatBodyText(v.bottom)};
+      const vq = pullVsQuestion(p), v = vq || splitVS(p);
+      if(v.bottom) return Object.assign({type:"vs", dir:"h", ox:lastType === "ox", top:formatBodyText(v.top), bottom:formatBodyText(v.bottom)}, vq ? {question:formatBodyText(vq.q), qPos:vq.qPos} : {});
     }
     if(isLast && lastType === "cta") return {type:"plain", cta:true, text:formatBodyText(p)};
     const useVs = isLast && (lastType === "vs" || (lastType === "auto" && hasVsWord));
     if(useVs){
-      const v = splitVS(p);
+      const vq = pullVsQuestion(p), v = vq || splitVS(p);
       if(v.bottom){
-        return {
+        return Object.assign({
           type:"vs",
           top: formatBodyText(v.top),
           bottom: formatBodyText(v.bottom)
-        };
+        }, vq ? {question:formatBodyText(vq.q), qPos:vq.qPos} : {});
       }
     }
 
@@ -2073,7 +2096,11 @@ function parse(raw){
 
 function pageToRawString(it){
   if(it.type === "plain") return it.text;
-  if(it.type === "vs") return it.top + " vs " + it.bottom;
+  if(it.type === "vs"){
+    const body = it.top + " vs " + it.bottom;
+    if(!it.question) return body;
+    return it.qPos === "bottom" ? body + "\n" + it.question : it.question + "\n" + body;     /* 질문이 원래 있던 자리 그대로 (사진 짝짓기 이름표가 달라지지 않게) */
+  }
   if(it.type === "choice"){
     const body = it.items.map(x=>`${x.num}. ${x.text}`).join("\n");
     return it.title ? `${it.title}\n${body}` : body;
@@ -2779,6 +2806,26 @@ function needsIgLast(p, igOff){
 /* 유튜브용(다운로드) 마지막 장이 원래 이미지와 달라지는지: 안내문구, 또는 숫자를 붙일 VS 장 */
 const needsYtLast = p => (!NOTEOFF.yt && !!noteTxt("yt")) || numShown(p, "yt");
 
+/* VS·A/B·O/X 장 맨 위 질문 줄 (질문이 있는 장에서만). 맨 위에 굵게 그리고, 차지한 높이를 돌려줍니다 (질문이 없으면 0) */
+function drawVsQuestion(ctx, page, f, tTop, tH, padX, maxFont, lhRatio, align, inkCol, hlCol){
+  if(!page.question) return 0;
+  const maxW = WIDTH - padX*2;
+  const wt = Math.max(f.cover, 700);
+  const qcss = s => `${wt} ${s}px "${f.family}", "Pretendard", "Noto Sans KR", sans-serif`;
+  const r = fit(ctx, qcss, [page.question], maxW, Math.max(80, Math.min(tH*0.22, 300)), Math.min(maxFont, 50), 24, lhRatio);
+  const lines = r.all[0];
+  drawFormattedLines(ctx, lines, tTop + r.lh/2, r.lh, r.size, align, padX, inkCol, hlCol, "none", f, true);
+  const bodyH = lines.length*r.lh;
+  const barY = tTop + bodyH + 20;
+  ctx.save();
+  ctx.fillStyle = hlCol;
+  ctx.globalAlpha = 0.9;
+  const barW = 96, barX = align === "center" ? (WIDTH - barW)/2 : (align === "right" ? WIDTH - padX - barW : padX);
+  ctx.beginPath(); ctx.roundRect(barX, barY, barW, 7, 3.5); ctx.fill();
+  ctx.restore();
+  return bodyH + 20 + 7 + 36;
+}
+
 /* A vs B / O·X 좌우 2분할 */
 function drawSideBySide(ctx, page, f, css, padX, padY, areaH, maxFont, lhRatio, bgCol, inkCol, hlCol, hlStyle, num, pre){
   const nS = num ? numSize(pre) : 0;
@@ -3421,20 +3468,23 @@ function draw(page, idx, total, f, ig, opt){
   }else if(page.type === "choice"){
     drawChoiceLayout(ctx, page, f, padX, tTop, tH, maxFont, lhRatio, bgCol, inkCol, hlCol, hlStyle);
   }else if(page.dir === "h"){
-    drawSideBySide(ctx, page, f, css, padX, tTop, tH, maxFont, lhRatio, bgCol, inkCol, hlCol, hlStyle, igNum, pre);
+    const qH = drawVsQuestion(ctx, page, f, tTop, tH, padX, maxFont, lhRatio, curAlign, inkCol, hlCol);     /* 질문 줄이 있으면 맨 위에, 아래로 좌우 2분할 */
+    drawSideBySide(ctx, page, f, css, padX, tTop + qH, tH - qH, maxFont, lhRatio, bgCol, inkCol, hlCol, hlStyle, igNum, pre);
   }else{
+    const qH = drawVsQuestion(ctx, page, f, tTop, tH, padX, maxFont, lhRatio, curAlign, inkCol, hlCol);     /* 질문 줄이 있으면 맨 위에, 그 아래로 위/VS/아래 (없으면 qH=0이라 예전과 똑같음) */
+    const vTop = tTop + qH;
     const vsH = 110;
-    const halfH = (tH - vsH)/2;
+    const halfH = (tH - qH - vsH)/2;
     /* 인스타용이면 글 왼쪽에 1·2 숫자 자리를 비워 둡니다 */
     const bSize = igNum ? numSize(pre) : 0, bGap = igNum ? 28 : 0;
     const tX = padX + bSize + bGap, tW = maxW - bSize - bGap;
     const r = fit(ctx, css, [page.top, page.bottom], tW, halfH, Math.min(maxFont, 58), 20, lhRatio);
     const tl = r.all[0], bl = r.all[1];
 
-    const topY = tTop + (halfH - tl.length*r.lh)/2 + r.lh/2;
+    const topY = vTop + (halfH - tl.length*r.lh)/2 + r.lh/2;
     drawFormattedLines(ctx, tl, topY, r.lh, r.size, curAlign, padX, inkCol, hlCol, hlStyle, f, false, igNum ? tX : null, igNum ? tW : null);
 
-    const botY = tTop + halfH + vsH + (halfH - bl.length*r.lh)/2 + r.lh/2;
+    const botY = vTop + halfH + vsH + (halfH - bl.length*r.lh)/2 + r.lh/2;
     drawFormattedLines(ctx, bl, botY, r.lh, r.size, curAlign, padX, inkCol, hlCol, hlStyle, f, false, igNum ? tX : null, igNum ? tW : null);
 
     if(igNum){
@@ -3442,7 +3492,7 @@ function draw(page, idx, total, f, ig, opt){
       drawNumBadge(ctx, "2", padX + bSize/2, botY - r.lh/2 + bl.length*r.lh/2, bSize, f, hlCol, inkCol, pre);
     }
 
-    const cy = tTop + halfH + vsH/2;
+    const cy = vTop + halfH + vsH/2;
     ctx.save();
     ctx.strokeStyle = inkCol;
     ctx.globalAlpha = 0.35;
