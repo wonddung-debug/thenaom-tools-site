@@ -433,6 +433,32 @@
   #txtBody{display:flex; flex-direction:column; gap:10px}
   /* 위에서부터: 원글 → 설명 7칸 → 한 번에 붙여넣기 → 쿠팡 링크 → 완료·삭제 */
   #loadMsg{order:0} #rawBox{order:1} #fields{order:2} #pasteWrap{order:3} #linkBox{order:4} #acts{order:5}
+  /* 맨 위 줄: 원글 붙여넣기 · 전체 보기 (사진 설정 칸보다도 위) */
+  #topTools{order:-1; display:flex; gap:8px}
+  #topTools button{flex:1 1 0; min-height:46px; padding:0 10px; font-size:15px; font-weight:800; border-radius:10px; white-space:nowrap}
+  #topPaste{border:1px dashed var(--accent); color:var(--accent); background:var(--accent-bg)}
+  /* 전체 보기 창: 채워진 칸의 글을 잘림 없이 위에서 아래로 */
+  #vaBack{position:fixed; inset:0; z-index:300; background:rgba(0,0,0,.55); display:flex; align-items:center; justify-content:center; padding:16px}
+  #vaBack[hidden]{display:none}
+  body.va-open{overflow:hidden}
+  #vaBox{width:100%; max-width:820px; max-height:94vh; display:flex; flex-direction:column; background:var(--bg); border:1px solid var(--line); border-radius:14px; overflow:hidden; box-shadow:0 12px 32px rgba(0,0,0,.3)}
+  .va-head{flex:none; display:flex; align-items:center; gap:8px; padding:10px 12px; background:var(--panel); border-bottom:1px solid var(--line)}
+  .va-head b{font-size:16px; white-space:nowrap}
+  #vaSub{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--sub); font-size:13px}
+  #vaX{min-height:40px; padding:0 14px; font-size:14px; font-weight:800}
+  #vaBody{flex:1 1 auto; min-height:0; overflow:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; padding:12px; display:flex; flex-direction:column; gap:12px}
+  .va-item{flex:none; border:1px solid var(--line); border-radius:12px; background:var(--panel); overflow:hidden}
+  .va-ih{display:flex; align-items:center; flex-wrap:wrap; gap:6px 8px; padding:6px 8px 6px 12px; border-bottom:1px solid var(--line)}
+  .va-nm{flex:1 1 160px; min-width:0; display:flex; align-items:baseline; gap:8px; padding:6px 0; background:none; border:0; text-align:left; color:var(--ink); font:inherit; cursor:pointer}
+  .va-l{font-size:14.5px; font-weight:800}
+  .va-go{font-size:12px; color:var(--accent); font-weight:700; white-space:nowrap}
+  .va-n{font-size:12px; color:var(--sub); white-space:nowrap}
+  .va-cp{min-height:38px; min-width:78px}
+  .va-cp.did{color:var(--ok-ink); border-color:var(--ok-ink)}
+  .va-tx{padding:12px; white-space:pre-wrap; overflow-wrap:anywhere; font-size:16px; line-height:1.7; color:var(--ink); user-select:text; -webkit-user-select:text}
+  .va-hint{margin:0; padding:0 12px 10px; font-size:12.5px; color:var(--sub)}
+  .va-none{padding:22px 10px; text-align:center; color:var(--sub); font-size:14px}
+  .va-empty{margin:0; font-size:12.5px; color:var(--sub); line-height:1.6}
   #rawBox > summary, #optBox > summary{min-height:40px; display:flex; align-items:center; gap:6px; font-size:13.5px; font-weight:700; cursor:pointer; color:var(--ink)}
   #optBox > summary{font-weight:600; color:var(--sub); font-size:12.5px}
   #src{min-height:170px; height:220px; font-size:16px; padding:12px; border-radius:10px}
@@ -532,7 +558,7 @@
 
   /* 글을 열 때 내용을 불러오는 동안 */
   #loadMsg{display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; padding:14px 12px; border:1px dashed var(--accent); border-radius:12px; background:var(--accent-bg); color:var(--accent); font-size:14px; font-weight:700; text-align:center}
-  body.cloading #rawBox, body.cloading #fields, body.cloading #pasteWrap, body.cloading #linkBox, body.cloading #acts, body.cloading #dHead{opacity:.45; pointer-events:none}
+  body.cloading #topTools, body.cloading #rawBox, body.cloading #fields, body.cloading #pasteWrap, body.cloading #linkBox, body.cloading #acts, body.cloading #dHead{opacity:.45; pointer-events:none}
   /* 다운로드 · 인스타 공유 결과 줄 (복사됨 표시) */
   .act-msg{margin:6px 0 2px; padding:9px 12px; border-radius:10px; font-size:13.5px; font-weight:700; line-height:1.5; background:var(--ok-bg); color:var(--ok-ink); word-break:keep-all}
   .act-msg.info{background:var(--accent-bg); color:var(--accent)}
@@ -616,6 +642,9 @@
     body.m-detail #top .ttl{display:none}
     #paneTxt, #txtBody{display:contents}
     #emptyMsg{display:none !important}
+    #topTools{order:1}
+    #vaBack{padding:0; align-items:stretch}
+    #vaBox{max-width:none; max-height:none; height:100%; border:0; border-radius:0}
     #loadMsg{order:4} #rvBox{order:4} #rvList{order:4} #rawBox{order:5} #fields{order:6} #pasteWrap{order:7} #linkBox{order:8} #acts{order:9}
     body.newdoc #rawBox{order:2}
     body.newdoc #rvBox, body.newdoc #rvList{order:2}
@@ -725,6 +754,11 @@
   <section id="paneTxt">
     <div id="emptyMsg">왼쪽 목록에서 글을 고르거나 <b>+</b> 를 눌러 새 글을 시작하세요.</div>
     <div id="txtBody">
+      <!-- 맨 위 줄: 원글 붙여넣기 · 전체 보기 -->
+      <div id="topTools">
+        <button type="button" class="ghost" id="topPaste" title="복사해 둔 글을 원글에 바로 넣어요">📋 원글 붙여넣기</button>
+        <button type="button" class="ghost" id="viewAllBtn" title="게시글·고정 댓글 등 채워진 칸의 글을 잘림 없이 한 번에 봐요">📖 전체 보기</button>
+      </div>
       <div id="loadMsg" hidden><span id="loadTxt"></span><button type="button" class="ghost sm" id="loadRetry" hidden>다시 불러오기</button></div>
       <!-- 사진 설정 (PC): 원글 위에 한 칸으로 보여요. 접고 펼 수 있어요 -->
       <div id="phDock" class="ph-dock" hidden>
@@ -1401,6 +1435,12 @@
 </main>
 
 <input type="file" id="phFile" accept="image/*" multiple>
+<div id="vaBack" hidden>
+  <div id="vaBox" role="dialog" aria-modal="true" aria-labelledby="vaTtl">
+    <div class="va-head"><b id="vaTtl">전체 보기</b><span id="vaSub"></span><button type="button" class="ghost sm" id="vaX">닫기 ✕</button></div>
+    <div id="vaBody"></div>
+  </div>
+</div>
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script>
@@ -6056,7 +6096,7 @@ function openContent(c, opt){
   const same = S.cur === c;
   S.cur = c;
   c.openedAt = Date.now();                               /* 폰에 내용까지 기억해 둘 글을 고를 때 쓰는 ‘최근에 연 순서’ */
-  if(!same){ fontRetries = 0; S.fOpen = {}; closePaste(); setActMsg(""); setCLoading(""); [...$("list").children].forEach(cd => { if(cd._pn){ cd._pn.hidden = true; cd._adj = false; cd._img.classList.remove("adj"); phHome(cd); } }); phDockSync(); }
+  if(!same){ fontRetries = 0; S.fOpen = {}; closePaste(); closeViewAll(); setActMsg(""); setCLoading(""); [...$("list").children].forEach(cd => { if(cd._pn){ cd._pn.hidden = true; cd._adj = false; cd._img.classList.remove("adj"); phHome(cd); } }); phDockSync(); }
   if(S.selMode){ S.selMode = false; S.sel.clear(); updateSelUI(); }
   document.body.classList.remove("nosel");
   const needLoad = !!c.id && c.full === false;           /* 목록만 받아 둔 글: 내용을 받아 와야 함 */
@@ -6107,6 +6147,7 @@ function fillDetail(){
   renderReviewBox();
   $("rawBox").open = isWide() || !c.rawText || S.rawOpen;
   applyFieldOpen();
+  if(!$("vaBack").hidden) renderViewAll();
   updateDoneBtn();
   $("delBtn").hidden = !canDelete(c);
   updateShareMarks();
@@ -6893,9 +6934,8 @@ $("src").addEventListener("input", () => {
   pasted = false;
 });
 $("src").addEventListener("blur", () => flushSoon(150));
-/* 원글 제목 줄의 ‘붙여넣기’: 복사해 둔 글을 바로 넣고, 직접 붙여 넣은 것과 똑같이 이미지를 만듭니다 */
-$("pst_raw").addEventListener("click", async e => {
-  e.preventDefault(); e.stopPropagation();
+/* 원글 붙여넣기 (원글 제목 줄의 ‘붙여넣기’ · 맨 위 줄의 ‘원글 붙여넣기’ 둘 다): 복사해 둔 글을 바로 넣고, 직접 붙여 넣은 것과 똑같이 이미지를 만듭니다 */
+async function pasteRaw(){
   const c = S.cur;
   if(!c || S.mode !== "work") return;
   const t = await readClip();
@@ -6908,7 +6948,91 @@ $("pst_raw").addEventListener("click", async e => {
   $("src").value = t; pasted = true;
   $("src").dispatchEvent(new Event("input"));
   toast(`원글에 넣었어요 (${t.length.toLocaleString()}자)`);
+}
+$("pst_raw").addEventListener("click", e => { e.preventDefault(); e.stopPropagation(); pasteRaw(); });
+$("topPaste").addEventListener("click", e => { e.preventDefault(); pasteRaw(); });
+
+/* ---------- 전체 보기: 게시글·고정 댓글 등 채워진 칸의 글을 잘림 없이 한 화면에 (보기 전용) ----------
+   칸 제목을 누르면 창이 닫히고 그 칸으로 가서 고칠 수 있어요. 복사 버튼은 칸의 ‘복사’와 똑같이 [링크]를 쿠팡 링크로 바꿔 복사해요. */
+function vaMk(tag, cls, txt){ const e = document.createElement(tag); if(cls) e.className = cls; if(txt != null) e.textContent = txt; return e; }
+function vaItems(c){
+  const off = offListOf(c), items = [], empty = [];
+  FIELDS.forEach(x => {
+    if(x.hidden) return;
+    const v = c.f[x.kind] || "";
+    if(x.legacy){ if(v.trim()) items.push({kind:x.kind, label:x.label, text:v}); return; }      /* 기타: 예전 내용이 있을 때만 */
+    if(off.includes(x.kind)) return;                                                           /* 이 글에서 안 쓰는 칸 */
+    if(v.trim()) items.push({kind:x.kind, label:x.label, text:v}); else empty.push(x.label);
+  });
+  if((c.rawText || "").trim()) items.push({kind:"raw", label:"원글", text:c.rawText});
+  return {items, empty};
+}
+function renderViewAll(){
+  const c = S.cur, body = $("vaBody");
+  if(!c){ closeViewAll(); return; }
+  const keep = body.scrollTop;
+  const {items, empty} = vaItems(c);
+  const title = (c.title || String(c.rawText || "").split(/\r?\n/).find(l => l.trim()) || "새 글").trim();
+  $("vaSub").textContent = title.slice(0, 60);
+  body.textContent = "";
+  if(!items.length) body.append(vaMk("div", "va-none", "아직 채워진 칸이 없어요."));
+  const did = (COPIED[c.key] || {});
+  items.forEach(it => {
+    const box = vaMk("section", "va-item");
+    const hd = vaMk("div", "va-ih");
+    const nm = vaMk("button", "va-nm"); nm.type = "button"; nm.dataset.k = it.kind; nm.title = "누르면 이 칸으로 가서 고칠 수 있어요";
+    nm.append(vaMk("span", "va-l", it.label), vaMk("span", "va-go", "고치러 가기 ›"));
+    const cp = vaMk("button", "ghost sm va-cp", did[it.kind] ? "✓ 복사함" : "복사"); cp.type = "button"; cp.dataset.k = it.kind;
+    if(did[it.kind]) cp.classList.add("did");
+    hd.append(nm, vaMk("span", "va-n", it.text.length.toLocaleString() + "자"), cp);
+    box.append(hd, vaMk("div", "va-tx", it.text));
+    if(LINK_MEDIA[it.kind] && LINK_RE.test(it.text)) box.append(vaMk("p", "va-hint", "[링크]는 복사할 때 이 칸에 맞는 쿠팡 링크로 바뀌어요."));
+    body.append(box);
+  });
+  if(empty.length) body.append(vaMk("p", "va-empty", "비어 있는 칸: " + empty.join(" · ")));
+  body.scrollTop = keep;
+}
+let vaFrom = null;
+function openViewAll(){
+  if(!S.cur || S.mode !== "work") return;
+  vaFrom = document.activeElement;
+  renderViewAll();
+  $("vaBack").hidden = false;
+  document.body.classList.add("va-open");
+  $("vaBody").scrollTop = 0;
+  $("vaX").focus({preventScroll:true});
+}
+function closeViewAll(){
+  if($("vaBack").hidden) return;
+  $("vaBack").hidden = true;
+  document.body.classList.remove("va-open");
+  if(vaFrom && vaFrom.isConnected && vaFrom.focus){ try{ vaFrom.focus({preventScroll:true}); }catch(e){} }
+  vaFrom = null;
+}
+function vaGoto(kind){
+  closeViewAll();
+  let el;
+  if(kind === "raw"){ $("rawBox").open = true; el = $("src"); }
+  else{ const b = $("box_" + kind); if(b){ b.hidden = false; b.open = true; } el = $("fld_" + kind); }
+  if(!el) return;
+  el.scrollIntoView({block:"center", behavior:"smooth"});
+  try{ el.focus({preventScroll:true}); }catch(e){}
+}
+$("viewAllBtn").addEventListener("click", openViewAll);
+$("vaX").addEventListener("click", closeViewAll);
+$("vaBack").addEventListener("click", e => { if(e.target === $("vaBack")) closeViewAll(); });
+$("vaBody").addEventListener("click", async e => {
+  const nm = e.target.closest(".va-nm"), cp = e.target.closest(".va-cp");
+  const c = S.cur;
+  if(nm){ vaGoto(nm.dataset.k); return; }
+  if(cp && c){
+    const k = cp.dataset.k, it = vaItems(c).items.find(x => x.kind === k);
+    if(!it) return;
+    const r = await copyField(k, it.label, it.text);
+    if(r.ok){ cp.textContent = "✓ 복사함"; cp.classList.add("did"); }
+  }
 });
+document.addEventListener("keydown", e => { if(e.key === "Escape" && !$("vaBack").hidden){ e.preventDefault(); closeViewAll(); } });
 $("rawBox").addEventListener("toggle", () => { if(!isWide()){ S.rawOpen = $("rawBox").open; saveState(); } });
 
 /* 이 글 옵션(장 나누기·마지막 장 모양) */
