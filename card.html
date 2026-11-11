@@ -7210,8 +7210,22 @@ function savePub(c, m, url, at){
   const s = (d.yt || d.ig || d.imp) ? JSON.stringify(d) : "";
   if(s === (c.f.pub_info || "")) return;
   c.f.pub_info = s;
-  queueSave(c, {postFields:{pub_info:s}}, 300);
+  const fields = {postFields:{pub_info:s}};
+  /* 올릴 곳(유튜브·인스타, 후기는 멤버십)에 다 올렸으면 ‘완료’로 보냅니다. 이미 완료인 글은 그대로 */
+  let moved = false;
+  if(!c.doneAt && pubAllDone(c)){ c.doneAt = new Date().toISOString(); c.publishAt = ""; fields.doneAt = c.doneAt; fields.publishAt = ""; moved = true; }
+  queueSave(c, fields, 300);
   PUBV.at = 0;
+  if(moved){ renderList(); fillDetail(); }
+  return moved;
+}
+/* 이 글이 써야 하는 곳에 전부 올라갔는지 (채널에서 안 쓰는 칸은 빼고 봄) */
+function pubAllDone(c){
+  const info = pubOf(c), off = offListOf(c);
+  if(isReview(c)) return !!info.yt;
+  const useYt = !off.includes("youtube_description"), useIg = !off.includes("instagram_caption");
+  if(!useYt && !useIg) return false;
+  return (!useYt || !!info.yt) && (!useIg || !!info.ig);
 }
 $("pubBox").addEventListener("click", e => {
   const c = S.cur; if(!c) return;
@@ -7225,9 +7239,9 @@ $("pubBox").addEventListener("click", e => {
       let h = ""; try{ h = new URL(url).hostname; }catch(err){ h = ""; }
       if(!/^https?:\/\//i.test(url) || !row.host.test(h)){ toast(m === "ig" ? "인스타 글 주소를 넣어 주세요." : "유튜브 글 주소를 넣어 주세요.", "err"); return; }
     }
-    savePub(c, m, url, at);
+    const moved = savePub(c, m, url, at);
     pubEdit = ""; renderPubBox();
-    toast(url ? "등록 정보를 저장했어요." : "‘안 올림’으로 바꿨어요.");
+    toast(moved ? "다 올린 글이라 ‘완료’로 옮겼어요." : (url ? "등록 정보를 저장했어요." : "‘안 올림’으로 바꿨어요."));
   }
 });
 
