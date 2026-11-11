@@ -7254,7 +7254,7 @@ function pubClassify(rows){
       if(useIg && !info.ig) cats.push("noig");
       if(!info.yt && !info.ig) cats.push("none");
       const ch = channelFor(c);
-      if(!hasRv[c.id] && ((ch && ch.review) || rvChan[c.channelId])) cats.push("norv");
+      if(!hasRv[c.id] && !info.imp && ((ch && ch.review) || rvChan[c.channelId])) cats.push("norv");     /* 거꾸로 가져온 옛 글은 후기 대상에서 뺌 */
     }
     if(info.imp) cats.push("imp");
     if(!cats.some(k => k === "noyt" || k === "noig" || k === "nomb" || k === "none")) cats.push("ok");
