@@ -437,6 +437,36 @@
   #topTools{order:-1; display:flex; gap:8px}
   #topTools button{flex:1 1 0; min-height:46px; padding:0 10px; font-size:15px; font-weight:800; border-radius:10px; white-space:nowrap}
   #topPaste{border:1px dashed var(--accent); color:var(--accent); background:var(--accent-bg)}
+  /* 등록 정보: 이 글을 실제로 어디에 언제 올렸는지 */
+  #pubBox{order:-1; border:1px solid var(--line); border-radius:10px; background:var(--panel); padding:8px 10px; display:flex; flex-direction:column; gap:6px; font-size:14px}
+  #pubBox[hidden]{display:none}
+  .pb-row{display:flex; align-items:center; flex-wrap:wrap; gap:6px 8px; min-height:34px}
+  .pb-nm{flex:none; width:64px; font-weight:800}
+  .pb-st{flex:1 1 120px; min-width:0; color:var(--sub)}
+  .pb-st.on{color:var(--ink)}
+  .pb-st b{color:#1a7f43}
+  .pb-st i{font-style:normal; color:#c0392b; font-weight:700}
+  .pb-row a{font-weight:800; color:var(--accent); text-decoration:none; padding:6px 4px}
+  .pb-ed{display:flex; flex-wrap:wrap; gap:6px; width:100%}
+  .pb-ed input{flex:1 1 200px; min-width:0; min-height:38px; padding:0 8px; border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--ink); font-size:14px}
+  .pb-ed input[type=datetime-local]{flex:0 1 200px}
+  #pubBtn{width:100%; min-height:38px; margin:0 0 8px; font-size:14px; font-weight:800}
+  /* 등록 현황 창 */
+  #pbBack{position:fixed; inset:0; z-index:300; background:rgba(0,0,0,.55); display:flex; align-items:center; justify-content:center; padding:16px}
+  #pbBack[hidden]{display:none}
+  #pbBox{width:100%; max-width:820px; height:94vh; display:flex; flex-direction:column; background:var(--bg); border:1px solid var(--line); border-radius:14px; overflow:hidden; box-shadow:0 12px 32px rgba(0,0,0,.3)}
+  #pbChan{min-height:38px; max-width:150px; font-size:14px}
+  #pbCats{flex:none; display:flex; flex-wrap:wrap; gap:6px; padding:10px 12px; border-bottom:1px solid var(--line)}
+  #pbCats button{min-height:38px; padding:0 10px; font-size:14px; font-weight:700; border-radius:999px}
+  #pbCats button.on{background:var(--accent); color:#fff; border-color:var(--accent)}
+  #pbCats button b{margin-left:4px}
+  #pbList{flex:1 1 auto; min-height:0; overflow:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; padding:10px 12px; display:flex; flex-direction:column; gap:8px}
+  .pb-it{flex:none; display:block; width:100%; text-align:left; border:1px solid var(--line); border-radius:10px; background:var(--panel); padding:9px 12px; color:var(--ink); font:inherit; cursor:pointer}
+  .pb-it .t{font-weight:800; font-size:15px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .pb-it .m{margin-top:3px; font-size:13px; color:var(--sub); display:flex; flex-wrap:wrap; gap:4px 10px}
+  .pb-it .m .ok{color:#1a7f43; font-weight:700} .pb-it .m .no{color:#c0392b; font-weight:700}
+  .pb-it.gone{opacity:.6; cursor:default}
+  .pb-note{color:var(--sub); font-size:13px; padding:4px 2px}
   /* 전체 보기 창: 채워진 칸의 글을 잘림 없이 위에서 아래로 */
   #vaBack{position:fixed; inset:0; z-index:300; background:rgba(0,0,0,.55); display:flex; align-items:center; justify-content:center; padding:16px}
   #vaBack[hidden]{display:none}
@@ -643,7 +673,10 @@
     #paneTxt, #txtBody{display:contents}
     #emptyMsg{display:none !important}
     #topTools{order:1}
+    #pubBox{order:1}
     #vaBack{padding:0; align-items:stretch}
+    #pbBack{padding:0; align-items:stretch}
+    #pbBox{height:auto; max-width:none; border-radius:0; border:0}
     #vaBox{max-width:none; max-height:none; height:100%; border:0; border-radius:0}
     #loadMsg{order:4} #rvBox{order:4} #rvList{order:4} #rawBox{order:5} #fields{order:6} #pasteWrap{order:7} #linkBox{order:8} #acts{order:9}
     body.newdoc #rawBox{order:2}
@@ -732,6 +765,7 @@
       <button type="button" class="ghost" id="selBtn" title="여러 개 골라서 보류·삭제">선택</button>
     </div>
     <div class="tabs3" id="tabs3"></div>
+    <button type="button" class="ghost" id="pubBtn" title="어디에 올렸고 어디에 안 올렸는지 한눈에 봐요">📊 등록 현황</button>
     <div id="selHead" hidden>
       <span id="selCount">0개 선택됨</span>
       <button type="button" class="ghost sm" id="selAll">전체 선택</button>
@@ -759,6 +793,8 @@
         <button type="button" class="ghost" id="topPaste" title="복사해 둔 글을 원글에 바로 넣어요">📋 원글 붙여넣기</button>
         <button type="button" class="ghost" id="viewAllBtn" title="게시글·고정 댓글 등 채워진 칸의 글을 잘림 없이 한 번에 봐요">📖 전체 보기</button>
       </div>
+      <!-- 등록 정보: 실제로 올린 곳·날짜 -->
+      <div id="pubBox" hidden></div>
       <div id="loadMsg" hidden><span id="loadTxt"></span><button type="button" class="ghost sm" id="loadRetry" hidden>다시 불러오기</button></div>
       <!-- 사진 설정 (PC): 원글 위에 한 칸으로 보여요. 접고 펼 수 있어요 -->
       <div id="phDock" class="ph-dock" hidden>
@@ -1439,6 +1475,13 @@
   <div id="vaBox" role="dialog" aria-modal="true" aria-labelledby="vaTtl">
     <div class="va-head"><b id="vaTtl">전체 보기</b><span id="vaSub"></span><button type="button" class="ghost sm" id="vaX">닫기 ✕</button></div>
     <div id="vaBody"></div>
+  </div>
+</div>
+<div id="pbBack" hidden>
+  <div id="pbBox" role="dialog" aria-modal="true" aria-labelledby="pbTtl">
+    <div class="va-head"><b id="pbTtl">등록 현황</b><span id="vaSubP" style="flex:1"></span><select id="pbChan" aria-label="채널"></select><button type="button" class="ghost sm" id="pbX">닫기 ✕</button></div>
+    <div id="pbCats"></div>
+    <div id="pbList"></div>
   </div>
 </div>
 <div id="toast" role="status" aria-live="polite"></div>
@@ -4972,7 +5015,9 @@ const FIELDS = [
   /* 후기 글이 붙어 있는 원글의 ID (후기가 아닌 글은 비어 있음) */
   {kind:"review_of",          label:"원글 (후기일 때)",   short:"", hidden:true, flag:true},
   /* 장마다 붙인 사진 목록(JSON). 사진 파일은 구글 드라이브 ‘카드 사진 보관함’에 있고 여기엔 그 ID와 자리·모양만 적어요 */
-  {kind:"card_photos",        label:"카드 사진",          short:"", hidden:true, flag:true}
+  {kind:"card_photos",        label:"카드 사진",          short:"", hidden:true, flag:true},
+  /* 실제로 올린 곳 기록(JSON): {v:1, yt:{u:주소, d:"2026-11-09"(대략 날짜) 또는 t:정확한 시각}, ig:{u, t}, imp:1(올린 글에서 거꾸로 가져온 글)} */
+  {kind:"pub_info",           label:"등록 정보",          short:"", hidden:true, flag:true}
 ];
 const AD_BOXES = [{kind:"yt_last_ad", id:"adYt"}, {kind:"ig_last_ad", id:"adIg"}];
 /* 칸마다 어느 매체의 쿠팡 링크를 쓰는지: 유튜브 칸 → 유튜브 링크(yt), 인스타·스레드 칸 → 인스타 링크(ig).
@@ -5255,6 +5300,7 @@ const filledOf = c => FIELDS.filter(x => !x.hidden && hasField(c, x.kind)).map(x
 function fixCached(c){
   c.f = Object.assign(emptyF(), c.f || {});
   c.extra = Array.isArray(c.extra) ? c.extra : [];
+  if(c.extra.some(p => p && p.kind in c.f)){ c.extra.forEach(p => { if(p && p.kind in c.f && !c.f[p.kind]) c.f[p.kind] = String(p.content || ""); }); c.extra = c.extra.filter(p => !(p && p.kind in c.f)); }
   if(c.full === undefined) c.full = true;            /* 예전 저장본의 글은 모두 내용이 들어 있었어요 */
   c.rawText = c.rawText || "";
   c.splitMode = c.splitMode || ""; c.lastPageType = c.lastPageType || ""; c.splitDelim = c.splitDelim || "";
@@ -6174,7 +6220,7 @@ function openContent(c, opt){
   const same = S.cur === c;
   S.cur = c;
   c.openedAt = Date.now();                               /* 폰에 내용까지 기억해 둘 글을 고를 때 쓰는 ‘최근에 연 순서’ */
-  if(!same){ fontRetries = 0; S.fOpen = {}; closePaste(); closeViewAll(); setActMsg(""); setCLoading(""); [...$("list").children].forEach(cd => { if(cd._pn){ cd._pn.hidden = true; cd._adj = false; cd._img.classList.remove("adj"); phHome(cd); } }); phDockSync(); }
+  if(!same){ fontRetries = 0; S.fOpen = {}; pubEdit = ""; closePaste(); closeViewAll(); setActMsg(""); setCLoading(""); [...$("list").children].forEach(cd => { if(cd._pn){ cd._pn.hidden = true; cd._adj = false; cd._img.classList.remove("adj"); phHome(cd); } }); phDockSync(); }
   if(S.selMode){ S.selMode = false; S.sel.clear(); updateSelUI(); }
   document.body.classList.remove("nosel");
   const needLoad = !!c.id && c.full === false;           /* 목록만 받아 둔 글: 내용을 받아 와야 함 */
@@ -6229,6 +6275,7 @@ function fillDetail(){
   updateDoneBtn();
   $("delBtn").hidden = !canDelete(c);
   updateShareMarks();
+  renderPubBox();
 }
 /* 채널 디자인을 화면의 디자인 칸에 넣고, 이 글의 옵션(장 나누기 등)을 덮어씁니다. */
 function applyDesignFor(c){
@@ -7096,6 +7143,193 @@ function vaGoto(kind){
   el.scrollIntoView({block:"center", behavior:"smooth"});
   try{ el.focus({preventScroll:true}); }catch(e){}
 }
+/* ================= 등록 정보 · 등록 현황 =================
+   글마다 ‘실제로 올린 곳’(유튜브 게시글 · 인스타)의 주소와 날짜를 pub_info 칸(JSON)에 적어 둡니다.
+   - 글을 열면 맨 위(원글 붙여넣기 줄 아래)에 등록 정보가 보이고, 주소를 붙여 넣어 고칠 수 있어요.
+   - 목록의 「등록 현황」: 유튜브 미등록 / 인스타 미등록 / 멤버십 후기 미등록 / 아무 데도 안 올림 / 후기 없는 글 … 로 나눠 보여 줍니다. */
+function pubOf(c){
+  let d = null;
+  try{ d = JSON.parse((c && c.f && c.f.pub_info) || ""); }catch(e){ d = null; }
+  if(!d || typeof d !== "object" || Array.isArray(d)) d = {};
+  const one = x => (x && typeof x === "object" && typeof x.u === "string" && x.u) ? {u:x.u, t:String(x.t || ""), d:String(x.d || "")} : null;
+  return {yt:one(d.yt), ig:one(d.ig), imp:d.imp ? 1 : 0};
+}
+function pubWhen(x){
+  if(!x) return "";
+  if(x.t){ const s = fmtAt(x.t); if(s) return s; }
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(x.d || "");
+  return m ? `${+m[2]}/${+m[3]} 무렵` : "";
+}
+function pubTime(x){ if(!x) return 0; const t = Date.parse(x.t || (x.d ? x.d + "T12:00:00+09:00" : "")); return isNaN(t) ? 0 : t; }
+const PUB_ROWS = [{m:"yt", kind:"youtube_description", host:/(^|\.)youtube\.com$|(^|\.)youtu\.be$/}, {m:"ig", kind:"instagram_caption", host:/(^|\.)instagram\.com$/}];
+const pubLabel = (c, m) => m === "ig" ? "인스타" : (isReview(c) ? "멤버십" : "유튜브");
+var pubEdit = "";
+function renderPubBox(){
+  const box = $("pubBox"), c = S.cur;
+  if(!c || !c.id || c.full === false){ box.hidden = true; box.textContent = ""; return; }
+  const info = pubOf(c), off = offListOf(c);
+  box.textContent = "";
+  PUB_ROWS.forEach(r => {
+    const x = info[r.m], unused = off.includes(r.kind);
+    if(unused && !x) return;
+    const row = vaMk("div", "pb-row");
+    row.append(vaMk("span", "pb-nm", pubLabel(c, r.m)));
+    const st = vaMk("span", "pb-st" + (x ? " on" : ""));
+    if(x){ st.append(vaMk("b", "", "✓ 등록됨")); const w = pubWhen(x); if(w) st.append(" · " + w); }
+    else st.append(vaMk("i", "", "아직 안 올림"));
+    row.append(st);
+    if(x){ const a = vaMk("a", "", "열기 ↗"); a.href = x.u; a.target = "_blank"; a.rel = "noopener"; row.append(a); }
+    const b = vaMk("button", "ghost sm", x ? "고치기" : "주소 넣기"); b.type = "button"; b.dataset.pe = r.m; row.append(b);
+    if(pubEdit === r.m){
+      const ed = vaMk("div", "pb-ed");
+      const u = vaMk("input"); u.type = "url"; u.id = "pbUrl"; u.placeholder = "올린 글 주소 붙여넣기 (비우면 ‘안 올림’)"; u.value = x ? x.u : "";
+      const t = vaMk("input"); t.type = "datetime-local"; t.id = "pbAt"; t.title = "올린 날짜·시간 (비우면 지금)";
+      const base = x && x.t ? new Date(x.t) : null;
+      if(base && !isNaN(base)) t.value = `${base.getFullYear()}-${p2(base.getMonth()+1)}-${p2(base.getDate())}T${p2(base.getHours())}:${p2(base.getMinutes())}`;
+      const ok = vaMk("button", "sm", "저장"); ok.type = "button"; ok.dataset.ps = r.m;
+      const no = vaMk("button", "ghost sm", "취소"); no.type = "button"; no.dataset.pc = "1";
+      ed.append(u, t, ok, no); row.append(ed);
+    }
+    box.append(row);
+  });
+  if(info.imp) box.append(vaMk("div", "pb-note", "올린 글에서 거꾸로 가져온 글이라 카드 원문은 없어요."));
+  box.hidden = !box.childElementCount;
+}
+function savePub(c, m, url, at){
+  let d = {};
+  try{ d = JSON.parse(c.f.pub_info || "") || {}; }catch(e){ d = {}; }
+  if(typeof d !== "object" || Array.isArray(d)) d = {};
+  d.v = 1;
+  if(!url) delete d[m];
+  else{
+    const prev = d[m] && d[m].u === url ? d[m] : null;
+    if(at) d[m] = {u:url, t:new Date(at).toISOString()};
+    else if(prev) d[m] = prev;
+    else d[m] = {u:url, t:new Date().toISOString()};
+  }
+  const s = (d.yt || d.ig || d.imp) ? JSON.stringify(d) : "";
+  if(s === (c.f.pub_info || "")) return;
+  c.f.pub_info = s;
+  queueSave(c, {postFields:{pub_info:s}}, 300);
+  PUBV.at = 0;
+}
+$("pubBox").addEventListener("click", e => {
+  const c = S.cur; if(!c) return;
+  const pe = e.target.closest("[data-pe]"), ps = e.target.closest("[data-ps]"), pc = e.target.closest("[data-pc]");
+  if(pe){ pubEdit = pubEdit === pe.dataset.pe ? "" : pe.dataset.pe; renderPubBox(); const u = $("pbUrl"); if(u) u.focus(); return; }
+  if(pc){ pubEdit = ""; renderPubBox(); return; }
+  if(ps){
+    const m = ps.dataset.ps, row = PUB_ROWS.find(r => r.m === m);
+    const url = $("pbUrl").value.trim(), at = $("pbAt").value;
+    if(url){
+      let h = ""; try{ h = new URL(url).hostname; }catch(err){ h = ""; }
+      if(!/^https?:\/\//i.test(url) || !row.host.test(h)){ toast(m === "ig" ? "인스타 글 주소를 넣어 주세요." : "유튜브 글 주소를 넣어 주세요.", "err"); return; }
+    }
+    savePub(c, m, url, at);
+    pubEdit = ""; renderPubBox();
+    toast(url ? "등록 정보를 저장했어요." : "‘안 올림’으로 바꿨어요.");
+  }
+});
+
+const PUBV = {rows:[], at:0, loading:false, err:"", cat:"", chan:""};
+const PUB_CATS = [
+  {k:"noyt",   label:"유튜브 미등록"},
+  {k:"noig",   label:"인스타 미등록"},
+  {k:"nomb",   label:"멤버십 후기 미등록"},
+  {k:"none",   label:"아무 데도 안 올림"},
+  {k:"norv",   label:"후기 없는 글"},
+  {k:"imp",    label:"카드 원문 없는 글"},
+  {k:"ok",     label:"모두 등록됨"}
+];
+/* 글 하나가 어느 분류에 드는지. rows 안에서 후기-원글을 이어 봅니다. */
+function pubClassify(rows){
+  const hasRv = {}, rvChan = {};
+  rows.forEach(c => { const o = reviewOfId(c); if(o){ hasRv[o] = 1; rvChan[c.channelId] = 1; } });
+  return rows.map(c => {
+    const info = pubOf(c), off = offListOf(c), rv = isReview(c), cats = [];
+    const useYt = !off.includes("youtube_description"), useIg = !off.includes("instagram_caption");
+    if(rv){ if(!info.yt) cats.push("nomb"); }
+    else{
+      if(useYt && !info.yt) cats.push("noyt");
+      if(useIg && !info.ig) cats.push("noig");
+      if(!info.yt && !info.ig) cats.push("none");
+      const ch = channelFor(c);
+      if(!hasRv[c.id] && ((ch && ch.review) || rvChan[c.channelId])) cats.push("norv");
+    }
+    if(info.imp) cats.push("imp");
+    if(!cats.some(k => k === "noyt" || k === "noig" || k === "nomb" || k === "none")) cats.push("ok");
+    return {c, info, rv, cats, useYt, useIg};
+  });
+}
+async function loadPubRows(force){
+  if(PUBV.loading) return;
+  if(!force && PUBV.rows.length && Date.now() - PUBV.at < 60000) return;
+  PUBV.loading = true; PUBV.err = ""; renderPubView();
+  try{
+    const r = await callDbRead({action:"boot"}, {timeoutMs:60000});
+    if(!r || r.ok === false) throw new Error((r && r.error) || "불러오지 못했어요.");
+    PUBV.rows = (r.contents || []).map(s => fromServer(s, "pv_" + s.id));
+    PUBV.at = Date.now();
+  }catch(e){ PUBV.err = (e && e.message) || "불러오지 못했어요."; }
+  PUBV.loading = false; renderPubView();
+}
+function renderPubView(){
+  if($("pbBack").hidden) return;
+  const cats = $("pbCats"), list = $("pbList"), sel = $("pbChan");
+  const chans = S.channels.filter(ch => PUBV.rows.some(c => c.channelId === ch.id));
+  const keepChan = PUBV.chan;
+  sel.textContent = ""; sel.add(new Option("모든 채널", ""));
+  chans.forEach(ch => sel.add(new Option(ch.name, ch.id)));
+  sel.value = chans.some(ch => ch.id === keepChan) ? keepChan : ""; PUBV.chan = sel.value;
+  cats.textContent = ""; list.textContent = "";
+  if(PUBV.loading && !PUBV.rows.length){ list.append(vaMk("div", "pb-note", "불러오는 중… (글이 많으면 몇 초 걸려요)")); return; }
+  if(PUBV.err && !PUBV.rows.length){ list.append(vaMk("div", "pb-note", PUBV.err)); const b = vaMk("button", "ghost sm", "다시 불러오기"); b.type = "button"; b.dataset.re = "1"; list.append(b); return; }
+  const all = pubClassify(PUBV.rows).filter(x => !PUBV.chan || x.c.channelId === PUBV.chan);
+  const count = k => all.filter(x => x.cats.includes(k)).length;
+  if(!PUBV.cat || !PUB_CATS.some(x => x.k === PUBV.cat)) PUBV.cat = (PUB_CATS.find(x => count(x.k) > 0) || PUB_CATS[0]).k;
+  PUB_CATS.forEach(x => {
+    const b = vaMk("button", "ghost" + (PUBV.cat === x.k ? " on" : ""), x.label); b.type = "button"; b.dataset.cat = x.k;
+    b.append(vaMk("b", "", String(count(x.k)))); cats.append(b);
+  });
+  const rows = all.filter(x => x.cats.includes(PUBV.cat));
+  const when = x => Math.max(pubTime(x.info.yt), pubTime(x.info.ig)) || Date.parse(x.c.doneAt || x.c.createdAt || "") || 0;
+  rows.sort((a, b) => when(b) - when(a));
+  if(PUBV.loading) list.append(vaMk("div", "pb-note", "새로 확인하는 중…"));
+  if(!rows.length) list.append(vaMk("div", "pb-note", "여기에 해당하는 글이 없어요."));
+  const titleOf = c => { const o = isReview(c) ? PUBV.rows.find(z => z.id === reviewOfId(c)) : null; return (o ? "[후기] " + (o.title || "") : (c.title || "제목 없음")); };
+  rows.forEach(x => {
+    const c = x.c, here = S.contents.some(z => z.id === c.id);
+    const it = vaMk("button", "pb-it" + (here ? "" : " gone")); it.type = "button"; it.dataset.id = c.id;
+    it.append(vaMk("div", "t", titleOf(c)));
+    const m = vaMk("div", "m");
+    m.append(vaMk("span", "", c.channel || ""));
+    const mark = (label, v, use) => { if(!use && !v) return; m.append(vaMk("span", v ? "ok" : "no", label + (v ? " ✓ " + pubWhen(v) : " ✗"))); };
+    mark(x.rv ? "멤버십" : "유튜브", x.info.yt, x.rv || x.useYt);
+    if(!x.rv) mark("인스타", x.info.ig, x.useIg);
+    if(!x.rv && x.cats.includes("norv")) m.append(vaMk("span", "no", "후기 없음"));
+    if(!x.info.yt && !x.info.ig){ const st = stateOf(c); m.append(vaMk("span", "", st === "done" ? "완료 표시됨 " + fmtAt(c.doneAt) : (st === "hold" ? "보류" : "작성 " + fmtAt(c.createdAt)))); }
+    it.append(m); list.append(it);
+  });
+}
+function openPubView(){
+  if(S.mode !== "work") return;
+  $("pbBack").hidden = false; document.body.classList.add("va-open");
+  renderPubView(); loadPubRows(false);
+}
+function closePubView(){ if($("pbBack").hidden) return; $("pbBack").hidden = true; document.body.classList.remove("va-open"); }
+$("pubBtn").addEventListener("click", openPubView);
+$("pbX").addEventListener("click", closePubView);
+$("pbBack").addEventListener("click", e => { if(e.target === $("pbBack")) closePubView(); });
+$("pbChan").addEventListener("change", () => { PUBV.chan = $("pbChan").value; PUBV.cat = ""; renderPubView(); });
+$("pbCats").addEventListener("click", e => { const b = e.target.closest("[data-cat]"); if(b){ PUBV.cat = b.dataset.cat; renderPubView(); $("pbList").scrollTop = 0; } });
+$("pbList").addEventListener("click", e => {
+  if(e.target.closest("[data-re]")){ loadPubRows(true); return; }
+  const it = e.target.closest(".pb-it"); if(!it) return;
+  const c = S.contents.find(z => z.id === it.dataset.id);
+  if(!c){ toast("목록을 새로 받는 중이에요. 잠시 뒤 다시 눌러 주세요."); boot(true); return; }
+  closePubView(); openContent(c);
+});
+document.addEventListener("keydown", e => { if(e.key === "Escape" && !$("pbBack").hidden) closePubView(); });
 $("viewAllBtn").addEventListener("click", openViewAll);
 $("vaX").addEventListener("click", closeViewAll);
 $("vaBack").addEventListener("click", e => { if(e.target === $("vaBack")) closeViewAll(); });
