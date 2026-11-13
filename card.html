@@ -1572,7 +1572,8 @@ FONTS.forEach((f,i)=>{
 });
 
 let igRender = {key:"", off:false, noteOff:false};   /* 마지막으로 그린 글과 그때의 '인스타 자동 DM 안 씀'·'인스타 안내문구 뺌' 상태 */
-let ADS = {yt:"", ig:""};             /* 이 글의 ‘유튜브/인스타 마지막 광고’ 글 (그릴 때마다 render 가 새로 읽어 옵니다) */
+let ADS = {yt:"", ig:""};
+let IGW = null;                         /* 이 글 인스타 캡션의 댓글 단어 2개 (예: ['간다','포기']) — 없으면 null. 그릴 때마다 render 가 새로 읽어 옵니다 */             /* 이 글의 ‘유튜브/인스타 마지막 광고’ 글 (그릴 때마다 render 가 새로 읽어 옵니다) */
 let NOTEOFF = {yt:false, ig:false};   /* 이 글에서 안내문구를 뺄지 (유튜브·인스타) */
 let PHMAP = [];                       /* 장 번호 → {item}: 이번에 그리는 글의 사진 배정 (render 가 정해 줍니다) */
 const PH = new Map();                 /* 사진 ID → {st:"loading"|"ok"|"fail", img, w, h, err, code}: 불러와 둔 사진 */
@@ -1584,6 +1585,24 @@ let dzGenSub = null;                  /* 후기 설정을 고치는 동안 맡�
 let dzRev = null;                     /* 이 채널의 후기 설정 (바뀐 항목만 따로 저장. 없으면 일반 글과 똑같이) */
 /* 채널 디자인을 고치는 중에는 글마다 다른 광고 글 대신 디자인을 볼 수 있는 예시 글을 넣습니다 (저장되지 않아요) */
 const DESIGN_SAMPLE_ADS = {yt:"구독·좋아요 부탁드려요!\n다음 사연도 기대해 주세요", ig:"팔로우하면 다음 사연을 바로 볼 수 있어요\n프로필 링크도 확인해 주세요"};
+/* 인스타 캡션에서 「'간다' 또는 '포기'」처럼 따옴표로 감싼 댓글 단어 2개를 찾습니다 (‘댓글’이 들어간 줄을 먼저 봄). 못 찾으면 null */
+function igWordsFrom(text){
+  const t = String(text || "");
+  if(!t.trim()) return null;
+  const q1 = "['\"‘“「『]", q2 = "['\"’”」』]", w = "([^'\"‘’“”「」『』\n]{1,14}?)";
+  const re = new RegExp(q1 + w + q2 + "\\s*(?:또는|이나|아니면|혹은|or|,|/|·)\\s*" + q1 + w + q2, "i");
+  const lines = t.split("\n");
+  const order = lines.filter(l => /댓글/.test(l)).concat(lines.filter(l => !/댓글/.test(l)));
+  for(const l of order){
+    const m = l.match(re);
+    if(m){ const a = m[1].trim(), b = m[2].trim(); if(a && b && a !== b) return [a, b]; }
+  }
+  return null;
+}
+function currentIgWords(){
+  if(S.mode !== "work" || !S.cur || !S.cur.f) return null;
+  return igWordsFrom(S.cur.f.instagram_caption);
+}
 function currentAds(){
   if(S.mode !== "work") return {yt:DESIGN_SAMPLE_ADS.yt, ig:DESIGN_SAMPLE_ADS.ig};
   if(!S.cur || !S.cur.f) return {yt:"", ig:""};
@@ -2649,11 +2668,37 @@ function numColor(pre, hlCol, inkCol){
   const k = getOpt(pre + "NumColor");
   return k === "ink" ? inkCol : (k === "custom" ? (getOpt(pre + "NumCustom") || hlCol) : hlCol);
 }
+/* 표시 글자가 숫자 하나가 아니면(댓글 단어) 동그라미 대신 알약 모양으로, 글자 길이만큼 넓게 그립니다 */
+const isWordLabel = label => String(label).length > 1;
+const badgeFont = (size, f, plain, word) => `${f.cover} ${Math.round(size * (word ? (plain ? 0.62 : 0.46) : (plain ? 0.85 : 0.6)))}px "${f.family}", "Pretendard", sans-serif`;
+function badgeW(ctx, label, size, f, pre){
+  if(!isWordLabel(label)) return size;
+  const plain = getOpt(pre + "NumStyle") === "plain";
+  ctx.save();
+  try{ ctx.letterSpacing = "0px"; }catch(e){}
+  ctx.font = badgeFont(size, f, plain, true);
+  const w = ctx.measureText(String(label)).width;
+  ctx.restore();
+  return Math.min(Math.round(WIDTH * 0.32), Math.max(size, Math.round(w + (plain ? 8 : size * 0.7))));
+}
 function drawNumBadge(ctx, label, cx, cy, size, f, hlCol, inkCol, pre){
   const col = numColor(pre, hlCol, inkCol);
   ctx.save();
   try{ ctx.letterSpacing = "0px"; }catch(e){}
   ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  if(isWordLabel(label)){
+    const plain = getOpt(pre + "NumStyle") === "plain";
+    const w = badgeW(ctx, label, size, f, pre);
+    ctx.font = badgeFont(size, f, plain, true);
+    if(!plain){
+      ctx.fillStyle = col;
+      ctx.beginPath(); ctx.roundRect(cx - w/2, cy - size*0.36, w, size*0.72, size*0.36); ctx.fill();
+      ctx.fillStyle = isDarkColor(col) ? "#ffffff" : "#111111";
+    }else ctx.fillStyle = col;
+    ctx.fillText(String(label), cx, cy + 1, w - 6);
+    ctx.restore();
+    return;
+  }
   if(getOpt(pre + "NumStyle") === "plain"){
     ctx.fillStyle = col;                                   /* 숫자만: 동그라미 없이 굵은 숫자 */
     ctx.font = `${f.cover} ${Math.round(size*0.85)}px "${f.family}", "Pretendard", sans-serif`;
@@ -2898,13 +2943,13 @@ function drawVsQuestion(ctx, page, f, tTop, tH, padX, maxFont, lhRatio, align, i
 }
 
 /* A vs B / O·X 좌우 2분할 */
-function drawSideBySide(ctx, page, f, css, padX, padY, areaH, maxFont, lhRatio, bgCol, inkCol, hlCol, hlStyle, num, pre){
+function drawSideBySide(ctx, page, f, css, padX, padY, areaH, maxFont, lhRatio, bgCol, inkCol, hlCol, hlStyle, num, pre, labels){
   const nS = num ? numSize(pre) : 0;
   const gap = 96, colW = (WIDTH - padX*2 - gap)/2, markH = page.ox ? 170 : (num ? nS + 40 : 0);
   const r = fit(ctx, css, [page.top, page.bottom], colW, areaH - markH, Math.min(maxFont, 50), 18, lhRatio);
   [[r.all[0], padX], [r.all[1], padX + colW + gap]].forEach(([ls, x], i)=>{
     const top = padY + markH + (areaH - markH - ls.length*r.lh)/2;
-    if(num && !page.ox) drawNumBadge(ctx, String(i + 1), x + colW/2, padY + nS/2 + 10, nS, f, hlCol, inkCol, pre);
+    if(num && !page.ox) drawNumBadge(ctx, labels ? labels[i] : String(i + 1), x + colW/2, padY + nS/2 + 10, nS, f, hlCol, inkCol, pre);
     if(page.ox){
       const cx = x + colW/2, cy = padY + 80, R = 58, k = R*0.8;
       ctx.save(); ctx.strokeStyle = inkCol; ctx.lineWidth = 18; ctx.lineCap = "round"; ctx.beginPath();
@@ -3495,7 +3540,10 @@ function draw(page, idx, total, f, ig, opt){
   /* 선택지가 3개 이상이면 문구 속 ‘1 또는 2’를 ‘1~4’처럼 바꿔 줍니다 (인스타용) */
   if(ig && noteText && page.type === "choice" && page.items.length > 2){
     noteText = noteText.replace(/1\s*(또는|이나|or|,|\/)\s*2/, `${page.items[0].num}~${page.items[page.items.length - 1].num}`);
+  }else if(ig && noteText && IGW){
+    noteText = noteText.replace(/1\s*(또는|이나|or|,|\/)\s*2/, `'${IGW[0]}' 또는 '${IGW[1]}'`);   /* 캡션의 댓글 단어로 바꿈 */
   }
+  const lbl = i => (ig && IGW) ? IGW[i] : String(i + 1);      /* VS 선택지 옆 표시: 캡션에 댓글 단어가 있으면 단어, 없으면 1·2 */
   const igNum = isLast && numShown(page, pre) && !(ig && igRender.off);
   /* 마지막 광고 글(글마다 다름): 본문과 안내문구 사이에, 안내문구가 없으면 맨 아래에 들어갑니다. 모양·색·크기는 채널 디자인에서 */
   const adText = isLast ? (ig ? ADS.ig : ADS.yt) : "";
@@ -3540,14 +3588,14 @@ function draw(page, idx, total, f, ig, opt){
     drawChoiceLayout(ctx, page, f, padX, tTop, tH, maxFont, lhRatio, bgCol, inkCol, hlCol, hlStyle);
   }else if(page.dir === "h"){
     const qH = drawVsQuestion(ctx, page, f, tTop, tH, padX, maxFont, lhRatio, curAlign, inkCol, hlCol, hlStyle);     /* 질문 줄이 있으면 맨 위에, 아래로 좌우 2분할 */
-    drawSideBySide(ctx, page, f, css, padX, tTop + qH, tH - qH, maxFont, lhRatio, bgCol, inkCol, hlCol, hlStyle, igNum, pre);
+    drawSideBySide(ctx, page, f, css, padX, tTop + qH, tH - qH, maxFont, lhRatio, bgCol, inkCol, hlCol, hlStyle, igNum, pre, [lbl(0), lbl(1)]);
   }else{
     const qH = drawVsQuestion(ctx, page, f, tTop, tH, padX, maxFont, lhRatio, curAlign, inkCol, hlCol, hlStyle);     /* 질문 줄이 있으면 맨 위에, 그 아래로 위/VS/아래 (없으면 qH=0이라 예전과 똑같음) */
     const vTop = tTop + qH;
     const vsH = 110;
     const halfH = (tH - qH - vsH)/2;
     /* 인스타용이면 글 왼쪽에 1·2 숫자 자리를 비워 둡니다 */
-    const bSize = igNum ? numSize(pre) : 0, bGap = igNum ? 28 : 0;
+    const bSize = igNum ? Math.max(badgeW(ctx, lbl(0), numSize(pre), f, pre), badgeW(ctx, lbl(1), numSize(pre), f, pre)) : 0, bGap = igNum ? 28 : 0;
     const tX = padX + bSize + bGap, tW = maxW - bSize - bGap;
     const r = fit(ctx, css, [page.top, page.bottom], tW, halfH, Math.min(maxFont, 58), 20, lhRatio);
     const tl = r.all[0], bl = r.all[1];
@@ -3559,8 +3607,8 @@ function draw(page, idx, total, f, ig, opt){
     drawFormattedLines(ctx, bl, botY, r.lh, r.size, curAlign, padX, inkCol, hlCol, hlStyle, f, false, igNum ? tX : null, igNum ? tW : null);
 
     if(igNum){
-      drawNumBadge(ctx, "1", padX + bSize/2, topY - r.lh/2 + tl.length*r.lh/2, bSize, f, hlCol, inkCol, pre);
-      drawNumBadge(ctx, "2", padX + bSize/2, botY - r.lh/2 + bl.length*r.lh/2, bSize, f, hlCol, inkCol, pre);
+      drawNumBadge(ctx, lbl(0), padX + bSize/2, topY - r.lh/2 + tl.length*r.lh/2, numSize(pre), f, hlCol, inkCol, pre);
+      drawNumBadge(ctx, lbl(1), padX + bSize/2, botY - r.lh/2 + bl.length*r.lh/2, numSize(pre), f, hlCol, inkCol, pre);
     }
 
     const cy = vTop + halfH + vsH/2;
@@ -3877,6 +3925,7 @@ async function render(){
   NOTEOFF = S.mode === "work" ? noteOffOf(S.cur) : {yt:false, ig:false};     /* 이 글에서 안내문구를 뺀 쪽 */
   igRender = {key: S.cur ? S.cur.key : "", off: igOffNow, noteOff: NOTEOFF.ig};
   ADS = currentAds();
+  IGW = currentIgWords();
   PHMAP = phMapFor(snapPages);
   RC = {pages:snapPages, n, f};
   /* 인스타용 마지막 장은 유튜브용(다운로드)과 다를 때만 한 장 더 만듭니다:
@@ -3891,7 +3940,7 @@ async function render(){
   for(let i = 0; i < m; i++){
     const ig = i === n;
     const pi = ig ? n - 1 : i;
-    const adSig = pi === n - 1 ? (ig ? ADS.ig : ADS.yt) + "|" + (NOTEOFF[ig ? "ig" : "yt"] ? "nn" : "") : "";   /* 광고 글·안내문구 빼기가 바뀌면 마지막 장을 새로 그립니다 */
+    const adSig = pi === n - 1 ? (ig ? ADS.ig + "|w:" + (IGW ? IGW.join("/") : "") : ADS.yt) + "|" + (NOTEOFF[ig ? "ig" : "yt"] ? "nn" : "") : "";   /* 광고 글·안내문구 빼기가 바뀌면 마지막 장을 새로 그립니다 */
     const sig = dsig + "|" + (ig ? "ig|" + (igOffNow ? "off|" : "") : "") + pi + "|" + n + "|" + JSON.stringify(snapPages[pi]) + "|" + adSig + phSigOf(pi);
     const hit = imgCache.get(sig);
     if(hit){ imgCache.delete(sig); imgCache.set(sig, hit); entries[i] = hit; }
@@ -6347,11 +6396,13 @@ function applyFieldOpen(){
     ta.addEventListener("input", () => {
       const c = S.cur;
       if(!c) return;
+      const w0 = x.kind === "instagram_caption" ? JSON.stringify(igWordsFrom(c.f[x.kind])) : "";
       c.f[x.kind] = ta.value;
       updateTag(x.kind);
       autoGrow(ta);
       queueSave(c, {postFields:{[x.kind]: ta.value}});
       scheduleListRender();
+      if(x.kind === "instagram_caption" && S.mode === "work" && JSON.stringify(igWordsFrom(ta.value)) !== w0) scheduleRender(false);   /* 댓글 단어가 바뀌면 인스타용 마지막 장 다시 그리기 */
     });
     ta.addEventListener("blur", () => flushSoon(150));
     btn.addEventListener("click", e => {
@@ -6384,6 +6435,7 @@ async function pasteField(x, ta, wrap){
   if(S.cur === c){ ta.value = t; updateTag(x.kind); wrap.open = true; }
   queueSave(c, {postFields:{[x.kind]: t}}, 300);
   scheduleListRender();
+  if(x.kind === "instagram_caption" && S.cur === c) scheduleRender(false);
   toast(`${x.label}에 넣었어요 (${t.length.toLocaleString()}자)`);
 }
 /* ---------- 한 번에 붙여넣기: 제목 줄을 보고 설명 칸마다 나눠 넣기 ----------
@@ -6472,7 +6524,7 @@ $("pasteGo").addEventListener("click", () => {
     updateTag(x.kind);
   });
   syncAdBoxes();
-  if(ks.some(x => x.hidden)) scheduleRender(false);
+  if(ks.some(x => x.hidden || x.kind === "instagram_caption")) scheduleRender(false);
   queueSave(c, {postFields:pf}, 300);
   scheduleListRender();
   closePaste();
