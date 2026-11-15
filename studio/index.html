@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>영상 통합 작업실 (Thenaom Video Studio) — Thenaom Tools</title>
+  <meta name="description" content="Thenaom Tools 운영자가 자신의 유튜브 채널에 직접 만든 영상을 올리기 위해 쓰는 개인용 PC 프로그램입니다. YouTube API Services를 사용합니다.">
+  <link rel="canonical" href="https://www.thenaom.com/studio/">
+  <style>
+    :root{--bg:#fff;--text:#0b1220;--muted:#475569;--border:#e5e7eb;--card:#f8fafc;--accent:#2563eb;--yt:#ff0000}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR",Arial,sans-serif;line-height:1.7}
+    a{color:var(--accent)}
+    header,main,footer{max-width:860px;margin:0 auto;padding:0 18px}
+    header{display:flex;justify-content:space-between;align-items:center;padding-top:18px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+    .brand{font-weight:800;color:var(--text);text-decoration:none}
+    nav a{margin-left:14px;text-decoration:none}
+    h1{font-size:1.8rem;margin:28px 0 6px}
+    h2{font-size:1.2rem;margin:30px 0 8px}
+    .sub{color:var(--muted);margin:0 0 18px}
+    .yt{display:inline-flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid var(--border);border-radius:12px;background:var(--card);font-weight:600}
+    .yt svg{flex:none}
+    .box{border:1px solid var(--border);border-radius:12px;background:var(--card);padding:14px 18px;margin:12px 0}
+    ol li,ul li{margin:4px 0}
+    .en{color:var(--muted);font-size:.95rem}
+    footer{margin-top:40px;padding-top:14px;padding-bottom:30px;border-top:1px solid var(--border);color:var(--muted);font-size:.95rem}
+    footer a{margin-right:16px}
+  </style>
+</head>
+<body>
+<header>
+  <a class="brand" href="/">Thenaom Tools</a>
+  <nav>
+    <a href="/studio/privacy.html">개인정보처리방침 (Privacy Policy)</a>
+    <a href="/studio/terms.html">이용약관 (Terms)</a>
+  </nav>
+</header>
+
+<main>
+  <h1>영상 통합 작업실</h1>
+  <p class="sub">Thenaom Video Studio — 운영자 본인 채널 전용 개인 PC 프로그램</p>
+
+  <p class="yt">
+    <svg width="34" height="24" viewBox="0 0 34 24" aria-hidden="true"><rect width="34" height="24" rx="6" fill="#ff0000"/><path d="M13.5 6.8v10.4L22.5 12z" fill="#fff"/></svg>
+    Developed with YouTube API Services · YouTube API 서비스 사용
+  </p>
+
+  <h2>무엇을 하는 프로그램인가요?</h2>
+  <p>Thenaom Tools 운영자가 직접 기획·제작한 영상을 <strong>운영자 본인이 소유·관리하는 유튜브 채널</strong>에 올릴 때 쓰는 윈도우 PC 프로그램입니다. 외부 사용자에게 제공하거나 판매하지 않습니다.</p>
+  <p class="en">A Windows desktop tool used only by the operator of Thenaom Tools to upload videos the operator produced to YouTube channels the operator owns and manages. It is not offered to the public.</p>
+
+  <h2>YouTube API로 하는 일</h2>
+  <div class="box">
+    <ol>
+      <li>운영자가 Google 계정으로 로그인해 자기 채널 접근을 허락합니다 (OAuth 2.0).</li>
+      <li>완성된 영상 파일을 제목·설명·태그·공개 설정과 함께 올립니다 (videos.insert).</li>
+      <li>썸네일을 지정합니다 (thumbnails.set).</li>
+      <li>필요하면 재생목록에 넣고, 올린 영상 정보를 고칩니다 (playlistItems.insert, videos.update).</li>
+      <li>올라간 영상의 주소와 상태를 확인해 작업 기록에 남깁니다 (channels.list, videos.list).</li>
+    </ol>
+    <p class="en">Sign in with Google (OAuth 2.0) → upload the finished video with title, description, tags and privacy setting → set the thumbnail → optionally add to a playlist or update metadata → read back the video URL and status for the operator's own work log.</p>
+  </div>
+
+  <h2>데이터는 어디에 있나요?</h2>
+  <p>로그인 정보(접근 토큰)와 작업 기록은 <strong>운영자 PC 안에만</strong> 저장됩니다. 별도 서버로 보내거나 다른 사람·회사와 공유하지 않습니다. 자세한 내용은 <a href="/studio/privacy.html">개인정보처리방침</a>을 보세요.</p>
+  <p class="en">Tokens and work logs stay on the operator's own computer. Nothing is sent to any other server or shared with third parties. See the <a href="/studio/privacy.html">Privacy Policy</a>.</p>
+
+  <h2>약관</h2>
+  <p>이 프로그램을 쓰면 <a href="https://www.youtube.com/t/terms" rel="noopener">YouTube 서비스 약관</a>에 동의하는 것이며, Google 데이터 처리는 <a href="https://policies.google.com/privacy" rel="noopener">Google 개인정보처리방침</a>을 따릅니다. <a href="/studio/terms.html">이용약관 전문</a></p>
+
+  <h2>문의</h2>
+  <p>이메일: <a href="mailto:thenaom@naver.com">thenaom@naver.com</a></p>
+</main>
+
+<footer>
+  <a href="/studio/privacy.html">개인정보처리방침 (Privacy Policy)</a>
+  <a href="/studio/terms.html">이용약관 (Terms of Service)</a>
+  <a href="mailto:thenaom@naver.com">Contact</a>
+  <div>© Thenaom Tools</div>
+</footer>
+</body>
+</html>
