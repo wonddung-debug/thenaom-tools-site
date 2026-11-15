@@ -441,8 +441,13 @@
   #topTools button{flex:1 1 0; min-height:46px; padding:0 10px; font-size:15px; font-weight:800; border-radius:10px; white-space:nowrap}
   #topPaste{border:1px dashed var(--accent); color:var(--accent); background:var(--accent-bg)}
   /* 등록 정보: 이 글을 실제로 어디에 언제 올렸는지 */
-  #pubBox{order:-1; border:1px solid var(--line); border-radius:10px; background:var(--panel); padding:8px 10px; display:flex; flex-direction:column; gap:6px; font-size:14px}
+  #pubBox{margin:6px 0 4px; border:1px solid var(--line); border-radius:10px; background:var(--panel); padding:8px 10px; display:flex; flex-direction:column; gap:6px; font-size:14px}
   #pubBox[hidden]{display:none}
+  /* 원글 옆 작은 표시: 유튜브·인스타·틱톡 주소가 있는지만 */
+  #pubMini{display:inline-flex; gap:3px; flex:none}
+  #pubMini:empty{display:none}
+  #pubMini .pm{font-size:11.5px; font-weight:800; padding:2px 6px; border-radius:999px; border:1px solid var(--line); color:var(--sub); background:var(--bg); cursor:pointer; line-height:1.3}
+  #pubMini .pm.on{color:#1a7f43; border-color:#1a7f43; background:#e8f6ee}
   .pb-row{display:flex; align-items:center; flex-wrap:wrap; gap:6px 8px; min-height:34px}
   .pb-nm{flex:none; width:64px; font-weight:800}
   .pb-st{flex:1 1 120px; min-width:0; color:var(--sub)}
@@ -489,6 +494,8 @@
   .va-n{font-size:12px; color:var(--sub); white-space:nowrap}
   .va-cp{min-height:38px; min-width:78px}
   .va-cp.did{color:var(--ok-ink); border-color:var(--ok-ink)}
+  textarea.va-ed{display:block; width:100%; box-sizing:border-box; border:0; border-radius:0; resize:none; overflow:hidden; background:var(--bg); font-family:inherit; min-height:60px}
+  textarea.va-ed:focus{outline:2px solid var(--accent); outline-offset:-2px}
   .va-tx{padding:12px; white-space:pre-wrap; overflow-wrap:anywhere; font-size:16px; line-height:1.7; color:var(--ink); user-select:text; -webkit-user-select:text}
   .va-hint{margin:0; padding:0 12px 10px; font-size:12.5px; color:var(--sub)}
   .va-none{padding:22px 10px; text-align:center; color:var(--sub); font-size:14px}
@@ -677,7 +684,7 @@
     #paneTxt, #txtBody{display:contents}
     #emptyMsg{display:none !important}
     #topTools{order:1}
-    #pubBox{order:1}
+
     #vaBack{padding:0; align-items:stretch}
     #pbBack{padding:0; align-items:stretch}
     #pbBox{height:auto; max-width:none; border-radius:0; border:0}
@@ -734,6 +741,9 @@
     /* PC: 검색창은 가운데 맨 위(채널 옆)에 — 글을 안 골라도 보여요 */
     body.nosel:not(.design) #dHead{display:flex !important}
     body.nosel #dHead #chanSel{display:none}
+    textarea.ta{overflow-y:hidden; min-height:60px}
+    /* PC: 검색창이 가운데로 가서, 목록 위 채널 칸은 줄을 꽉 채워요 */
+    .srow #chanF{flex:1 1 auto; max-width:none; min-width:0}
     #dHead #q{flex:1 1 50%; min-width:0; padding:8px 12px; font-size:15px; border:2px solid var(--accent); border-radius:8px; background:var(--bg); color:var(--ink); -webkit-appearance:none; appearance:none}
     #rawBox > summary, .fbox > summary{cursor:default}
     #listFoot{position:sticky; bottom:0; background:var(--panel); box-shadow:0 -8px 10px var(--panel); padding-bottom:2px}
@@ -806,8 +816,6 @@
         <button type="button" class="ghost" id="topPaste" title="복사해 둔 글을 원글에 바로 넣어요">📋 원글 붙여넣기</button>
         <button type="button" class="ghost" id="viewAllBtn" title="게시글·고정 댓글 등 채워진 칸의 글을 잘림 없이 한 번에 봐요">📖 전체 보기</button>
       </div>
-      <!-- 등록 정보: 실제로 올린 곳·날짜 -->
-      <div id="pubBox" hidden></div>
       <div id="loadMsg" hidden><span id="loadTxt"></span><button type="button" class="ghost sm" id="loadRetry" hidden>다시 불러오기</button></div>
       <!-- 사진 설정 (PC): 원글 위에 한 칸으로 보여요. 접고 펼 수 있어요 -->
       <div id="phDock" class="ph-dock" hidden>
@@ -830,14 +838,16 @@
       <!-- 원글: 이 글에 달린 후기 -->
       <div id="rvList" hidden></div>
       <details id="rawBox">
-        <summary><span class="rl">원글</span><span class="tg e" id="rawTag">비어 있음</span><span class="sbtns"><button type="button" class="ghost sm pst" id="pst_raw">붙여넣기</button><button type="button" class="ghost sm" id="cpy_raw">복사</button></span></summary>
+        <summary><span class="rl">원글</span><span class="tg e" id="rawTag">비어 있음</span><span id="pubMini" title="올린 곳 · 누르면 주소 넣기·고치기"></span><span class="sbtns"><button type="button" class="ghost sm pst" id="pst_raw">붙여넣기</button><button type="button" class="ghost sm" id="cpy_raw">복사</button></span></summary>
         <textarea id="src" spellcheck="false"></textarea>
         <div class="num-hint" id="numHint" hidden>
           <span id="numHintText"></span>
           <button type="button" class="ghost" id="numHintBtn">번호로 장 나누기</button>
         </div>
         <details id="optBox">
-          <summary>이 글 옵션 · 장 나누기 · 마지막 장 · 마지막 광고 · 안내문구</summary>
+          <summary>이 글 옵션 · 등록 주소 · 장 나누기 · 마지막 장 · 마지막 광고 · 안내문구</summary>
+          <!-- 등록 정보: 실제로 올린 곳·날짜 (주소 넣기·고치기). 평소엔 원글 옆 작은 표시만 보여요 -->
+          <div id="pubBox" hidden></div>
 <div class="split-box">
     <div class="split-row">
       <span class="split-lbl">장 나누기</span>
@@ -5161,6 +5171,24 @@ const PASTE_HEADS = [
   {kind:"threads_post",        re:/^(스레드|Threads)\s*(게시글|게시물|본문|설명|글)/i}
 ];
 const TABS3 = [["none","미지정"],["hold","보류"],["done","완료"]];
+/* 유튜브(후기는 멤버십)에 올린 시각. 목록만 받은 글은 서버가 알려 준 ytAt 을 씁니다 */
+function ytAtOf(c){
+  if(!c) return 0;
+  if(c.full === false) return Date.parse(c.ytAt || "") || 0;
+  return pubTime(pubOf(c).yt);
+}
+/* 후기를 원글 바로 아래로 옮겨요 (원글이 같은 목록에 없으면 제자리) */
+function groupReviews(list){
+  const ids = new Set(list.map(c => c.id).filter(Boolean)), under = new Map(), out = [];
+  list.forEach(c => { const o = reviewOfId(c); if(o && ids.has(o)){ if(!under.has(o)) under.set(o, []); under.get(o).push(c); } });
+  list.forEach(c => {
+    const o = reviewOfId(c);
+    if(o && ids.has(o)) return;
+    out.push(c);
+    if(c.id && under.has(c.id)) under.get(c.id).slice().reverse().forEach(r => out.push(r));
+  });
+  return out;
+}
 /* 지금 보고 있는 탭: 검색 중이면 검색 결과의 탭(기본 ‘전체’), 아니면 원래 탭 */
 function curTab(){ return (S.q || "").trim() ? (S.qTab || "all") : S.tab; }
 const SAMPLE_TEXT = "채널 디자인 미리보기 (표지)\n\n두 번째 장 본문입니다.\n**강조할 말**은 이렇게 보여요.\n\n여러분의 생각은 어떠신가요?\n1. 첫 번째 선택지\n2. 두 번째 선택지\n3. 세 번째 선택지";
@@ -5181,6 +5209,7 @@ function placeSearch(){
   if(q && want && q.parentElement !== want){ if(isWide()) want.appendChild(q); else want.insertBefore(q, want.firstChild); }
 }
 wideMQ.addEventListener("change", placeSearch);
+wideMQ.addEventListener("change", () => requestAnimationFrame(autoGrowAll));
 placeSearch();
 $("phDkPrev").addEventListener("click", () => phDockGo(-1));
 $("phDkNext").addEventListener("click", () => phDockGo(1));
@@ -5377,7 +5406,7 @@ function liteFromServer(s, key){
     rawText:"", f:emptyF(), extra:[], publishAt:s.publishAt || "", doneAt:s.doneAt || "",
     splitMode:"", lastPageType:"", splitDelim:"",
     createdAt:s.createdAt || "", updatedAt:s.updatedAt || "", ownerId:s.ownerId || "",
-    full:false, stale:false, _srvAt:s.updatedAt || "", fl:Array.isArray(s.fl) ? s.fl : [], off:Array.isArray(s.off) ? s.off : [], un:s.un ? 1 : 0};
+    full:false, stale:false, _srvAt:s.updatedAt || "", fl:Array.isArray(s.fl) ? s.fl : [], off:Array.isArray(s.off) ? s.off : [], un:s.un ? 1 : 0, ytAt:s.ytAt || ""};
 }
 const filledOf = c => FIELDS.filter(x => !x.hidden && hasField(c, x.kind)).map(x => x.kind);
 function fixCached(c){
@@ -5647,7 +5676,7 @@ function boot(silent){
    lite=true 면 서버가 가벼운 목록(제목·날짜·채워진 칸)만 보낸 것이라, 글 내용은 열 때 따로 받습니다.
    이미 내용을 갖고 있는 글은 서버 쪽이 더 최신일 때만 ‘다시 받아야 함(stale)’으로 표시합니다. */
 /* 서버 목록(fl)이 알려 주는 ‘채워진 칸’ 종류 — 서버 liteInfo_ 와 같아야 합니다 */
-const LITE_KINDS = ["youtube_description", "coupang_description", "instagram_caption", "instagram_pin", "auto_dm", "threads_post", "threads_comment", "etc"];
+const LITE_KINDS = ["youtube_description", "coupang_description", "instagram_caption", "instagram_pin", "auto_dm", "threads_post", "threads_comment", "tiktok_post", "etc"];
 const flSig = a => (Array.isArray(a) ? a : []).filter(k => LITE_KINDS.includes(k)).slice().sort().join(",");
 function mergeServer(list, t0, lite){
   const T = v => Date.parse(v) || 0;
@@ -5686,7 +5715,7 @@ function mergeServer(list, t0, lite){
           old._flSeen = sigS;
         }
       }else{
-        old.fl = Array.isArray(s.fl) ? s.fl : []; old.off = Array.isArray(s.off) ? s.off : []; old.un = s.un ? 1 : 0;
+        old.fl = Array.isArray(s.fl) ? s.fl : []; old.off = Array.isArray(s.off) ? s.off : []; old.un = s.un ? 1 : 0; old.ytAt = s.ytAt || "";
         if(!pend && !localNewer) old._srvAt = s.updatedAt || old._srvAt || "";
       }
       if(old === S.cur && old.stale) curStale = true;
@@ -5910,7 +5939,7 @@ function itemHtml(c){
   const pend = OUT[c.key] ? " · 저장 대기" : "";
   const rv = isReview(c), rvn = rv ? 0 : (RVCOUNT.get(c.id) || 0);
   const tags = (rvn ? `<span class="tg rvn" title="이 글에 달린 후기 ${rvn}개">후기 ${rvn}</span>` : "")
-    + FIELDS.filter(x => !x.hidden && fieldOn(c, x) && (!x.legacy || hasField(c, x.kind)) && !(x.kind === "tiktok_post" && c.full === false && !(c.fl || []).includes(x.kind)))
+    + FIELDS.filter(x => !x.hidden && fieldOn(c, x) && (!x.legacy || hasField(c, x.kind)))
     .map(x => `<span class="tg${hasField(c, x.kind) ? "" : " e"}" title="${esc(x.label)}">${x.short}</span>`).join("")
     + (unOf(c) ? `<span class="tg un" title="아이디 없는 쿠팡 링크(미지정 링크)로 나가는 글이에요">미지정 링크</span>` : "");
   const ttl = (rv ? `<span class="tg rv">후기</span> ` : "") + esc(shownTitle(c));
@@ -5947,7 +5976,12 @@ function renderList(){
   const T = v => Date.parse(v) || 0;
   if(tab === "all") items.sort((a, b) => Math.max(T(b.updatedAt), T(b.doneAt), T(b.publishAt), T(b.createdAt)) - Math.max(T(a.updatedAt), T(a.doneAt), T(a.publishAt), T(a.createdAt)));
   else if(tab === "hold") items.sort((a, b) => T(b.publishAt) - T(a.publishAt));
-  else if(tab === "done") items.sort((a, b) => T(b.doneAt) - T(a.doneAt));
+  else if(tab === "done"){
+    /* 완료: 유튜브에 올린 날짜 순(주소가 없으면 완료 시각), 후기는 항상 자기 원글 바로 아래 */
+    const key = c => ytAtOf(c) || T(c.doneAt);
+    items.sort((a, b) => key(b) - key(a));
+    items = groupReviews(items);
+  }
   else items.sort((a, b) => (T(b.createdAt) || Infinity) - (T(a.createdAt) || Infinity));
   const host = $("items");
   if(!items.length){ S.visKeys = []; host.innerHTML = `<div class="empty">${esc(emptyText(q))}</div>`; updateSelUI(); return; }
@@ -6363,6 +6397,7 @@ function fillDetail(){
   $("rawBox").open = isWide() || !c.rawText || S.rawOpen;
   applyFieldOpen();
   if(!$("vaBack").hidden) renderViewAll();
+  requestAnimationFrame(autoGrowAll);
   updateDoneBtn();
   $("delBtn").hidden = !canDelete(c);
   updateShareMarks();
@@ -6383,7 +6418,16 @@ function applyDesignFor(c){
   }
   updateSplitUI();
 }
-function autoGrow(ta){ /* 칸 높이는 고정 — 길어지면 칸 안에서 스크롤 */ }
+/* PC: 설명 칸은 글 길이만큼 세로로 늘어나요 (원글 칸은 그대로). 폰은 예전처럼 고정 높이 */
+function autoGrow(ta){
+  if(!ta || ta.id === "src") return;
+  if(!isWide()){ ta.style.height = ""; return; }
+  ta.style.height = "auto";
+  const h = ta.scrollHeight;
+  if(h) ta.style.height = Math.max(60, h + 4) + "px";
+  else ta.style.height = "";
+}
+function autoGrowAll(){ document.querySelectorAll("#fields textarea.ta").forEach(autoGrow); }
 function updateRawTag(){
   const t = $("rawTag"), v = (S.cur && S.cur.rawText) || "";
   t.textContent = v.trim() ? `입력됨 · ${v.length.toLocaleString()}자` : "비어 있음";
@@ -7213,7 +7257,7 @@ async function pasteRaw(){
 $("pst_raw").addEventListener("click", e => { e.preventDefault(); e.stopPropagation(); pasteRaw(); });
 $("topPaste").addEventListener("click", e => { e.preventDefault(); pasteRaw(); });
 
-/* ---------- 전체 보기: 게시글·고정 댓글 등 채워진 칸의 글을 잘림 없이 한 화면에 (보기 전용) ----------
+/* ---------- 전체 보기: 게시글·고정 댓글 등 채워진 칸의 글을 잘림 없이 한 화면에 (바로 고칠 수 있음, 11/15) ----------
    칸 제목을 누르면 창이 닫히고 그 칸으로 가서 고칠 수 있어요. 복사 버튼은 칸의 ‘복사’와 똑같이 [링크]를 쿠팡 링크로 바꿔 복사해요. */
 function vaMk(tag, cls, txt){ const e = document.createElement(tag); if(cls) e.className = cls; if(txt != null) e.textContent = txt; return e; }
 function vaItems(c){
@@ -7231,6 +7275,7 @@ function vaItems(c){
 function renderViewAll(){
   const c = S.cur, body = $("vaBody");
   if(!c){ closeViewAll(); return; }
+  if(document.activeElement && document.activeElement.closest && document.activeElement.closest("#vaBody textarea")) return;   /* 고치는 중이면 다시 그리지 않아요 */
   const keep = body.scrollTop;
   const {items, empty} = vaItems(c);
   const title = (c.title || String(c.rawText || "").split(/\r?\n/).find(l => l.trim()) || "새 글").trim();
@@ -7241,18 +7286,36 @@ function renderViewAll(){
   items.forEach(it => {
     const box = vaMk("section", "va-item");
     const hd = vaMk("div", "va-ih");
-    const nm = vaMk("button", "va-nm"); nm.type = "button"; nm.dataset.k = it.kind; nm.title = "누르면 이 칸으로 가서 고칠 수 있어요";
-    nm.append(vaMk("span", "va-l", it.label), vaMk("span", "va-go", "고치러 가기 ›"));
+    const nm = vaMk("button", "va-nm"); nm.type = "button"; nm.dataset.k = it.kind; nm.title = "누르면 창을 닫고 이 칸으로 가요 (여기서 바로 고쳐도 돼요)";
+    nm.append(vaMk("span", "va-l", it.label), vaMk("span", "va-go", "칸으로 가기 ›"));
     const cp = vaMk("button", "ghost sm va-cp", did[it.kind] ? "✓ 복사함" : "복사"); cp.type = "button"; cp.dataset.k = it.kind;
     if(did[it.kind]) cp.classList.add("did");
     hd.append(nm, vaMk("span", "va-n", it.text.length.toLocaleString() + "자"), cp);
-    box.append(hd, vaMk("div", "va-tx", it.text));
+    /* 이 창에서 바로 고칠 수 있어요: 고치면 원래 칸에도 똑같이 들어가고 저장돼요 */
+    const tx = vaMk("textarea", "va-tx va-ed"); tx.value = it.text; tx.dataset.k = it.kind; tx.spellcheck = false;
+    tx.setAttribute("aria-label", it.label + " 고치기");
+    box.append(hd, tx);
     if(LINK_MEDIA[it.kind] && LINK_RE.test(it.text)) box.append(vaMk("p", "va-hint", "[링크1] [링크2]…는 복사할 때 이 칸에 맞는 쿠팡 링크로 바뀌어요."));
     body.append(box);
   });
   if(empty.length) body.append(vaMk("p", "va-empty", "비어 있는 칸: " + empty.join(" · ")));
   body.scrollTop = keep;
+  body.querySelectorAll("textarea.va-ed").forEach(vaGrow);
 }
+function vaGrow(t){ t.style.height = "auto"; t.style.height = (t.scrollHeight + 4) + "px"; }
+/* 전체 보기에서 고친 글 → 원래 칸에 넣고 원래 칸의 입력처럼 처리(저장·카드 다시 그리기·글자 수) */
+$("vaBody").addEventListener("input", e => {
+  const t = e.target.closest("textarea.va-ed");
+  if(!t || !S.cur) return;
+  vaGrow(t);
+  const src = t.dataset.k === "raw" ? $("src") : $("fld_" + t.dataset.k);
+  if(!src) return;
+  src.value = t.value;
+  src.dispatchEvent(new Event("input", {bubbles:true}));
+  const n = t.closest(".va-item") && t.closest(".va-item").querySelector(".va-n");
+  if(n) n.textContent = t.value.length.toLocaleString() + "자";
+});
+$("vaBody").addEventListener("focusout", e => { if(e.target.closest && e.target.closest("textarea.va-ed")) flushSoon(150); });
 let vaFrom = null;
 function openViewAll(){
   if(!S.cur || S.mode !== "work") return;
@@ -7261,6 +7324,7 @@ function openViewAll(){
   $("vaBack").hidden = false;
   document.body.classList.add("va-open");
   $("vaBody").scrollTop = 0;
+  $("vaBody").querySelectorAll("textarea.va-ed").forEach(vaGrow);       /* 창이 보인 뒤에 글 길이만큼 늘려요 */
   $("vaX").focus({preventScroll:true});
 }
 function closeViewAll(){
@@ -7303,7 +7367,7 @@ const pubLabel = (c, m) => m === "ig" ? "인스타" : (m === "tt" ? "틱톡" : (
 var pubEdit = "";
 function renderPubBox(){
   const box = $("pubBox"), c = S.cur;
-  if(!c || !c.id || c.full === false){ box.hidden = true; box.textContent = ""; return; }
+  if(!c || !c.id || c.full === false){ box.hidden = true; box.textContent = ""; $("pubMini").textContent = ""; return; }
   const info = pubOf(c), off = offListOf(c);
   box.textContent = "";
   PUB_ROWS.forEach(r => {
@@ -7332,6 +7396,17 @@ function renderPubBox(){
   });
   if(info.imp) box.append(vaMk("div", "pb-note", "올린 글에서 거꾸로 가져온 글이라 카드 원문은 없어요."));
   box.hidden = !box.childElementCount;
+  /* 원글 옆 작은 표시: 유 ✓ / 인 ✗ … */
+  const mini = $("pubMini");
+  mini.textContent = "";
+  PUB_ROWS.forEach(r => {
+    const x = info[r.m];
+    if(off.includes(r.kind) && !x) return;
+    if(r.m === "tt" && isReview(c) && !x) return;
+    const b = vaMk("span", "pm" + (x ? " on" : ""), {yt:isReview(c) ? "멤" : "유", ig:"인", tt:"틱"}[r.m] + (x ? " ✓" : " ✗"));
+    b.title = pubLabel(c, r.m) + (x ? " 등록됨 " + pubWhen(x) : " 아직 안 올림") + " · 누르면 주소 넣기·고치기";
+    mini.append(b);
+  });
 }
 function savePub(c, m, url, at){
   let d = {};
@@ -7486,6 +7561,13 @@ $("pbList").addEventListener("click", e => {
 });
 document.addEventListener("keydown", e => { if(e.key === "Escape" && !$("pbBack").hidden) closePubView(); });
 $("viewAllBtn").addEventListener("click", openViewAll);
+/* 원글 옆 작은 표시(유·인·틱)를 누르면 ‘이 글 옵션’을 펴고 주소 칸으로 가요 */
+$("pubMini").addEventListener("click", e => {
+  e.preventDefault(); e.stopPropagation();
+  if(!e.target.closest(".pm")) return;
+  $("rawBox").open = true; $("optBox").open = true;
+  $("pubBox").scrollIntoView({block:"center", behavior:"smooth"});
+});
 $("vaX").addEventListener("click", closeViewAll);
 $("vaBack").addEventListener("click", e => { if(e.target === $("vaBack")) closeViewAll(); });
 $("vaBody").addEventListener("click", async e => {
