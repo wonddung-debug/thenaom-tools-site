@@ -182,6 +182,9 @@
   .ph-dock{display:none}
   @media (min-width:1000px){
     .ph-dock:not([hidden]){display:block; margin:0 0 12px; border:2px solid var(--accent); border-radius:12px; background:var(--bg); overflow:hidden}
+    /* 사진 설정 칸은 가운데 칸 맨 위에 붙어 있어요 — 아래로 내려도 따라와서 다시 올릴 필요가 없어요 */
+    .ph-dock:not([hidden]){position:sticky; top:-10px; z-index:7; box-shadow:0 6px 14px rgba(0,0,0,.18)}
+    .ph-dock #phDockBody{max-height:40vh; overflow:auto}
     .ph-dock summary{display:flex; align-items:center; gap:10px; padding:10px 14px; cursor:pointer; font-size:15px; list-style:none; user-select:none}
     .ph-dock summary::-webkit-details-marker{display:none}
     .ph-dock summary b{color:var(--accent); font-size:16px}
@@ -450,7 +453,8 @@
   .pb-ed{display:flex; flex-wrap:wrap; gap:6px; width:100%}
   .pb-ed input{flex:1 1 200px; min-width:0; min-height:38px; padding:0 8px; border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--ink); font-size:14px}
   .pb-ed input[type=datetime-local]{flex:0 1 200px}
-  #pubBtn{width:100%; min-height:38px; margin:0 0 8px; font-size:14px; font-weight:800}
+  #pubBtn{width:100%; min-height:38px; margin:6px 0 2px; font-size:14px; font-weight:800; background:var(--panel)}
+  #listFoot[hidden]{display:none}
   /* 등록 현황 창 */
   #pbBack{position:fixed; inset:0; z-index:300; background:rgba(0,0,0,.55); display:flex; align-items:center; justify-content:center; padding:16px}
   #pbBack[hidden]{display:none}
@@ -588,7 +592,7 @@
 
   /* 글을 열 때 내용을 불러오는 동안 */
   #loadMsg{display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; padding:14px 12px; border:1px dashed var(--accent); border-radius:12px; background:var(--accent-bg); color:var(--accent); font-size:14px; font-weight:700; text-align:center}
-  body.cloading #topTools, body.cloading #rawBox, body.cloading #fields, body.cloading #pasteWrap, body.cloading #linkBox, body.cloading #acts, body.cloading #dHead{opacity:.45; pointer-events:none}
+  body.cloading #topTools, body.cloading #rawBox, body.cloading #fields, body.cloading #pasteWrap, body.cloading #linkBox, body.cloading #acts, body.cloading #chanSel{opacity:.45; pointer-events:none}
   /* 다운로드 · 인스타 공유 결과 줄 (복사됨 표시) */
   .act-msg{margin:6px 0 2px; padding:9px 12px; border-radius:10px; font-size:13.5px; font-weight:700; line-height:1.5; background:var(--ok-bg); color:var(--ok-ink); word-break:keep-all}
   .act-msg.info{background:var(--accent-bg); color:var(--accent)}
@@ -700,8 +704,11 @@
     #pasteIn, #lastQuick{font-size:16px}
     #lastQuick{min-height:42px}
     /* 폰: 새 글 버튼·삭제 바는 화면 맨 아래에 늘 떠 있음 */
-    body.m-list #newBig, body.m-list #selDel{position:fixed; left:12px; right:12px; bottom:calc(12px + env(safe-area-inset-bottom,0px)); width:auto; margin:0; z-index:40}
-    body.m-list #newBig{padding:15px; font-size:17px; box-shadow:0 6px 18px rgba(0,0,0,.25)}
+    body.m-list #listFoot, body.m-list #selDel{position:fixed; left:12px; right:12px; bottom:calc(12px + env(safe-area-inset-bottom,0px)); width:auto; margin:0; z-index:40}
+    body.m-list #listFoot{display:flex; gap:8px}
+    body.m-list #listFoot[hidden]{display:none}
+    body.m-list #newBig{flex:2 1 0; margin:0; padding:15px; font-size:17px; box-shadow:0 6px 18px rgba(0,0,0,.25)}
+    body.m-list #pubBtn{flex:1 1 0; margin:0; min-height:0; font-size:15px; border-radius:12px; box-shadow:0 6px 18px rgba(0,0,0,.25)}
     body.m-list #selDel button{box-shadow:0 6px 18px rgba(0,0,0,.25)}
     body.m-list #toast{bottom:calc(86px + env(safe-area-inset-bottom,0px))}
     /* 채널 디자인: 위에 미리보기를 붙여 두고 아래에서 고칩니다 */
@@ -724,8 +731,12 @@
     #paneImg{grid-column:3; grid-row:1 / 3}
     #colList, #paneTxt, #paneImg, #designPane{overflow:auto; min-height:0; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:10px 12px}
     #dHead{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:8px 10px}
+    /* PC: 검색창은 가운데 맨 위(채널 옆)에 — 글을 안 골라도 보여요 */
+    body.nosel:not(.design) #dHead{display:flex !important}
+    body.nosel #dHead #chanSel{display:none}
+    #dHead #q{flex:1 1 50%; min-width:0; padding:8px 12px; font-size:15px; border:2px solid var(--accent); border-radius:8px; background:var(--bg); color:var(--ink); -webkit-appearance:none; appearance:none}
     #rawBox > summary, .fbox > summary{cursor:default}
-    #newBig{position:sticky; bottom:0; box-shadow:0 -8px 10px var(--panel)}
+    #listFoot{position:sticky; bottom:0; background:var(--panel); box-shadow:0 -8px 10px var(--panel); padding-bottom:2px}
     #selDel{position:sticky; bottom:0; background:var(--panel); padding:8px 0 0; margin-top:8px}
     #viewBar{top:-10px; background:var(--panel); margin-top:-10px; padding-top:10px}
     #paneImg .card{background:var(--bg)}
@@ -765,13 +776,15 @@
       <button type="button" class="ghost" id="selBtn" title="여러 개 골라서 보류·삭제">선택</button>
     </div>
     <div class="tabs3" id="tabs3"></div>
-    <button type="button" class="ghost" id="pubBtn" title="어디에 올렸고 어디에 안 올렸는지 한눈에 봐요">📊 등록 현황</button>
     <div id="selHead" hidden>
       <span id="selCount">0개 선택됨</span>
       <button type="button" class="ghost sm" id="selAll">전체 선택</button>
     </div>
     <div id="items"><div class="empty">불러오는 중…</div></div>
-    <button type="button" id="newBig">+ 새 글 작성</button>
+    <div id="listFoot">
+      <button type="button" id="newBig">+ 새 글 작성</button>
+      <button type="button" class="ghost" id="pubBtn" title="어디에 올렸고 어디에 안 올렸는지 한눈에 봐요">📊 등록 현황</button>
+    </div>
     <div id="selDel" hidden>
       <button type="button" id="selHoldGo" disabled>보류로 · 0개</button>
       <button type="button" id="selDelGo" disabled>삭제 · 0개</button>
@@ -872,7 +885,7 @@
       </details>
       <div id="fields"></div>
       <div id="pasteWrap">
-        <button type="button" class="ghost" id="pasteBtn">📋 한 번에 붙여넣기 (설명 7칸 + 마지막 광고 자동 채우기)</button>
+        <button type="button" class="ghost" id="pasteBtn">📋 한 번에 붙여넣기 (설명 칸 + 마지막 광고 자동 채우기)</button>
         <div id="pasteBox" hidden>
           <textarea id="pasteIn" spellcheck="false" placeholder="AI가 만든 글을 통째로 붙여 넣으세요.&#10;제목 줄(유튜브 게시글 · 유튜브 고정 댓글 · 인스타 캡션 · 인스타 고정 댓글 · 인스타 자동 DM · 스레드 게시글 · 스레드 댓글 · 유튜브 마지막 광고 · 인스타 마지막 광고)을 보고 칸마다 나눠 넣어요."></textarea>
           <p class="hint" id="pasteHint">붙여 넣으면 찾은 칸이 여기에 보여요.</p>
@@ -892,7 +905,7 @@
         </div>
         <p class="hint" id="cpMsg"></p>
         <div id="cpMore"></div>
-        <button type="button" class="ghost" id="cpAdd" hidden>＋ 상품 하나 더 넣기 (글에는 [링크2]처럼 번호를 붙여 써요)</button>
+        <button type="button" class="ghost" id="cpAdd" hidden>＋ 상품 하나 더 넣기 (글에는 [링크2]처럼 이어서 써요)</button>
         <details id="cpDet" hidden>
           <summary id="cpDetSum">칸마다 만든 링크 보기</summary>
           <div id="cpList"></div>
@@ -1610,7 +1623,7 @@ function currentAds(){
 }
 let pages = [], canvases = [], blobs = [], igBlobs = [];   /* blobs = 유튜브용(다운로드), igBlobs = 인스타용(공유) */
 let textAlign = "left", wrapMode = "auto", currentTheme = "white";
-let logoImg = null, logoDataUrl = "";
+let logoImg = null, logoDataUrl = "", logoWait = null;
 
 /* 비동기 렌더링 중복 방지용 작업 ID & 디바운스 타이머 */
 let renderJobId = 0;
@@ -1846,19 +1859,28 @@ function setLogoFromDataUrl(dataUrl){
   logoDataUrl = dataUrl || "";
   const prev = $("logoPreview");
   if(!logoDataUrl){
-    logoImg = null;
+    logoImg = null; logoWait = null;
     prev.style.display = "none";
     prev.src = "";
     if(pages.length) scheduleRender(false);
     return;
   }
+  /* 채널을 바꾸면 이전 채널 로고는 바로 버립니다. 새 로고가 다 불러와질 때까지 카드는 기다렸다가 그려요
+     (예전에는 이전 로고로 먼저 그린 카드를 기억해 두고 계속 써서, 다른 채널 로고가 나오는 일이 있었어요) */
+  logoImg = null;
+  const want = logoDataUrl;
   const img = new Image();
-  img.onload = ()=>{
-    logoImg = img;
-    prev.src = logoDataUrl;
-    prev.style.display = "block";
-    if(pages.length) scheduleRender(false);
-  };
+  logoWait = new Promise(res => {
+    img.onload = ()=>{
+      if(want !== logoDataUrl){ res(); return; }        /* 그사이 다른 채널로 바뀌었으면 이 로고는 안 써요 */
+      logoImg = img; logoWait = null;
+      prev.src = logoDataUrl;
+      prev.style.display = "block";
+      res();
+      if(pages.length) scheduleRender(false);
+    };
+    img.onerror = ()=>{ if(want === logoDataUrl) logoWait = null; res(); };
+  });
   img.src = logoDataUrl;
 }
 
@@ -3916,6 +3938,7 @@ async function render(){
   let fontsOk = true;
   try{ fontsOk = await prepareFonts(f, sample); }catch(e){ fontsOk = false; }
   if(myJob !== renderJobId) return;
+  if(logoWait){ try{ await logoWait; }catch(e){} if(myJob !== renderJobId) return; }   /* 새 채널 로고를 다 불러온 뒤에 그려요 */
 
   const dsig = designSignature(f);
   const n = snapPages.length;
@@ -4871,7 +4894,7 @@ function shareImages(){
     if(!capSrc.trim()){ capNote = "인스타 캡션이 비어 있어서 복사할 게 없어요"; capBad = true; }
     else{
       const r = fillLinks(c, capKind, capSrc);
-      if(r.missing){ capNote = `인스타 캡션에 ${r.tag || "[링크]"}가 있는데 쿠팡 링크가 아직 없어서 복사하지 않았어요`; capBad = true; }
+      if(r.missing){ capNote = `인스타 캡션에 ${r.tag || "[링크1]"}가 있는데 쿠팡 링크가 아직 없어서 복사하지 않았어요`; capBad = true; }
       else cap = plainCopy(r.text);
     }
   }
@@ -5048,6 +5071,7 @@ const FIELDS = [
   {kind:"auto_dm",             label:"인스타 자동 DM (쿠팡 링크)",       short:"DM"},
   {kind:"threads_post",        label:"스레드 게시글",                   short:"스"},
   {kind:"threads_comment",     label:"스레드 댓글 (쿠팡 링크)",          short:"스댓"},
+  {kind:"tiktok_post",         label:"틱톡 게시글",                     short:"틱"},
   {kind:"etc",                 label:"기타",                           short:"기", legacy:true},
   /* 아래 둘은 화면에 칸으로 보이지 않고, 쿠팡 링크 칸의 내용을 글과 함께 저장하는 용도 */
   {kind:"coupang_url",         label:"쿠팡 상품 주소",   short:"",   hidden:true},
@@ -5128,6 +5152,7 @@ const PASTE_HEADS = [
   {kind:"yt_last_ad",          re:/^유튜브\s*(마지막|끝)\s*(장\s*)?광고/},
   {kind:"ig_last_ad",          re:/^인스타(그램)?\s*(마지막|끝)\s*(장\s*)?광고/},
   {kind:"threads_comment",    re:/^(스레드|Threads)\s*(고정\s*)?댓글/i},
+  {kind:"tiktok_post",         re:/^(틱톡|TikTok)\s*(게시글|게시물|캡션|설명|본문|글)?(\s|\(|:|$)/i},
   {kind:"coupang_description", re:/^유튜브\s*(커뮤니티\s*)?(고정\s*)?댓글|^쿠팡\s*(파트너스\s*)?(링크\s*)?(댓글|설명)/},
   {kind:"instagram_pin",       re:/^(인스타(그램)?\s*)?고정\s*댓글/},
   {kind:"instagram_caption",   re:/^인스타(그램)?\s*(캡션|설명|본문|게시글)/},
@@ -5136,6 +5161,8 @@ const PASTE_HEADS = [
   {kind:"threads_post",        re:/^(스레드|Threads)\s*(게시글|게시물|본문|설명|글)/i}
 ];
 const TABS3 = [["none","미지정"],["hold","보류"],["done","완료"]];
+/* 지금 보고 있는 탭: 검색 중이면 검색 결과의 탭(기본 ‘전체’), 아니면 원래 탭 */
+function curTab(){ return (S.q || "").trim() ? (S.qTab || "all") : S.tab; }
 const SAMPLE_TEXT = "채널 디자인 미리보기 (표지)\n\n두 번째 장 본문입니다.\n**강조할 말**은 이렇게 보여요.\n\n여러분의 생각은 어떠신가요?\n1. 첫 번째 선택지\n2. 두 번째 선택지\n3. 세 번째 선택지";
 const wideMQ = window.matchMedia("(min-width:1000px)");
 const isWide = () => wideMQ.matches;
@@ -5148,6 +5175,13 @@ const phRelayout = () => {
   phDockSync();
 };
 wideMQ.addEventListener("change", phRelayout);
+/* 검색창 자리: PC는 가운데 맨 위(채널 옆), 폰은 목록 맨 위 */
+function placeSearch(){
+  const q = $("q"), want = isWide() ? $("dHead") : document.querySelector("#colList .srow");
+  if(q && want && q.parentElement !== want){ if(isWide()) want.appendChild(q); else want.insertBefore(q, want.firstChild); }
+}
+wideMQ.addEventListener("change", placeSearch);
+placeSearch();
 $("phDkPrev").addEventListener("click", () => phDockGo(-1));
 $("phDkNext").addEventListener("click", () => phDockGo(1));
 $("phDkX").addEventListener("click", () => { const cd = phOpenCard(); if(cd) phClose(cd); });
@@ -5871,12 +5905,12 @@ function itemHtml(c){
   let when;
   if(st === "hold") when = "보류 " + esc(fmtAt(c.publishAt));
   else if(st === "done") when = "완료 " + esc(fmtAt(c.doneAt));
-  else when = c.createdAt ? esc(fmtDay(c.createdAt)) : "새 글";
+  else when = (curTab() === "all" ? "미지정 · " : "") + (c.createdAt ? esc(fmtDay(c.createdAt)) : "새 글");
   const owner = S.isAdmin && c.ownerId ? " · " + esc(c.ownerId) : "";
   const pend = OUT[c.key] ? " · 저장 대기" : "";
   const rv = isReview(c), rvn = rv ? 0 : (RVCOUNT.get(c.id) || 0);
   const tags = (rvn ? `<span class="tg rvn" title="이 글에 달린 후기 ${rvn}개">후기 ${rvn}</span>` : "")
-    + FIELDS.filter(x => !x.hidden && fieldOn(c, x) && (!x.legacy || hasField(c, x.kind)))
+    + FIELDS.filter(x => !x.hidden && fieldOn(c, x) && (!x.legacy || hasField(c, x.kind)) && !(x.kind === "tiktok_post" && c.full === false && !(c.fl || []).includes(x.kind)))
     .map(x => `<span class="tg${hasField(c, x.kind) ? "" : " e"}" title="${esc(x.label)}">${x.short}</span>`).join("")
     + (unOf(c) ? `<span class="tg un" title="아이디 없는 쿠팡 링크(미지정 링크)로 나가는 글이에요">미지정 링크</span>` : "");
   const ttl = (rv ? `<span class="tg rv">후기</span> ` : "") + esc(shownTitle(c));
@@ -5905,11 +5939,15 @@ function renderList(){
   base.forEach(c => cnt[stateOf(c)]++);
   RVCOUNT = new Map();
   S.contents.forEach(c => { const o = reviewOfId(c); if(o) RVCOUNT.set(o, (RVCOUNT.get(o) || 0) + 1); });
-  $("tabs3").innerHTML = TABS3.map(([k, l]) => `<button type="button" data-tab="${k}" class="${S.tab === k ? "on" : ""}" aria-pressed="${S.tab === k}">${l} ${cnt[k]}</button>`).join("");
-  let items = base.filter(c => stateOf(c) === S.tab);
+  /* 검색 중에는 미지정·보류·완료 글을 한꺼번에 보여 줘요 (‘전체’ 칸). 탭을 누르면 그 탭 결과만 */
+  const tab = curTab();
+  const tabs = q ? [["all", "전체", base.length]].concat(TABS3.map(([k, l]) => [k, l, cnt[k]])) : TABS3.map(([k, l]) => [k, l, cnt[k]]);
+  $("tabs3").innerHTML = tabs.map(([k, l, n]) => `<button type="button" data-tab="${k}" class="${tab === k ? "on" : ""}" aria-pressed="${tab === k}">${l} ${n}</button>`).join("");
+  let items = tab === "all" ? base.slice() : base.filter(c => stateOf(c) === tab);
   const T = v => Date.parse(v) || 0;
-  if(S.tab === "hold") items.sort((a, b) => T(b.publishAt) - T(a.publishAt));
-  else if(S.tab === "done") items.sort((a, b) => T(b.doneAt) - T(a.doneAt));
+  if(tab === "all") items.sort((a, b) => Math.max(T(b.updatedAt), T(b.doneAt), T(b.publishAt), T(b.createdAt)) - Math.max(T(a.updatedAt), T(a.doneAt), T(a.publishAt), T(a.createdAt)));
+  else if(tab === "hold") items.sort((a, b) => T(b.publishAt) - T(a.publishAt));
+  else if(tab === "done") items.sort((a, b) => T(b.doneAt) - T(a.doneAt));
   else items.sort((a, b) => (T(b.createdAt) || Infinity) - (T(a.createdAt) || Infinity));
   const host = $("items");
   if(!items.length){ S.visKeys = []; host.innerHTML = `<div class="empty">${esc(emptyText(q))}</div>`; updateSelUI(); return; }
@@ -5930,11 +5968,11 @@ function updateSelUI(){
   document.body.classList.toggle("selmode", !!S.selMode);
   $("selHead").hidden = !S.selMode;
   $("selDel").hidden = !S.selMode;
-  $("newBig").hidden = !!S.selMode;
+  $("listFoot").hidden = !!S.selMode;
   $("selBtn").textContent = S.selMode ? "취소" : "선택";
   $("selCount").textContent = `${k}개 선택됨`;
   const hb = $("selHoldGo");
-  hb.textContent = (S.tab === "hold" ? "미지정으로" : "보류로") + ` · ${k}개`;
+  hb.textContent = (curTab() === "hold" ? "미지정으로" : "보류로") + ` · ${k}개`;
   hb.disabled = !k;
   const vis = S.visKeys || [];
   const allOn = vis.length > 0 && vis.every(x => S.sel.has(x));
@@ -5963,7 +6001,7 @@ $("selAll").onclick = () => {
 $("selHoldGo").onclick = () => {
   const picked = S.contents.filter(c => S.sel.has(c.key) && hasAny(c));
   if(!picked.length){ toast("내용이 있는 글만 옮길 수 있어요", "bad"); return; }
-  const back = S.tab === "hold", prev = picked.map(c => [c, c.publishAt || "", c.doneAt || ""]);
+  const back = curTab() === "hold", prev = picked.map(c => [c, c.publishAt || "", c.doneAt || ""]);
   const now = new Date().toISOString();
   picked.forEach(c => setStateOf(c, back ? "none" : "hold", now));
   S.sel = new Set(); S.selMode = false;
@@ -6028,13 +6066,16 @@ $("items").addEventListener("click", e => {
 $("tabs3").addEventListener("click", e => {
   const b = e.target.closest("button[data-tab]");
   if(!b) return;
-  S.tab = b.dataset.tab; doneLimit = 100;
+  if(S.q.trim()) S.qTab = b.dataset.tab === "all" ? "" : b.dataset.tab;      /* 검색 중: 검색 결과 안에서만 거르기 (원래 탭은 그대로) */
+  else S.tab = b.dataset.tab;
+  doneLimit = 100;
   if(S.sel) S.sel.clear();
   renderList(); saveState(); schedulePrefetch();
 });
 /* 검색: 제목 · 이미 받아 둔 글은 바로 찾고, 원글·설명 안의 글자는 서버에서 찾아서 더합니다 */
 let srvQTimer = null, srvQSeq = 0;
 $("q").addEventListener("input", () => {
+  if(!S.q.trim() && $("q").value.trim()) S.qTab = "";        /* 새로 검색을 시작하면 ‘전체’부터 */
   S.q = $("q").value; scheduleListRender();
   clearTimeout(srvQTimer);
   const q = S.q.trim().toLowerCase();
@@ -6148,6 +6189,7 @@ function renderReviewBox(){
     $("rvDet").hidden = !o;
     $("rvText").textContent = !o ? "" : (o.full === false ? "원글 내용을 열면 불러와요" : (o.rawText || "(원글이 비어 있어요)"));
     if(o && $("rvDet").open) ensureOrigLoaded();
+    else if(o && o.full === false && !o._olTried){ o._olTried = 1; ensureOrigLoaded(); }     /* 후기를 열면 원글도 미리 받아 둬요 ([원글링크] 복사가 바로 되게) */
   }
   const list = c && !rv ? reviewsOf(c) : [];
   const host = $("rvList");
@@ -6383,7 +6425,7 @@ function applyFieldOpen(){
     wrap.className = "fld fbox";
     wrap.id = "box_" + x.kind;
     wrap.innerHTML = `<summary><span class="fl">${x.label}</span><span class="tg e" id="tag_${x.kind}">비어 있음</span>`
-      + `<span class="sbtns"><button type="button" class="ghost sm pst" id="pst_${x.kind}">붙여넣기</button>`
+      + `<span class="sbtns">${x.kind === "tiktok_post" ? `<button type="button" class="ghost sm" id="tkFromIg" title="인스타 캡션을 그대로 가져와요 (쿠팡 [링크] 줄은 빼요)">인스타 캡션 가져오기</button>` : ""}<button type="button" class="ghost sm pst" id="pst_${x.kind}">붙여넣기</button>`
       + `<button type="button" class="ghost sm" id="cpy_${x.kind}">복사</button></span></summary>`
       + `<textarea class="ta" id="fld_${x.kind}" placeholder="${x.label} 입력" aria-label="${x.label}"></textarea>`;
     host.appendChild(wrap);
@@ -6413,8 +6455,28 @@ function applyFieldOpen(){
       e.preventDefault(); e.stopPropagation();
       pasteField(x, ta, wrap);
     });
+    const tk = wrap.querySelector("#tkFromIg");
+    if(tk) tk.addEventListener("click", e => {
+      e.preventDefault(); e.stopPropagation();
+      tiktokFromIg(x, ta, wrap);
+    });
   });
 })();
+/* 틱톡 게시글 칸: 인스타 캡션을 가져와요. 틱톡 글에서는 링크를 누를 수 없어서 쿠팡 [링크] 가 든 줄은 뺍니다 */
+function tiktokFromIg(x, ta, wrap){
+  const c = S.cur;
+  if(!c) return;
+  const src = String(c.f.instagram_caption || "");
+  if(!src.trim()){ toast("인스타 캡션이 비어 있어요", "bad"); return; }
+  const t = src.split(/\r?\n/).filter(l => !LINK_RE.test(l)).join("\n").replace(/\n{3,}/g, "\n\n").trim();
+  const old = c.f[x.kind] || "";
+  if(old.trim() && old !== t && !confirm("‘틱톡 게시글’에 이미 내용이 있어요. 인스타 캡션으로 바꿀까요?")) return;
+  c.f[x.kind] = t;
+  if(S.cur === c){ ta.value = t; updateTag(x.kind); wrap.open = true; }
+  queueSave(c, {postFields:{[x.kind]: t}}, 300);
+  scheduleListRender();
+  toast(`인스타 캡션을 틱톡 게시글에 넣었어요 (${t.length.toLocaleString()}자)`);
+}
 /* 복사해 둔 글을 읽어 옵니다. 브라우저가 막았거나 지원하지 않으면 null */
 async function readClip(){
   try{
@@ -6531,6 +6593,18 @@ $("pasteGo").addEventListener("click", () => {
   toast(`${ks.length}칸에 나눠 넣었어요: ${ks.map(x => x.label).join(" · ")}`);
 });
 
+/* [원글링크]: 후기 글에 써 두면 복사할 때 원글의 유튜브 등록 주소로 바뀝니다 */
+const OL_RE = /\[\s*원글\s*링크\s*\]/, OL_RE_G = /\[\s*원글\s*링크\s*\]/g;
+async function fillOrigLink(c, text){
+  const o = originalOf(c);
+  if(!isReview(c) || !o) return {bad:true, msg:"[원글링크]는 후기 글에서만 쓸 수 있어요 (이어진 원글을 못 찾았어요)"};
+  if(o.full === false && o.id){ try{ await loadFull([o.id]); }catch(e){} }
+  const oo = S.contents.find(x => x.id === o.id) || o;
+  if(oo.full === false) return {bad:true, msg:"원글 주소를 불러오지 못했어요. 잠시 뒤에 다시 눌러 주세요"};
+  const yt = pubOf(oo).yt;
+  if(!yt || !yt.u) return {bad:true, msg:"원글의 유튜브 주소가 아직 등록 안 돼서 복사하지 않았어요. 원글을 열어 ‘등록 정보’에 주소를 넣어 주세요"};
+  return {bad:false, text:String(text).replace(OL_RE_G, yt.u)};
+}
 /* 복사할 때 **강조** 기호는 빼고 글자만 복사합니다. 알림은 아래 한 줄(몇 글자)만 띄웁니다. */
 const plainCopy = t => String(t || "").replace(/\*\*/g, "");
 /* 복사하고 결과를 돌려줍니다: {ok, bad, len, line}. opt.quiet 면 알림(토스트)은 띄우지 않고 호출한 쪽이 결과 줄을 만듭니다. */
@@ -6540,12 +6614,22 @@ async function copyField(kind, label, text, opt){
   const c = S.cur;
   if(!c) return res;
   let src = text;
-  if(LINK_MEDIA[kind] && String(text || "").trim()){
+  if(OL_RE.test(String(src || ""))){
+    /* 후기 글의 [원글링크] → 원글을 올린 유튜브 주소. 주소가 아직 없으면 글자 그대로 올라가지 않게 복사하지 않아요 */
+    const r = await fillOrigLink(c, src);
+    if(r.bad){
+      res.bad = true; res.line = `${label}: ${r.msg}`;
+      if(!opt.quiet) toast(r.msg, "bad");
+      return res;
+    }
+    src = r.text;
+  }
+  if(LINK_MEDIA[kind] && String(src || "").trim()){
     /* 설명 칸의 [링크]를 이 칸 전용 쿠팡 링크로 바꿉니다. 링크가 아직 없으면 [링크] 글자가 그대로 올라가는 일을 막기 위해 복사하지 않습니다. */
-    const r = fillLinks(c, kind, text);
+    const r = fillLinks(c, kind, src);
     if(r.missing){
-      res.bad = true; res.line = `${label}에 ${r.tag || "[링크]"}가 있는데 쿠팡 링크가 아직 없어서 복사하지 않았어요`;
-      if(!opt.quiet) toast(`${r.tag || "[링크]"}를 바꿀 쿠팡 링크가 아직 없어요. 아래 ‘쿠팡 링크’ 칸에 상품 주소를 먼저 넣어 주세요`, "bad");
+      res.bad = true; res.line = `${label}에 ${r.tag || "[링크1]"}가 있는데 쿠팡 링크가 아직 없어서 복사하지 않았어요`;
+      if(!opt.quiet) toast(`${r.tag || "[링크1]"}를 바꿀 쿠팡 링크가 아직 없어요. 아래 ‘쿠팡 링크’ 칸에 상품 주소를 먼저 넣어 주세요`, "bad");
       return res;
     }
     src = r.text;
@@ -6596,7 +6680,7 @@ async function copyText(text){
 /* [링크] = 1번 상품 (예전과 같음) · [링크1] = 1번 · [링크2] = 2번 상품 · [링크3] = 3번 상품 … */
 const LINK_RE = /\[\s*링크\s*(?:\d{1,2})?\s*\]/, LINK_RE_G = /\[\s*링크\s*(\d{1,2})?\s*\]/g;
 const COUPANG_URL_RE = /^https?:\/\/([a-z0-9-]+\.)*coupang\.com\/\S+$/i;
-const CP_HELP = "설명 칸에 [링크]라고 써 두면, 복사할 때 쿠팡 링크로 바뀌어요. 상품이 둘 이상이면 [링크1] [링크2]처럼 번호를 붙여 쓰세요. 유튜브 칸에는 유튜브 링크, 인스타·스레드 칸에는 인스타 링크가 들어가요.";
+const CP_HELP = "설명 칸에 [링크1]이라고 써 두면, 복사할 때 1번 상품 쿠팡 링크로 바뀌어요. 상품이 늘면 [링크2] [링크3]처럼 이어서 쓰면 돼요. (예전에 쓴 [링크]도 1번 상품으로 그대로 바뀌어요) 유튜브 칸에는 유튜브 링크, 인스타·스레드 칸에는 인스타 링크가 들어가요. 후기 글의 [원글링크]는 원글의 유튜브 주소로 바뀌어요.";
 /* 쿠팡 앱 ‘공유’로 복사한 글에는 상품 이름이 주소와 함께 붙어 있는 경우가 많아요. 주소를 뺀 나머지 글자를 상품 이름으로 씁니다 (주소만 붙여 넣었으면 이름 없음) */
 function nameFromShare(raw){
   let t = String(raw || "").replace(/https?:\/\/[^\s"'<>]+/gi, " ");
@@ -6740,7 +6824,7 @@ function renderLinkBox(){
     }).join("");
   }).join("");
   /* 상품이 둘 이상이거나 이름을 알면 ‘상품 1 · [링크1] · 이름’ 줄을 보여 줍니다 */
-  $("cpHead1").hidden = !(prods.length > 1 || prods[0].name);
+  $("cpHead1").hidden = !(prods.length > 1 || prods[0].name || prods[0].url);
   $("cpName1").textContent = prods[0].name || "";
   renderMoreBox(c, prods, meds, st);
 }
@@ -7163,7 +7247,7 @@ function renderViewAll(){
     if(did[it.kind]) cp.classList.add("did");
     hd.append(nm, vaMk("span", "va-n", it.text.length.toLocaleString() + "자"), cp);
     box.append(hd, vaMk("div", "va-tx", it.text));
-    if(LINK_MEDIA[it.kind] && LINK_RE.test(it.text)) box.append(vaMk("p", "va-hint", "[링크]는 복사할 때 이 칸에 맞는 쿠팡 링크로 바뀌어요."));
+    if(LINK_MEDIA[it.kind] && LINK_RE.test(it.text)) box.append(vaMk("p", "va-hint", "[링크1] [링크2]…는 복사할 때 이 칸에 맞는 쿠팡 링크로 바뀌어요."));
     body.append(box);
   });
   if(empty.length) body.append(vaMk("p", "va-empty", "비어 있는 칸: " + empty.join(" · ")));
@@ -7204,7 +7288,7 @@ function pubOf(c){
   try{ d = JSON.parse((c && c.f && c.f.pub_info) || ""); }catch(e){ d = null; }
   if(!d || typeof d !== "object" || Array.isArray(d)) d = {};
   const one = x => (x && typeof x === "object" && typeof x.u === "string" && x.u) ? {u:x.u, t:String(x.t || ""), d:String(x.d || "")} : null;
-  return {yt:one(d.yt), ig:one(d.ig), imp:d.imp ? 1 : 0};
+  return {yt:one(d.yt), ig:one(d.ig), tt:one(d.tt), imp:d.imp ? 1 : 0};
 }
 function pubWhen(x){
   if(!x) return "";
@@ -7213,8 +7297,9 @@ function pubWhen(x){
   return m ? `${+m[2]}/${+m[3]} 무렵` : "";
 }
 function pubTime(x){ if(!x) return 0; const t = Date.parse(x.t || (x.d ? x.d + "T12:00:00+09:00" : "")); return isNaN(t) ? 0 : t; }
-const PUB_ROWS = [{m:"yt", kind:"youtube_description", host:/(^|\.)youtube\.com$|(^|\.)youtu\.be$/}, {m:"ig", kind:"instagram_caption", host:/(^|\.)instagram\.com$/}];
-const pubLabel = (c, m) => m === "ig" ? "인스타" : (isReview(c) ? "멤버십" : "유튜브");
+const PUB_ROWS = [{m:"yt", kind:"youtube_description", host:/(^|\.)youtube\.com$|(^|\.)youtu\.be$/}, {m:"ig", kind:"instagram_caption", host:/(^|\.)instagram\.com$/},
+  {m:"tt", kind:"tiktok_post", host:/(^|\.)tiktok\.com$/, opt:true}];       /* 틱톡: 칸을 쓰는 채널에서만 보이고, ‘완료’ 조건에는 안 들어가요 */
+const pubLabel = (c, m) => m === "ig" ? "인스타" : (m === "tt" ? "틱톡" : (isReview(c) ? "멤버십" : "유튜브"));
 var pubEdit = "";
 function renderPubBox(){
   const box = $("pubBox"), c = S.cur;
@@ -7224,6 +7309,7 @@ function renderPubBox(){
   PUB_ROWS.forEach(r => {
     const x = info[r.m], unused = off.includes(r.kind);
     if(unused && !x) return;
+    if(r.m === "tt" && isReview(c) && !x) return;                 /* 후기(멤버십)는 틱톡에 안 올려요 */
     const row = vaMk("div", "pb-row");
     row.append(vaMk("span", "pb-nm", pubLabel(c, r.m)));
     const st = vaMk("span", "pb-st" + (x ? " on" : ""));
@@ -7259,7 +7345,7 @@ function savePub(c, m, url, at){
     else if(prev) d[m] = prev;
     else d[m] = {u:url, t:new Date().toISOString()};
   }
-  const s = (d.yt || d.ig || d.imp) ? JSON.stringify(d) : "";
+  const s = (d.yt || d.ig || d.tt || d.imp) ? JSON.stringify(d) : "";
   if(s === (c.f.pub_info || "")) return;
   c.f.pub_info = s;
   const fields = {postFields:{pub_info:s}};
@@ -7289,7 +7375,7 @@ $("pubBox").addEventListener("click", e => {
     const url = $("pbUrl").value.trim(), at = $("pbAt").value;
     if(url){
       let h = ""; try{ h = new URL(url).hostname; }catch(err){ h = ""; }
-      if(!/^https?:\/\//i.test(url) || !row.host.test(h)){ toast(m === "ig" ? "인스타 글 주소를 넣어 주세요." : "유튜브 글 주소를 넣어 주세요.", "err"); return; }
+      if(!/^https?:\/\//i.test(url) || !row.host.test(h)){ toast(m === "ig" ? "인스타 글 주소를 넣어 주세요." : (m === "tt" ? "틱톡 글 주소를 넣어 주세요." : "유튜브 글 주소를 넣어 주세요."), "err"); return; }
     }
     const moved = savePub(c, m, url, at);
     pubEdit = ""; renderPubBox();
@@ -7302,6 +7388,7 @@ const PUB_CATS = [
   {k:"noyt",   label:"유튜브 미등록"},
   {k:"noig",   label:"인스타 미등록"},
   {k:"nomb",   label:"멤버십 후기 미등록"},
+  {k:"notk",   label:"틱톡 미등록"},
   {k:"none",   label:"아무 데도 안 올림"},
   {k:"norv",   label:"후기 없는 글"},
   {k:"imp",    label:"카드 원문 없는 글"},
@@ -7318,12 +7405,13 @@ function pubClassify(rows){
     else{
       if(useYt && !info.yt) cats.push("noyt");
       if(useIg && !info.ig) cats.push("noig");
-      if(!info.yt && !info.ig) cats.push("none");
+      if(!off.includes("tiktok_post") && !info.tt && String((c.f && c.f.tiktok_post) || "").trim()) cats.push("notk");   /* 틱톡 게시글을 써 둔 글만 */
+      if(!info.yt && !info.ig && !info.tt) cats.push("none");
       const ch = channelFor(c);
       if(!hasRv[c.id] && !info.imp && ((ch && ch.review) || rvChan[c.channelId])) cats.push("norv");     /* 거꾸로 가져온 옛 글은 후기 대상에서 뺌 */
     }
     if(info.imp) cats.push("imp");
-    if(!cats.some(k => k === "noyt" || k === "noig" || k === "nomb" || k === "none")) cats.push("ok");
+    if(!cats.some(k => k === "noyt" || k === "noig" || k === "nomb" || k === "notk" || k === "none")) cats.push("ok");
     return {c, info, rv, cats, useYt, useIg};
   });
 }
@@ -7358,7 +7446,7 @@ function renderPubView(){
     b.append(vaMk("b", "", String(count(x.k)))); cats.append(b);
   });
   const rows = all.filter(x => x.cats.includes(PUBV.cat));
-  const when = x => Math.max(pubTime(x.info.yt), pubTime(x.info.ig)) || Date.parse(x.c.doneAt || x.c.createdAt || "") || 0;
+  const when = x => Math.max(pubTime(x.info.yt), pubTime(x.info.ig), pubTime(x.info.tt)) || Date.parse(x.c.doneAt || x.c.createdAt || "") || 0;
   rows.sort((a, b) => when(b) - when(a));
   if(PUBV.loading) list.append(vaMk("div", "pb-note", "새로 확인하는 중…"));
   if(!rows.length) list.append(vaMk("div", "pb-note", "여기에 해당하는 글이 없어요."));
@@ -7372,8 +7460,9 @@ function renderPubView(){
     const mark = (label, v, use) => { if(!use && !v) return; m.append(vaMk("span", v ? "ok" : "no", label + (v ? " ✓ " + pubWhen(v) : " ✗"))); };
     mark(x.rv ? "멤버십" : "유튜브", x.info.yt, x.rv || x.useYt);
     if(!x.rv) mark("인스타", x.info.ig, x.useIg);
+    if(!x.rv) mark("틱톡", x.info.tt, x.cats.includes("notk"));
     if(!x.rv && x.cats.includes("norv")) m.append(vaMk("span", "no", "후기 없음"));
-    if(!x.info.yt && !x.info.ig){ const st = stateOf(c); m.append(vaMk("span", "", st === "done" ? "완료 표시됨 " + fmtAt(c.doneAt) : (st === "hold" ? "보류" : "작성 " + fmtAt(c.createdAt)))); }
+    if(!x.info.yt && !x.info.ig && !x.info.tt){ const st = stateOf(c); m.append(vaMk("span", "", st === "done" ? "완료 표시됨 " + fmtAt(c.doneAt) : (st === "hold" ? "보류" : "작성 " + fmtAt(c.createdAt)))); }
     it.append(m); list.append(it);
   });
 }
