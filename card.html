@@ -637,6 +637,9 @@
   #bottomActions button{flex:1; padding:12px 8px; font-size:14.5px}
   /* 이미지 바로 위 다운로드 · 인스타 공유 (이미지가 없을 땐 같이 숨김) */
   #topActions{display:flex; gap:8px; margin:6px 0 2px}
+  /* 틱톡 공유 버튼: 검은 바탕 + 분홍 테두리 */
+  button.primary.tt{background:#111; color:#fff; border:2px solid #fe2c55}
+  #tbShareTt[hidden], #shareAllTt[hidden]{display:none}
   #topActions button{flex:1; padding:12px 8px; font-size:15px}
   #viewBar[hidden] + #topActions{display:none}
   body.design #topActions{display:none}
@@ -939,7 +942,8 @@
     </div>
     <div class="top-actions" id="topActions">
       <button type="button" class="primary" id="tbSave" title="유튜브용 (마지막 장에 유튜브 안내문구·유튜브 마지막 광고)">다운로드</button>
-      <button type="button" class="primary accent" id="tbShare" title="인스타용 (마지막 장에 인스타 안내문구·인스타 마지막 광고, VS는 1·2 숫자)">인스타 공유</button>
+      <button type="button" class="primary accent" id="tbShare" title="인스타용 이미지 공유 + 인스타 캡션 복사">인스타 공유</button>
+      <button type="button" class="primary tt" id="tbShareTt" title="인스타용과 같은 이미지 공유 + 틱톡 게시글 복사">틱톡 공유</button>
     </div>
     <p class="act-msg" id="topMsg" role="status" aria-live="polite" hidden></p>
     <div id="lastRow" hidden>
@@ -952,6 +956,7 @@
     <div class="bottom-actions" id="bottomActions" hidden>
       <button type="button" class="primary" id="saveAll">유튜브용 다운로드</button>
       <button type="button" class="primary accent" id="shareAll">인스타 공유</button>
+      <button type="button" class="primary tt" id="shareAllTt">틱톡 공유</button>
     </div>
     <p class="act-msg" id="botMsg" role="status" aria-live="polite" hidden></p>
     <p class="msg" id="msg"></p>
@@ -4880,7 +4885,8 @@ async function saveAllImages(btn){
 
 /* 공유: 인스타용 이미지(마지막 투표 장만 1·2 숫자 + 안내 줄)를 공유창으로 보내고,
    인스타 캡션이 있으면 같이 복사해 둡니다(인스타에서 바로 붙여넣기). 결과는 이미지 위·아래 결과 줄에 남깁니다. */
-function shareImages(){
+function shareImages(target){
+  const tt = target === "tt";
   if(!igBlobs.length) return;
   const phb = phBlockMsg();
   if(phb){ setActMsg(phb, "bad"); toast(phb, "bad"); return; }
@@ -4895,9 +4901,18 @@ function shareImages(){
     toast("이 브라우저는 이미지 공유를 지원하지 않아요", "bad");
     return;
   }
-  const capKind = "instagram_caption", capLabel = "인스타 캡션";
+  /* 인스타 공유 → 인스타 캡션 복사 / 틱톡 공유 → 틱톡 게시글 복사 (비어 있으면 인스타 캡션에서 쿠팡 [링크] 줄을 뺀 글) */
+  let capKind = tt ? "tiktok_post" : "instagram_caption", capLabel = tt ? "틱톡 게시글" : "인스타 캡션";
   let cap = "", capNote = "", capBad = false;
-  if(c && !fieldOn(c, {kind:capKind})){
+  if(tt){
+    let t = String((c && c.f && c.f.tiktok_post) || "");
+    if(!t.trim() && c && String(c.f.instagram_caption || "").trim()){
+      t = String(c.f.instagram_caption).split(/\r?\n/).filter(l => !LINK_RE.test(l)).join("\n").replace(/\n{3,}/g, "\n\n").trim();
+      capLabel = "틱톡 게시글이 비어 있어서 인스타 캡션(쿠팡 링크 줄 뺌)";
+    }
+    if(t.trim()) cap = plainCopy(t);
+    else{ capNote = "틱톡 게시글·인스타 캡션이 비어 있어서 복사할 게 없어요"; capBad = true; }
+  }else if(c && !fieldOn(c, {kind:capKind})){
     capNote = "인스타 캡션 칸을 쓰지 않는 글이라 복사는 건너뛰었어요";
   }else{
     const capSrc = (c && c.f && c.f[capKind]) || "";
@@ -4924,14 +4939,15 @@ function shareImages(){
     return navigator.clipboard.writeText(cap).then(()=>{ capDone = true; markCap(); return true; }, ()=>false);
   };
   const capLen = () => cap.length.toLocaleString();
-  setActMsg(cap ? "공유창을 여는 중… 인스타 캡션을 복사하는 중" : "공유창을 여는 중…", "info");
+  const app = tt ? "틱톡" : "인스타";
+  setActMsg(cap ? `공유창을 여는 중… ${capLabel}을 복사하는 중` : "공유창을 여는 중…", "info");
   const copyP = Promise.race([tryCopy(), new Promise(r => setTimeout(() => r(false), 4000))]);   /* 첫 복사 — 끝날 때까지(최대 4초) 기다린 뒤에 결과 문구를 정합니다 */
   copyP.then(ok => {
-    if(ok && !ended) setActMsg(`✓ ${capLabel} ${capLen()}자 복사됨 · 공유창에서 인스타를 골라 주세요`, "");
+    if(ok && !ended) setActMsg(`✓ ${capLabel} ${capLen()}자 복사됨 · 공유창에서 ${app}을 골라 주세요`, "");
   });
   p.then(async ()=>{
     ended = true;
-    markUsed("sh");
+    markUsed(tt ? "tsh" : "sh");
     await copyP;
     if(cap && !capDone) await tryCopy();          /* 공유창이 닫힌 뒤 한 번 더 시도 */
     let line, bad = false;
@@ -4956,8 +4972,10 @@ function shareImages(){
 
 $("saveAll").onclick = e => saveAllImages(e.currentTarget);
 $("tbSave").onclick = e => saveAllImages(e.currentTarget);
-$("shareAll").onclick = shareImages;
-$("tbShare").onclick = shareImages;
+$("shareAll").onclick = () => shareImages("ig");
+$("tbShare").onclick = () => shareImages("ig");
+$("shareAllTt").onclick = () => shareImages("tt");
+$("tbShareTt").onclick = () => shareImages("tt");
 
 function runMake(){
   const raw = parse($("src").value);
@@ -6456,6 +6474,10 @@ function updateShareMarks(){
   const m = (S.cur && COPIED[S.cur.key]) || {};
   if(!saving) $("tbSave").textContent = m.dl ? "다운로드 ✓" : "다운로드";
   $("tbShare").textContent = m.sh ? "인스타 공유 ✓" : "인스타 공유";
+  $("tbShareTt").textContent = m.tsh ? "틱톡 공유 ✓" : "틱톡 공유";
+  /* 틱톡 칸을 안 쓰는 채널·후기 글에는 틱톡 공유 버튼을 숨겨요 */
+  const ttOff = !S.cur || isReview(S.cur) || !fieldOn(S.cur, {kind:"tiktok_post"});
+  $("tbShareTt").hidden = ttOff; $("shareAllTt").hidden = ttOff;
 }
 
 /* 설명 4칸 만들기 — 원글처럼 접고 펴는 칸. 폰에서는 접힌 채로 열리고, 제목 줄의 ‘복사’로 펴지 않고 바로 복사 */
