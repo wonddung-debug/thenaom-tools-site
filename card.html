@@ -6668,9 +6668,18 @@ async function fillOrigLink(c, text){
   if(o.full === false && o.id){ try{ await loadFull([o.id]); }catch(e){} }
   const oo = S.contents.find(x => x.id === o.id) || o;
   if(oo.full === false) return {bad:true, msg:"원글 주소를 불러오지 못했어요. 잠시 뒤에 다시 눌러 주세요"};
-  const yt = pubOf(oo).yt;
-  if(!yt || !yt.u) return {bad:true, msg:"원글의 유튜브 주소가 아직 등록 안 돼서 복사하지 않았어요. 원글을 열어 ‘등록 정보’에 주소를 넣어 주세요"};
-  return {bad:false, text:String(text).replace(OL_RE_G, yt.u)};
+  let yt = pubOf(oo).yt, found = false;
+  if(!yt || !yt.u){
+    /* 원글 주소가 없으면 그 채널 최근 유튜브 게시물에서 원글을 찾아 등록한 뒤 이어서 복사해요 */
+    const ch = channelFor(oo);
+    if(ch && YT_AUTO_CH.includes(ch.name) && !pubOf(oo).imp){
+      toast("원글 유튜브 주소를 찾는 중이에요… (몇 초 걸려요)");
+      found = await ytFindRecent(oo);
+      yt = pubOf(oo).yt;
+    }
+  }
+  if(!yt || !yt.u) return {bad:true, msg:"원글 유튜브 주소를 못 찾아서 복사하지 않았어요. 유튜브에 막 올렸다면 10분쯤 뒤 다시 눌러 주시거나, 원글을 열어 ‘등록 정보’에 주소를 넣어 주세요"};
+  return {bad:false, found, text:String(text).replace(OL_RE_G, yt.u)};
 }
 /* 복사할 때 **강조** 기호는 빼고 글자만 복사합니다. 알림은 아래 한 줄(몇 글자)만 띄웁니다. */
 const plainCopy = t => String(t || "").replace(/\*\*/g, "");
@@ -6680,7 +6689,7 @@ async function copyField(kind, label, text, opt){
   const res = {ok:false, bad:false, len:0, line:""};
   const c = S.cur;
   if(!c) return res;
-  let src = text;
+  let src = text, olFound = false;
   if(OL_RE.test(String(src || ""))){
     /* 후기 글의 [원글링크] → 원글을 올린 유튜브 주소. 주소가 아직 없으면 글자 그대로 올라가지 않게 복사하지 않아요 */
     const r = await fillOrigLink(c, src);
@@ -6689,7 +6698,7 @@ async function copyField(kind, label, text, opt){
       if(!opt.quiet) toast(r.msg, "bad");
       return res;
     }
-    src = r.text;
+    src = r.text; olFound = !!r.found;
   }
   if(LINK_MEDIA[kind] && String(src || "").trim()){
     /* 설명 칸의 [링크]를 이 칸 전용 쿠팡 링크로 바꿉니다. 링크가 아직 없으면 [링크] 글자가 그대로 올라가는 일을 막기 위해 복사하지 않습니다. */
@@ -6709,8 +6718,9 @@ async function copyField(kind, label, text, opt){
   }
   const ok = await copyText(v);
   if(!ok){
-    res.bad = true; res.line = `${label}을(를) 복사하지 못했어요`;
-    if(!opt.quiet) toast("복사하지 못했어요. 글자를 길게 눌러 직접 복사해 주세요.", "bad");
+    /* 주소를 찾느라 시간이 걸리면 폰에서는 복사가 막힐 수 있어요 → 주소는 등록됐으니 한 번 더 누르면 바로 복사돼요 */
+    res.bad = true; res.line = olFound ? `원글 유튜브 주소를 찾아 등록했어요. ${label} 복사를 한 번 더 눌러 주세요` : `${label}을(를) 복사하지 못했어요`;
+    if(!opt.quiet) toast(olFound ? "원글 유튜브 주소를 찾아 등록했어요. 복사를 한 번 더 눌러 주세요" : "복사하지 못했어요. 글자를 길게 눌러 직접 복사해 주세요.", "bad");
     return res;
   }
   (COPIED[c.key] = COPIED[c.key] || {})[kind] = Date.now();
@@ -7568,18 +7578,20 @@ function ytSaveLink(row, p){
 }
 /* 완료로 옮겼는데 유튜브 주소가 없는 글: 서버에서 그 채널 최근 게시물을 받아 찾아봐요 (조용히, 찾으면 알림) */
 async function ytFindRecent(c){
-  if(!c || !c.id || c.full === false || pubOf(c).yt || pubOf(c).imp) return;
+  if(!c || !c.id || c.full === false || pubOf(c).yt || pubOf(c).imp) return false;
   const ch = channelFor(c);
-  if(!ch || !YT_AUTO_CH.includes(ch.name)) return;
+  if(!ch || !YT_AUTO_CH.includes(ch.name)) return false;
   let r;
-  try{ r = await callDb({action:"ytRecent", channelId:ch.id}, {timeoutMs:40000}); }catch(e){ return; }
-  if(!r || !r.ok || !Array.isArray(r.posts) || !r.posts.length) return;
+  try{ r = await callDb({action:"ytRecent", channelId:ch.id}, {timeoutMs:40000}); }catch(e){ return false; }
+  if(!r || !r.ok || !Array.isArray(r.posts) || !r.posts.length) return false;
   const res = ytAutoMatch(r.posts, [c], {now:Date.parse(r.at || "") || Date.now()});
   if(res.saved.length){
     toast("유튜브 게시글 주소를 찾아서 등록했어요");
     if(S.cur === c){ renderPubBox(); }
     PUBV.at = 0; renderList();
+    return true;
   }
+  return false;
 }
 
 $("pubBox").addEventListener("click", e => {
