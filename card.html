@@ -6144,6 +6144,7 @@ function toggleDone(c){
   setStateOf(c, was ? "none" : "done");
   renderList();
   if(c === S.cur) updateDoneBtn();
+  if(!was) setTimeout(() => ytFindRecent(c), 1500);       /* 유튜브 주소가 없으면 최근 게시물에서 찾아봐요 */
   toast(was ? "완료를 취소했어요" : "‘" + shownTitle(c) + "’ 완료 목록으로 옮겼어요", "", {label:"되돌리기", fn:() => {
     c.publishAt = prev[0]; c.doneAt = prev[1]; queueSave(c, {publishAt:prev[0], doneAt:prev[1]}, 250);
     renderList(); if(c === S.cur) updateDoneBtn();
@@ -7351,11 +7352,12 @@ function pubOf(c){
   let d = null;
   try{ d = JSON.parse((c && c.f && c.f.pub_info) || ""); }catch(e){ d = null; }
   if(!d || typeof d !== "object" || Array.isArray(d)) d = {};
-  const one = x => (x && typeof x === "object" && typeof x.u === "string" && x.u) ? {u:x.u, t:String(x.t || ""), d:String(x.d || "")} : null;
+  const one = x => (x && typeof x === "object" && typeof x.u === "string" && x.u) ? {u:x.u, t:String(x.t || ""), d:String(x.d || ""), a:x.a ? 1 : 0} : null;
   return {yt:one(d.yt), ig:one(d.ig), tt:one(d.tt), imp:d.imp ? 1 : 0};
 }
 function pubWhen(x){
   if(!x) return "";
+  if(x.t && x.a){ const k = new Date(x.t); if(!isNaN(k)) return `${k.getMonth() + 1}/${k.getDate()} 무렵`; }   /* 유튜브에서 자동으로 찾은 주소: ‘3주 전’처럼 대략만 알아요 */
   if(x.t){ const s = fmtAt(x.t); if(s) return s; }
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(x.d || "");
   return m ? `${+m[2]}/${+m[3]} 무렵` : "";
@@ -7440,6 +7442,124 @@ function pubAllDone(c){
   if(!useYt && !useIg) return false;
   return (!useYt || !!info.yt) && (!useIg || !!info.ig);
 }
+/* ================= 유튜브 게시글 주소 자동 찾기 (사랑추구권·굿리뷰만, 11/15) =================
+   유튜브 게시물 탭에 보이는 글(주소·‘3일 전’ 같은 시각·글 내용)을 카드의 유튜브 게시글(후기는 멤버십 게시글)과 맞춰 보고,
+   확실히 같은 글만 등록 정보에 넣어요. 주소가 이미 있는 글은 건드리지 않아요.
+   - 처음 한 번: 유튜브 게시물 탭을 끝까지 내려 모은 목록으로 한꺼번에 (ytAutoMatch)
+   - 그 뒤: 글을 ‘완료’로 옮겼는데 유튜브 주소가 없으면, 서버가 그 채널 게시물 탭 첫 화면(최근 글 몇 개)을 읽어 와서 찾아요 */
+const YT_AUTO_CH = ["사랑추구권", "굿리뷰"];
+const ytNorm = t => String(t || "").replace(/https?:\/\/\S+/g, "").replace(/\[[^\]]{1,12}\]/g, "").toLowerCase().replace(/[^0-9a-z\u3131-\u318e\uac00-\ud7a3]/g, "");
+function ytBigrams(t){ const m = new Map(); for(let i = 0; i < t.length - 1; i++){ const g = t.slice(i, i + 2); m.set(g, (m.get(g) || 0) + 1); } return m; }
+function ytDice(a, b){
+  if(a.length < 2 || b.length < 2) return 0;
+  const A = ytBigrams(a), B = ytBigrams(b); let n = 0;
+  A.forEach((v, k) => { if(B.has(k)) n += Math.min(v, B.get(k)); });
+  return 2 * n / (a.length - 1 + b.length - 1);
+}
+/* 글 두 개가 같은 글인지 점수(0~1). 앞부분이 그대로 들어 있으면 1 */
+function ytScore(postTxt, cardTxt){
+  const p = ytNorm(postTxt).slice(0, 400), c = ytNorm(cardTxt).slice(0, 400);
+  if(p.length < 15 || c.length < 15) return 0;
+  const k = Math.min(60, p.length, c.length);
+  if(c.includes(p.slice(0, k)) || p.includes(c.slice(0, k))) return 1;
+  return ytDice(p.slice(0, 200), c.slice(0, 200));
+}
+/* ‘13시간 전’ ‘2주 전’ ‘1개월 전’ → 대략 몇 시간 전인지 범위 [가까운, 먼] */
+function ytAgeRange(label){
+  const m = /(\d+)\s*(초|분|시간|일|주|개월|년)/.exec(String(label || ""));
+  if(!m) return null;
+  const n = +m[1], H = {초:1 / 3600, 분:1 / 60, 시간:1, 일:24, 주:168, 개월:720, 년:8760}[m[2]];
+  const span = {초:0, 분:0, 시간:1, 일:24, 주:168, 개월:720, 년:8760}[m[2]];
+  return {lo:n * H, hi:n * H + span, exact:m[2] === "초" || m[2] === "분" || m[2] === "시간"};
+}
+/* 게시물 탭은 최신 글이 위 → 같은 ‘2주 전’ 묶음 안에서는 순서대로 고르게 나눠 날짜를 정해요 */
+function ytGuessTimes(posts, now){
+  now = now || Date.now();
+  let i = 0;
+  while(i < posts.length){
+    const r = ytAgeRange(posts[i].t), key = String(posts[i].t || "").replace(/\(.*\)/, "").trim();
+    let j = i; while(j + 1 < posts.length && String(posts[j + 1].t || "").replace(/\(.*\)/, "").trim() === key) j++;
+    const k = j - i + 1;
+    for(let q = i; q <= j; q++){
+      if(!r){ posts[q].at = ""; continue; }
+      const h = r.lo + (r.hi - r.lo) * (q - i + 0.5) / k;
+      posts[q].at = new Date(now - h * 3600000).toISOString();
+      posts[q].exact = r.exact;
+    }
+    i = j + 1;
+  }
+  return posts;
+}
+/* posts: [{id, t:'3일 전', txt, mem:멤버십 전용?}] (최신 글이 앞), rows: 그 채널의 글(내용까지 받은 것)
+   돌려줌: {saved, already, unsure:[…], none} — 확실한 것만 저장 */
+function ytAutoMatch(posts, rows, opt){
+  opt = opt || {};
+  ytGuessTimes(posts, opt.now);
+  const used = new Set();
+  rows.forEach(c => { const y = pubOf(c).yt; if(y){ const m = /\/post\/([\w-]+)/.exec(y.u); if(m) used.add(m[1]); } });
+  const want = rows.filter(c => !pubOf(c).yt && !pubOf(c).imp);
+  const pairs = [];
+  posts.forEach(p => {
+    if(!p.id || used.has(p.id)) return;
+    want.forEach(c => {
+      const rv = isReview(c);
+      if(!!p.mem !== rv) return;                                    /* 멤버십 전용 글 ↔ 후기, 공개 글 ↔ 원글 */
+      const t1 = (c.f && c.f.youtube_description) || "";
+      let sc = t1.trim() ? ytScore(p.txt, t1) : 0;
+      if(sc < 0.75 && (c.rawText || "").trim()) sc = Math.max(sc, ytScore(p.txt, c.rawText) * 0.9);
+      if(sc >= 0.5) pairs.push({p, c, sc});
+    });
+  });
+  pairs.sort((a, b) => b.sc - a.sc);
+  const doneP = new Set(), doneC = new Set(), out = {saved:[], unsure:[], already:used.size};
+  pairs.forEach(x => {
+    if(doneP.has(x.p.id) || doneC.has(x.c.id)) return;
+    /* 같은 글에 거의 같은 점수의 다른 후보가 있으면 애매한 것으로 남겨요 */
+    const rival = pairs.find(y => y !== x && !doneP.has(y.p.id) && !doneC.has(y.c.id) && (y.p === x.p || y.c === x.c) && y.sc > x.sc - 0.08);
+    doneP.add(x.p.id); doneC.add(x.c.id);
+    if(x.sc < 0.75 || rival){ out.unsure.push({title:x.c.title, post:x.p.txt.slice(0, 40), sc:Math.round(x.sc * 100)}); return; }
+    if(!opt.dry) ytSaveLink(x.c, x.p);
+    out.saved.push({title:x.c.title, t:x.p.t, sc:Math.round(x.sc * 100)});
+  });
+  out.none = want.length - out.saved.length - out.unsure.length;
+  return out;
+}
+/* 찾은 주소를 그 글의 등록 정보에 넣어요 (다른 곳 주소는 그대로) */
+function ytSaveLink(row, p){
+  const c = S.contents.find(z => z.id === row.id);
+  if(!c) return false;
+  let d = {};
+  try{ d = JSON.parse((row.f && row.f.pub_info) || "") || {}; }catch(e){ d = {}; }
+  if(typeof d !== "object" || Array.isArray(d)) d = {};
+  if(d.yt && d.yt.u) return false;
+  d.v = 1;
+  d.yt = {u:"https://www.youtube.com/post/" + p.id, t:p.at || new Date().toISOString()};
+  if(!p.exact) d.yt.a = 1;
+  const str = JSON.stringify(d);
+  if(row.f) row.f.pub_info = str;
+  if(c.full !== false) c.f.pub_info = str; else c.ytAt = d.yt.t;
+  const fields = {postFields:{pub_info:str}};
+  const probe = c.full !== false ? c : row;
+  if(!c.doneAt && pubAllDone(probe)){ c.doneAt = new Date().toISOString(); c.publishAt = ""; fields.doneAt = c.doneAt; fields.publishAt = ""; }
+  queueSave(c, fields, 400);
+  return true;
+}
+/* 완료로 옮겼는데 유튜브 주소가 없는 글: 서버에서 그 채널 최근 게시물을 받아 찾아봐요 (조용히, 찾으면 알림) */
+async function ytFindRecent(c){
+  if(!c || !c.id || c.full === false || pubOf(c).yt || pubOf(c).imp) return;
+  const ch = channelFor(c);
+  if(!ch || !YT_AUTO_CH.includes(ch.name)) return;
+  let r;
+  try{ r = await callDb({action:"ytRecent", channelId:ch.id}, {timeoutMs:40000}); }catch(e){ return; }
+  if(!r || !r.ok || !Array.isArray(r.posts) || !r.posts.length) return;
+  const res = ytAutoMatch(r.posts, [c], {now:Date.parse(r.at || "") || Date.now()});
+  if(res.saved.length){
+    toast("유튜브 게시글 주소를 찾아서 등록했어요");
+    if(S.cur === c){ renderPubBox(); }
+    PUBV.at = 0; renderList();
+  }
+}
+
 $("pubBox").addEventListener("click", e => {
   const c = S.cur; if(!c) return;
   const pe = e.target.closest("[data-pe]"), ps = e.target.closest("[data-ps]"), pc = e.target.closest("[data-pc]");
