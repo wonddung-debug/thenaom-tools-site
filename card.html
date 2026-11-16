@@ -1260,7 +1260,7 @@
         <div class="sec-title">📷 사진 칸 (처음 모양)</div>
         <div class="grid2">
           <div><label class="lbl">사진 자리</label>
-            <select id="phPos"><option value="top">사진 위 · 글 아래</option><option value="bottom">글 위 · 사진 아래</option><option value="round">동그란 작은 사진 + 글</option><option value="bg">배경에 희미하게 깔기</option></select></div>
+            <select id="phPos"><option value="top">사진 위 · 글 아래</option><option value="bottom">글 위 · 사진 아래</option><option value="left">사진 왼쪽에 세로로 · 글 오른쪽</option><option value="right">글 왼쪽 · 사진 오른쪽에 세로로</option><option value="round">동그란 작은 사진 + 글</option><option value="bg">배경에 희미하게 깔기</option></select></div>
           <div><label class="lbl">사진 모양</label>
             <select id="phShape"><option value="rect">네모</option><option value="rounded">둥근 네모</option><option value="circle">동그라미</option></select></div>
           <div><label class="lbl">사진 맞춤</label>
@@ -3153,14 +3153,14 @@ function drawFrameAndDeco(ctx, H, bgCol, inkCol, hlCol, padX, padY){
    - 어느 장의 사진인지는 그 장의 첫 줄(k)로 찾고, 글을 고쳐서 첫 줄이 바뀌면 장 번호(pg)로 이어서 찾아요
    ===================================================================== */
 const PH_ID = /^[A-Za-z0-9_-]{20,80}$/;
-const PH_POS = ["top", "bottom", "round", "bg"], PH_SZ = ["s", "m", "l"], PH_SH = ["rect", "rounded", "circle"], PH_FIT = ["cover", "contain"];
+const PH_POS = ["top", "bottom", "left", "right", "round", "bg"], PH_SZ = ["s", "m", "l"], PH_SH = ["rect", "rounded", "circle"], PH_FIT = ["cover", "contain"];
 const PH_LEG_H = {s:30, m:40, l:50};              /* ‘작게·보통·크게’ = 글 칸 높이에 대한 사진 높이(%) */
 const PH_LEG_D = {s:230, m:300, l:380};           /* 동그란 작은 사진의 지름(px) */
 const PH_LEG_BW = {none:0, thin:6, thick:14};     /* 예전 ‘테두리 없음·얇게·두껍게’ */
 const PH_MAX_ITEMS = 40;
 /* 숫자로 조절하는 항목 [최소, 최대]: hp 사진 높이(%) · wp 사진 너비(%) · dm 동그란 사진 지름(px) · rd 모서리 둥글기(px)
    bw 테두리 두께(px) · gp 사진과 글 사이(px) · zm 확대(%) · op 배경 사진 진하기(%) */
-const PH_NUM = {hp:[5, 90], wp:[20, 100], dm:[80, 900], rd:[0, 300], bw:[0, 40], gp:[0, 200], zm:[100, 500], op:[3, 100]};
+const PH_NUM = {hp:[5, 100], wp:[20, 100], dm:[80, 900], rd:[0, 300], bw:[0, 40], gp:[0, 200], zm:[100, 500], op:[3, 100]};
 const PH_STYLE_KEYS = ["pos", "sz", "sh", "fit", "hp", "wp", "dm", "rd", "bw", "gp", "zm", "op"];
 const phNumClamp = (k, v) => { const r = PH_NUM[k]; v = Number(v); return r && isFinite(v) ? Math.max(r[0], Math.min(r[1], Math.round(v))) : null; };
 const phClamp01 = v => { v = Number(v); return isFinite(v) ? Math.max(0, Math.min(1, v)) : 0.5; };
@@ -3280,6 +3280,18 @@ function phSigOf(pi){
 function phParams(it){
   const g = (k, ch) => it[k] != null ? it[k] : phNumClamp(k, getOpt(ch));
   const leg = PH_SZ.includes(it.sz) ? it.sz : "";
+  const pos0 = it.pos || getOpt("phPos");
+  if(pos0 === "left" || pos0 === "right"){            /* 옆에 세로로 길게: 처음 값은 높이 100% · 너비 38% (너비는 70%까지) */
+    return {
+      pos: pos0, sh: it.sh || getOpt("phShape"), fit: it.fit || getOpt("phFit"),
+      hp: it.hp != null ? it.hp : 100,
+      dm: it.dm != null ? it.dm : phNumClamp("dm", getOpt("phDia")),
+      wp: Math.max(20, Math.min(70, it.wp != null ? it.wp : 38)),
+      rd: g("rd", "phRad"), bw: g("bw", "phBW"), gp: g("gp", "phGap"), op: g("op", "phOp"),
+      zm: it.zm != null ? it.zm : 100,
+      fx: it.fx == null ? 0.5 : it.fx, fy: it.fy == null ? 0.5 : it.fy
+    };
+  }
   return {
     pos: it.pos || getOpt("phPos"), sh: it.sh || getOpt("phShape"), fit: it.fit || getOpt("phFit"),
     hp: it.hp != null ? it.hp : (leg ? PH_LEG_H[leg] : phNumClamp("hp", getOpt("phH"))),
@@ -3413,6 +3425,23 @@ function phPlan(o){
   const P = phParams(o.item), areaH = o.areaH, gap = P.gp;
   let pos = P.pos;
   if(o.page.cta && pos === "bottom") pos = "top";                 /* 마무리 장은 아래에 버튼이 있어요 */
+  if(pos === "left" || pos === "right"){
+    if(o.page.type === "plain" && o.fitW){
+      /* 옆에 세로로 길게: 사진은 왼쪽(오른쪽)에 세우고 글은 남은 옆자리에. 글이 너무 작아지면 사진 너비를 줄여요 */
+      const baseW = Math.round(o.maxW * P.wp / 100), minW = Math.min(baseW, Math.round(o.maxW * 0.2));
+      let w = baseW;
+      const minF = getOpt("minFont"), r0 = o.fitW(o.maxW);
+      const want = Math.min(r0.size, Math.max(minF, Math.round(r0.size * 0.55)));
+      const step = Math.max(8, Math.round(o.maxW * 0.03));
+      while(w > minW && o.fitW(o.maxW - w - gap).size < want) w = Math.max(minW, w - step);
+      const h = Math.max(40, Math.min(areaH, Math.round(areaH * P.hp / 100)));
+      const rect = {x:pos === "left" ? o.padX : o.padX + o.maxW - w, y:o.padY + Math.round((areaH - h) / 2), w, h};
+      return {P, pos, rect, shape:P.sh, tTop:o.padY, tH:areaH, tX:pos === "left" ? o.padX + w + gap : o.padX, tW:o.maxW - w - gap,
+        shrunk:w < baseW, item:o.item, alpha:1, areaH, maxW:o.maxW};
+    }
+    /* VS·선택 장은 옆자리가 없어서 ‘사진 위’로 그려요 */
+    pos = "top"; P.hp = phNumClamp("hp", getOpt("phH")); P.wp = 100;
+  }
   const round = pos === "round";
   const base = round ? Math.min(P.dm, Math.round(areaH * 0.75), o.maxW) : Math.round(areaH * P.hp / 100);
   const minH = Math.min(base, round ? 130 : Math.round(areaH * 0.16));
@@ -3655,7 +3684,8 @@ function draw(page, idx, total, f, ig, opt){
   if(phM && !phBg && areaH > 380){
     const plan = phPlan({
       page, item:phM.item, areaH, padX, padY, maxW, chars:pageToRawString(page).length,
-      fitFn: page.type === "plain" ? (h => fit(ctx, css, [page.text], maxW, h - (page.cta ? 140 : 0), isCover ? maxFont * getOpt("coverScale") : maxFont, getOpt("minFont"), lhRatio)) : null
+      fitFn: page.type === "plain" ? (h => fit(ctx, css, [page.text], maxW, h - (page.cta ? 140 : 0), isCover ? maxFont * getOpt("coverScale") : maxFont, getOpt("minFont"), lhRatio)) : null,
+      fitW: page.type === "plain" ? (w => fit(ctx, css, [page.text], w, areaH - (page.cta ? 140 : 0), isCover ? maxFont * getOpt("coverScale") : maxFont, getOpt("minFont"), lhRatio)) : null
     });
     if(!opt.skipPhoto) phInfo = phPaint(ctx, plan, {ink:inkCol, hl:hlCol});
     phPlanned = plan;
@@ -3665,10 +3695,11 @@ function draw(page, idx, total, f, ig, opt){
 
   if(page.type === "plain"){
     const ah = page.cta ? tH - 140 : tH;
-    const r = fit(ctx, css, [page.text], maxW, ah, isCover ? maxFont * getOpt("coverScale") : maxFont, getOpt("minFont"), lhRatio);
+    const sideX = phPlanned && phPlanned.tX != null ? phPlanned.tX : null, sideW = sideX != null ? phPlanned.tW : null;     /* 사진이 옆에 있으면 글은 남은 옆자리에 */
+    const r = fit(ctx, css, [page.text], sideW != null ? sideW : maxW, ah, isCover ? maxFont * getOpt("coverScale") : maxFont, getOpt("minFont"), lhRatio);
     const lines = r.all[0];
     const startY = tTop + (ah - lines.length*r.lh)/2 + r.lh/2;
-    drawFormattedLines(ctx, lines, startY, r.lh, r.size, curAlign, padX, inkCol, hlCol, hlStyle, f, coverB);
+    drawFormattedLines(ctx, lines, startY, r.lh, r.size, curAlign, padX, inkCol, hlCol, hlStyle, f, coverB, sideX, sideW);
     if(page.cta) drawCta(ctx, f, hlCol, padY, areaH);
   }else if(page.type === "choice"){
     drawChoiceLayout(ctx, page, f, padX, tTop, tH, maxFont, lhRatio, bgCol, inkCol, hlCol, hlStyle);
@@ -3935,11 +3966,14 @@ function makeCard(){
     const m = PHMAP[card._pi];
     if(!m) return;
     if(d.k === "v"){
-      const hh = d.pos === "bottom" ? d.box.y + d.box.h - y : y - d.box.y;
+      const side = d.pos === "left" || d.pos === "right";
+      const hh = side ? 2 * Math.abs(y - (d.box.y + d.box.h / 2)) : (d.pos === "bottom" ? d.box.y + d.box.h - y : y - d.box.y);
       if(d.pos === "round") m.item.dm = phNumClamp("dm", hh);
       else if(d.areaH) m.item.hp = phNumClamp("hp", hh / d.areaH * 100);
     }else if(d.maxW){
-      m.item.wp = phNumClamp("wp", 2 * Math.abs(x - (d.box.x + d.box.w / 2)) / d.maxW * 100);
+      if(d.pos === "left") m.item.wp = Math.min(70, phNumClamp("wp", (x - d.box.x) / d.maxW * 100));
+      else if(d.pos === "right") m.item.wp = Math.min(70, phNumClamp("wp", (d.box.x + d.box.w - x) / d.maxW * 100));
+      else m.item.wp = phNumClamp("wp", 2 * Math.abs(x - (d.box.x + d.box.w / 2)) / d.maxW * 100);
     }
     phLiveSoon(card, true);
   });
@@ -4198,7 +4232,10 @@ function phNumList(P){
   const rows = [];
   if(P.pos === "bg") rows.push(["op", "진하기 (%)", 3, 100, 1]);
   else if(P.pos === "round") rows.push(["dm", "지름 (px)", 80, 900, 5]);
-  else{
+  else if(P.pos === "left" || P.pos === "right"){
+    rows.push(["hp", "사진 높이 (%)", 5, 100, 1]);
+    rows.push(["wp", "사진 너비 (%)", 20, 70, 1]);
+  }else{
     rows.push(["hp", "사진 높이 (%)", 5, 90, 1]);
     if(P.sh !== "circle") rows.push(["wp", "사진 너비 (%)", 20, 100, 1]);
   }
@@ -4239,7 +4276,7 @@ function phPanel(card){
     const bg = P.pos === "bg", round = P.pos === "round";
     const ph = card._phi;
     h = `<div class="ph-head">${st}</div>`
-      + phSeg("pos", "자리", [["top", "사진 위"], ["bottom", "사진 아래"], ["round", "동그란 작은 사진"], ["bg", "배경에 희미하게"]], P.pos, false, "two");
+      + phSeg("pos", "자리", [["top", "사진 위"], ["bottom", "사진 아래"], ["left", "왼쪽에 세로로"], ["right", "오른쪽에 세로로"], ["round", "동그란 작은 사진"], ["bg", "배경에 희미하게"]], P.pos, false, "two");
     if(!bg){
       const cur = round ? ({230:"s", 300:"m", 380:"l"})[P.dm] : ({30:"s", 40:"m", 50:"l"})[P.hp];
       h += phSeg("sz", "크기", [["s", "작게"], ["m", "보통"], ["l", "크게"]], cur || "")
@@ -4522,6 +4559,10 @@ function phSet(c, pi, patch){
   if(patch.sz){                                   /* 작게·보통·크게 = 높이(%) 또는 동그란 사진의 지름 값을 한 번에 */
     const v = patch.sz; delete patch.sz; delete it.sz;
     if(phParams(it).pos === "round" || patch.pos === "round") it.dm = PH_LEG_D[v]; else it.hp = PH_LEG_H[v];
+  }
+  if("pos" in patch){                                  /* 위·아래 ↔ 옆(세로로)을 오가면 높이·너비는 그 자리의 처음 값부터 */
+    const isSide = v => v === "left" || v === "right";
+    if(isSide(phParams(it).pos) !== isSide(patch.pos)){ delete it.hp; delete it.wp; delete it.sz; }
   }
   Object.assign(it, patch);
   if("fit" in patch){ delete it.fx; delete it.fy; delete it.zm; }
