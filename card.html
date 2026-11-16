@@ -2418,13 +2418,33 @@ function wrap(ctx, text, maxW, force){
   return lines.length ? lines : [""];
 }
 
+/* 긴 한 줄을 칸 너비에 맞게 접기 — 줄 수는 그대로 두고 줄 길이를 고르게(한 글자만 덜렁 남는 일 없게). ‘일반 줄바꿈’만 꽉 채워 접음 */
+function foldLine(ctx, par, maxW){
+  const base = wrap(ctx, par, maxW, true), n = base.length;
+  if(n <= 1 || wrapMode === "keep") return base;
+  let lo = maxW*0.55, hi = maxW;
+  for(let i=0;i<14;i++){
+    const mid = (lo+hi)/2;
+    if(wrap(ctx, par, mid, true).length === n) hi = mid; else lo = mid;
+  }
+  return wrap(ctx, par, hi, true);
+}
 /* 선택지 박스용: 엔터(\n)는 지키되 칸보다 긴 줄은 반드시 접어서 넘침을 막음 */
 function wrapItem(ctx, text, maxW){
   const out = [];
-  String(text).split("\n").forEach(par=>{ if(par.trim()) wrap(ctx, par.trim(), maxW, true).forEach(l=>out.push(l)); });
+  String(text).split("\n").forEach(par=>{ if(par.trim()) foldLine(ctx, par.trim(), maxW).forEach(l=>out.push(l)); });
   return out.length ? out : [""];
 }
-function wrapBalanced(ctx, text, maxW){
+function wrapBalanced(ctx, text, maxW, fold){
+  /* fold(좁은 칸용): ‘엔터 그대로’여도 칸보다 긴 줄은 접어서, 글자가 한 줄에 맞추려고 작아지지 않게 함 (엔터는 그대로 지킴) */
+  if(fold && wrapMode === "strict"){
+    const out = [];
+    String(text).split("\n").forEach(par=>{
+      if(!par.trim()){ out.push(""); return; }
+      ctx.measureText(stripMd(par)).width <= maxW + 1 && (!CHARLIM || lenOf(par) <= CHARLIM) ? out.push(par) : foldLine(ctx, par, maxW).forEach(l=>out.push(l));
+    });
+    return out;
+  }
   if(text.indexOf("\n") >= 0){
     const out = [];
     text.split("\n").forEach(par=>{
@@ -2444,9 +2464,10 @@ function wrapBalanced(ctx, text, maxW){
   return wrap(ctx, text, hi);
 }
 
-function fit(ctx, fontCss, texts, maxW, maxH, maxSize, minSize, lhRatio){
+function fit(ctx, fontCss, texts, maxW, maxH, maxSize, minSize, lhRatio, fold){
   maxSize = Math.round(maxSize); minSize = Math.min(Math.round(minSize), maxSize);
-  const lay = s => { ctx.font = fontCss(s); return texts.map(t=>wrapBalanced(ctx, t, maxW)); };
+  /* 모든 글(선택지 위·아래·왼·오른쪽)은 같은 글자 크기로 함께 줄어듦 */
+  const lay = s => { ctx.font = fontCss(s); return texts.map(t=>wrapBalanced(ctx, t, maxW, fold)); };
   if(getOpt("fitMode") === "fixed") return {size:maxSize, lh:maxSize*lhRatio, all:lay(maxSize)};
   for(let s=maxSize; s>=minSize; s-=2){
     const all = lay(s), lh = s*lhRatio;
@@ -2965,7 +2986,7 @@ function drawVsQuestion(ctx, page, f, tTop, tH, padX, maxFont, lhRatio, align, i
   const maxW = WIDTH - padX*2;
   const wt = Math.max(f.cover, 700);
   const qcss = s => `${wt} ${s}px "${f.family}", "Pretendard", "Noto Sans KR", sans-serif`;
-  const r = fit(ctx, qcss, [page.question], maxW, Math.max(80, Math.min(tH*0.28, 360)), Math.min(maxFont, 50), 24, lhRatio);
+  const r = fit(ctx, qcss, [page.question], maxW, Math.max(80, Math.min(tH*0.28, 360)), Math.min(maxFont, 50), 24, lhRatio, true);
   const lines = r.all[0];
   drawFormattedLines(ctx, lines, tTop + r.lh/2, r.lh, r.size, align, padX, inkCol, hlCol, hlStyle, f, true);
   const bodyH = lines.length*r.lh;
@@ -2982,9 +3003,11 @@ function drawVsQuestion(ctx, page, f, tTop, tH, padX, maxFont, lhRatio, align, i
 /* A vs B / O·X 좌우 2분할 */
 function drawSideBySide(ctx, page, f, css, padX, padY, areaH, maxFont, lhRatio, bgCol, inkCol, hlCol, hlStyle, num, pre, labels){
   const nS = num ? numSize(pre) : 0;
-  const gap = 96, colW = (WIDTH - padX*2 - gap)/2, markH = page.ox ? 170 : (num ? nS + 40 : 0);
-  const r = fit(ctx, css, [page.top, page.bottom], colW, areaH - markH, Math.min(maxFont, 50), 18, lhRatio);
-  [[r.all[0], padX], [r.all[1], padX + colW + gap]].forEach(([ls, x], i)=>{
+  /* 좌우 칸이 좁아 글이 작아지던 것: 바깥 여백을 조금 줄이고(칸 폭 +약 15%), 가운데 틈을 줄임. 긴 줄은 접어서 크게 */
+  const sidePad = Math.min(padX, Math.max(56, Math.round(padX*0.6)));
+  const gap = 84, colW = (WIDTH - sidePad*2 - gap)/2, markH = page.ox ? 170 : (num ? nS + 40 : 0);
+  const r = fit(ctx, css, [page.top, page.bottom], colW, areaH - markH, Math.min(maxFont, 50), 18, lhRatio, true);
+  [[r.all[0], sidePad], [r.all[1], sidePad + colW + gap]].forEach(([ls, x], i)=>{
     const top = padY + markH + (areaH - markH - ls.length*r.lh)/2;
     if(num && !page.ox) drawNumBadge(ctx, labels ? labels[i] : String(i + 1), x + colW/2, padY + nS/2 + 10, nS, f, hlCol, inkCol, pre);
     if(page.ox){
@@ -2994,7 +3017,7 @@ function drawSideBySide(ctx, page, f, css, padX, padY, areaH, maxFont, lhRatio, 
       else ctx.arc(cx, cy, R, 0, Math.PI*2);
       ctx.stroke(); ctx.restore();
     }
-    drawFormattedLines(ctx, ls, top + r.lh/2, r.lh, r.size, "center", padX, inkCol, hlCol, hlStyle, f, false, x, colW);
+    drawFormattedLines(ctx, ls, top + r.lh/2, r.lh, r.size, "center", sidePad, inkCol, hlCol, hlStyle, f, false, x, colW);
   });
   const mx = WIDTH/2, my = padY + areaH/2;
   ctx.save(); ctx.strokeStyle = inkCol; ctx.globalAlpha = 0.3; ctx.lineWidth = 2.5;
@@ -3634,7 +3657,7 @@ function draw(page, idx, total, f, ig, opt){
     /* 인스타용이면 글 왼쪽에 1·2 숫자 자리를 비워 둡니다 */
     const bSize = igNum ? Math.max(badgeW(ctx, lbl(0), numSize(pre), f, pre), badgeW(ctx, lbl(1), numSize(pre), f, pre)) : 0, bGap = igNum ? 28 : 0;
     const tX = padX + bSize + bGap, tW = maxW - bSize - bGap;
-    const r = fit(ctx, css, [page.top, page.bottom], tW, halfH, Math.min(maxFont, 58), 20, lhRatio);
+    const r = fit(ctx, css, [page.top, page.bottom], tW, halfH, Math.min(maxFont, 58), 20, lhRatio, true);
     const tl = r.all[0], bl = r.all[1];
 
     const topY = vTop + (halfH - tl.length*r.lh)/2 + r.lh/2;
