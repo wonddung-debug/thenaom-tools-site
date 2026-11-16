@@ -2981,12 +2981,34 @@ function needsIgLast(p, igOff){
 const needsYtLast = p => (!NOTEOFF.yt && !!noteTxt("yt")) || numShown(p, "yt");
 
 /* VS·A/B·O/X 장 맨 위 질문 줄 (질문이 있는 장에서만). 맨 위에 굵게 그리고, 차지한 높이를 돌려줍니다 (질문이 없으면 0) */
-function drawVsQuestion(ctx, page, f, tTop, tH, padX, maxFont, lhRatio, align, inkCol, hlCol, hlStyle){
+/* 질문 줄을 정해진 글자 크기로 배치 (선택지와 같은 크기로 맞출 때 씁니다) */
+function vsQLayout(ctx, page, f, padX, size, lhRatio){
+  const wt = Math.max(f.cover, 700);
+  ctx.font = `${wt} ${size}px "${f.family}", "Pretendard", "Noto Sans KR", sans-serif`;
+  const lines = wrapBalanced(ctx, page.question, WIDTH - padX*2, true), lh = size*lhRatio;
+  return {size, lh, all:[lines], h:lines.length*lh + 20 + 7 + 36};
+}
+/* 글이 칸 안에 들어가는지 (정해진 크기에서) */
+function fitOk(ctx, css, texts, maxW, maxH, size, lhRatio, fold){
+  ctx.font = css(size);
+  const lh = size*lhRatio;
+  return texts.every(t => { const ls = wrapBalanced(ctx, t, maxW, fold); return ls.length*lh <= maxH && ls.every(l => ctx.measureText(stripMd(l)).width <= maxW + 1); });
+}
+/* 질문이 있는 장: 질문과 선택지가 ‘같은 글자 크기’로 함께 줄어들도록, 둘 다 들어가는 가장 큰 크기를 찾습니다. 질문이 없으면 0 */
+function pickVsSize(ctx, page, f, padX, tH, maxFont, lhRatio, optFits){
+  if(!page.question) return 0;
+  for(let sz = Math.min(maxFont, 50); sz >= 20; sz -= 2){
+    const q = vsQLayout(ctx, page, f, padX, sz, lhRatio);
+    if(q.h <= tH*0.6 && optFits(sz, q.h)) return sz;
+  }
+  return 20;
+}
+function drawVsQuestion(ctx, page, f, tTop, tH, padX, maxFont, lhRatio, align, inkCol, hlCol, hlStyle, qSize){
   if(!page.question) return 0;
   const maxW = WIDTH - padX*2;
   const wt = Math.max(f.cover, 700);
   const qcss = s => `${wt} ${s}px "${f.family}", "Pretendard", "Noto Sans KR", sans-serif`;
-  const r = fit(ctx, qcss, [page.question], maxW, Math.max(80, Math.min(tH*0.28, 360)), Math.min(maxFont, 50), 24, lhRatio, true);
+  const r = qSize ? vsQLayout(ctx, page, f, padX, qSize, lhRatio) : fit(ctx, qcss, [page.question], maxW, Math.max(80, Math.min(tH*0.28, 360)), Math.min(maxFont, 50), 24, lhRatio, true);
   const lines = r.all[0];
   drawFormattedLines(ctx, lines, tTop + r.lh/2, r.lh, r.size, align, padX, inkCol, hlCol, hlStyle, f, true);
   const bodyH = lines.length*r.lh;
@@ -3001,12 +3023,16 @@ function drawVsQuestion(ctx, page, f, tTop, tH, padX, maxFont, lhRatio, align, i
 }
 
 /* A vs B / O·X 좌우 2분할 */
-function drawSideBySide(ctx, page, f, css, padX, padY, areaH, maxFont, lhRatio, bgCol, inkCol, hlCol, hlStyle, num, pre, labels){
+/* 좌우 칸이 좁아 글이 작아지던 것: 바깥 여백을 조금 줄이고(칸 폭 +약 15%), 가운데 틈을 줄임 */
+function sideGeom(page, padX, num, pre){
   const nS = num ? numSize(pre) : 0;
-  /* 좌우 칸이 좁아 글이 작아지던 것: 바깥 여백을 조금 줄이고(칸 폭 +약 15%), 가운데 틈을 줄임. 긴 줄은 접어서 크게 */
   const sidePad = Math.min(padX, Math.max(56, Math.round(padX*0.6)));
-  const gap = 84, colW = (WIDTH - sidePad*2 - gap)/2, markH = page.ox ? 170 : (num ? nS + 40 : 0);
-  const r = fit(ctx, css, [page.top, page.bottom], colW, areaH - markH, Math.min(maxFont, 50), 18, lhRatio, true);
+  const gap = 84;
+  return {nS, sidePad, gap, colW:(WIDTH - sidePad*2 - gap)/2, markH:page.ox ? 170 : (num ? nS + 40 : 0)};
+}
+function drawSideBySide(ctx, page, f, css, padX, padY, areaH, maxFont, lhRatio, bgCol, inkCol, hlCol, hlStyle, num, pre, labels, capSize){
+  const {nS, sidePad, gap, colW, markH} = sideGeom(page, padX, num, pre);
+  const r = fit(ctx, css, [page.top, page.bottom], colW, areaH - markH, capSize || Math.min(maxFont, 50), 18, lhRatio, true);
   [[r.all[0], sidePad], [r.all[1], sidePad + colW + gap]].forEach(([ls, x], i)=>{
     const top = padY + markH + (areaH - markH - ls.length*r.lh)/2;
     if(num && !page.ox) drawNumBadge(ctx, labels ? labels[i] : String(i + 1), x + colW/2, padY + nS/2 + 10, nS, f, hlCol, inkCol, pre);
@@ -3647,17 +3673,20 @@ function draw(page, idx, total, f, ig, opt){
   }else if(page.type === "choice"){
     drawChoiceLayout(ctx, page, f, padX, tTop, tH, maxFont, lhRatio, bgCol, inkCol, hlCol, hlStyle);
   }else if(page.dir === "h"){
-    const qH = drawVsQuestion(ctx, page, f, tTop, tH, padX, maxFont, lhRatio, curAlign, inkCol, hlCol, hlStyle);     /* 질문 줄이 있으면 맨 위에, 아래로 좌우 2분할 */
-    drawSideBySide(ctx, page, f, css, padX, tTop + qH, tH - qH, maxFont, lhRatio, bgCol, inkCol, hlCol, hlStyle, igNum, pre, [lbl(0), lbl(1)]);
+    const sg = sideGeom(page, padX, igNum, pre);
+    const qs = pickVsSize(ctx, page, f, padX, tH, maxFont, lhRatio, (sz, qh) => fitOk(ctx, css, [page.top, page.bottom], sg.colW, tH - qh - sg.markH, sz, lhRatio, true));     /* 질문·선택지 같은 크기 */
+    const qH = drawVsQuestion(ctx, page, f, tTop, tH, padX, maxFont, lhRatio, curAlign, inkCol, hlCol, hlStyle, qs);     /* 질문 줄이 있으면 맨 위에, 아래로 좌우 2분할 */
+    drawSideBySide(ctx, page, f, css, padX, tTop + qH, tH - qH, maxFont, lhRatio, bgCol, inkCol, hlCol, hlStyle, igNum, pre, [lbl(0), lbl(1)], qs);
   }else{
-    const qH = drawVsQuestion(ctx, page, f, tTop, tH, padX, maxFont, lhRatio, curAlign, inkCol, hlCol, hlStyle);     /* 질문 줄이 있으면 맨 위에, 그 아래로 위/VS/아래 (없으면 qH=0이라 예전과 똑같음) */
-    const vTop = tTop + qH;
     const vsH = 110;
-    const halfH = (tH - qH - vsH)/2;
     /* 인스타용이면 글 왼쪽에 1·2 숫자 자리를 비워 둡니다 */
     const bSize = igNum ? Math.max(badgeW(ctx, lbl(0), numSize(pre), f, pre), badgeW(ctx, lbl(1), numSize(pre), f, pre)) : 0, bGap = igNum ? 28 : 0;
     const tX = padX + bSize + bGap, tW = maxW - bSize - bGap;
-    const r = fit(ctx, css, [page.top, page.bottom], tW, halfH, Math.min(maxFont, 58), 20, lhRatio, true);
+    const qs = pickVsSize(ctx, page, f, padX, tH, maxFont, lhRatio, (sz, qh) => fitOk(ctx, css, [page.top, page.bottom], tW, (tH - qh - vsH)/2, sz, lhRatio, true));     /* 질문·선택지 같은 크기 */
+    const qH = drawVsQuestion(ctx, page, f, tTop, tH, padX, maxFont, lhRatio, curAlign, inkCol, hlCol, hlStyle, qs);     /* 질문 줄이 있으면 맨 위에, 그 아래로 위/VS/아래 (없으면 qH=0이라 예전과 똑같음) */
+    const vTop = tTop + qH;
+    const halfH = (tH - qH - vsH)/2;
+    const r = fit(ctx, css, [page.top, page.bottom], tW, halfH, qs || Math.min(maxFont, 58), 20, lhRatio, true);
     const tl = r.all[0], bl = r.all[1];
 
     const topY = vTop + (halfH - tl.length*r.lh)/2 + r.lh/2;
