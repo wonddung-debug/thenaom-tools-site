@@ -7838,6 +7838,7 @@ function renderPubBox(){
     row.append(st);
     if(x){ const a = vaMk("a", "", "열기 ↗"); a.href = x.u; a.target = "_blank"; a.rel = "noopener"; row.append(a); }
     const b = vaMk("button", "ghost sm", x ? "고치기" : "주소 넣기"); b.type = "button"; b.dataset.pe = r.m; row.append(b);
+    if(r.m === "ig" && !x && igCan(c)){ const g = vaMk("button", "ghost sm", "📥 가져오기"); g.type = "button"; g.dataset.pg = "ig"; g.title = "내 컴퓨터 분석툴에서 인스타 글 주소를 가져와요"; row.append(g); }
     if(pubEdit === r.m){
       const ed = vaMk("div", "pb-ed");
       const u = vaMk("input"); u.type = "url"; u.id = "pbUrl"; u.placeholder = "올린 글 주소 붙여넣기 (비우면 ‘안 올림’)"; u.value = x ? x.u : "";
@@ -8016,8 +8017,99 @@ async function ytFindRecent(c){
   return false;
 }
 
+/* ================= 인스타 게시글 주소 가져오기 (사랑추구권, 11/17) =================
+   내 컴퓨터에서 켜 둔 분석툴(post_tracker)이 인스타 공식 연결로 받아 둔 글 목록(주소·올린 시각·캡션)을 읽어 와서,
+   카드의 인스타 캡션(없으면 원글)과 비교해 확실히 같은 글만 등록 정보에 넣어요. 주소가 이미 있는 글은 건드리지 않아요.
+   - 분석툴이 꺼져 있으면 안내만 하고 아무것도 바꾸지 않아요. 영상(릴스)은 가져오지 않아요. 틱톡은 가져오지 않아요. */
+const IG_LOCAL = "http://127.0.0.1:8090/api/ig/links";
+const IG_AUTO_CH = ["사랑추구권"];
+const igCan = c => !!c && !isReview(c) && IG_AUTO_CH.includes((channelFor(c) || {}).name) && !offListOf(c).includes("instagram_caption");
+async function igLoadPosts(){
+  let r;
+  try{
+    const ac = new AbortController(), tm = setTimeout(() => ac.abort(), 8000);
+    const res = await fetch(IG_LOCAL, {signal:ac.signal}); clearTimeout(tm);
+    r = await res.json();
+  }catch(e){ return {err:"내 컴퓨터의 분석툴(post_tracker)을 켜 둔 PC에서 눌러 주세요. (크롬이 ‘내 기기 접근’을 물으면 허용)"}; }
+  if(!r || !r.ok || !Array.isArray(r.posts)) return {err:"인스타 글 목록을 받지 못했어요."};
+  return {posts:r.posts.filter(p => p.mt === "CAROUSEL_ALBUM" && p.txt)};          /* 카드뉴스만 */
+}
+function igAutoMatch(posts, rows, opt){
+  opt = opt || {};
+  const used = new Set();
+  const addUsed = c => { const y = pubOf(c).ig; if(y){ const m = /\/(?:p|reel)\/([\w-]+)/.exec(y.u); if(m) used.add(m[1]); } };
+  rows.forEach(addUsed); (opt.known || []).forEach(addUsed);
+  const want = rows.filter(c => igCan(c) && !pubOf(c).ig && !pubOf(c).imp);
+  const pairs = [];
+  posts.forEach(p => {
+    if(!p.id || used.has(p.id)) return;
+    want.forEach(c => {
+      const t1 = (c.f && c.f.instagram_caption) || "";
+      let sc = t1.trim() ? ytScore(p.txt, t1) : 0;
+      if(sc < 0.75 && (c.rawText || "").trim()) sc = Math.max(sc, ytScore(p.txt, c.rawText) * 0.9);
+      if(sc >= 0.5) pairs.push({p, c, sc});
+    });
+  });
+  pairs.sort((a, b) => b.sc - a.sc);
+  const doneP = new Set(), doneC = new Set(), out = {saved:[], unsure:[], already:used.size};
+  pairs.forEach(x => {
+    if(doneP.has(x.p.id) || doneC.has(x.c.id)) return;
+    const rival = pairs.find(y => y !== x && !doneP.has(y.p.id) && !doneC.has(y.c.id) && (y.p === x.p || y.c === x.c) && y.sc > x.sc - 0.08);
+    doneP.add(x.p.id); doneC.add(x.c.id);
+    if(x.sc < 0.75 || rival){ out.unsure.push({title:x.c.title, post:x.p.txt.slice(0, 40), sc:Math.round(x.sc * 100)}); return; }
+    igSaveLink(x.c, x.p);
+    out.saved.push({title:x.c.title, sc:Math.round(x.sc * 100)});
+  });
+  out.none = want.length - out.saved.length - out.unsure.length;
+  return out;
+}
+function igSaveLink(row, p){
+  const c = S.contents.find(z => z.id === row.id);
+  if(!c) return false;
+  let d = {};
+  try{ d = JSON.parse((row.f && row.f.pub_info) || "") || {}; }catch(e){ d = {}; }
+  if(typeof d !== "object" || Array.isArray(d)) d = {};
+  if(d.ig && d.ig.u) return false;
+  d.v = 1;
+  d.ig = {u:p.link, t:new Date(p.t * 1000).toISOString()};
+  const str = JSON.stringify(d);
+  if(row.f) row.f.pub_info = str;
+  if(c.full !== false) c.f.pub_info = str;
+  const fields = {postFields:{pub_info:str}};
+  const probe = c.full !== false ? c : row;
+  if(!c.doneAt && pubAllDone(probe)){ c.doneAt = new Date().toISOString(); c.publishAt = ""; fields.doneAt = c.doneAt; fields.publishAt = ""; }
+  queueSave(c, fields, 400);
+  return true;
+}
+/* 지금 열어 둔 글 하나 */
+async function igFetchOne(c){
+  if(!igCan(c) || c.full === false || pubOf(c).ig) return;
+  toast("내 컴퓨터 분석툴에서 인스타 글을 찾는 중…");
+  const r = await igLoadPosts();
+  if(r.err){ toast(r.err, "er"); return; }
+  const res = igAutoMatch(r.posts, [c], {known:PUBV.rows});
+  if(res.saved.length){ toast("인스타 주소를 찾아서 등록했어요"); }
+  else if(res.unsure.length){ toast("비슷한 글이 있는데 확실하지 않아서 넣지 않았어요. 주소를 직접 넣어 주세요."); }
+  else toast("분석툴의 인스타 글 중에 같은 글이 없어요. 아직 안 올렸거나 분석툴이 아직 못 받은 글이에요.");
+  if(S.cur === c) renderPubBox();
+  PUBV.at = 0; renderList();
+}
+/* 등록 현황 ‘인스타 미등록’ 목록 전체 */
+async function igFetchAll(){
+  const rows = PUBV.rows.filter(c => (!PUBV.chan || c.channelId === PUBV.chan) && igCan(c));
+  if(!rows.length){ toast("가져올 글이 없어요."); return; }
+  toast("내 컴퓨터 분석툴에서 인스타 글을 찾는 중…");
+  const r = await igLoadPosts();
+  if(r.err){ toast(r.err, "er"); return; }
+  const res = igAutoMatch(r.posts, rows, {known:PUBV.rows});
+  toast(`인스타 주소 ${res.saved.length}개 등록 · 확실하지 않아 건너뜀 ${res.unsure.length}개 · 못 찾음 ${res.none}개`);
+  PUBV.at = Date.now(); renderPubView(); renderList();
+  if(S.cur) renderPubBox();
+}
+
 $("pubBox").addEventListener("click", e => {
   const c = S.cur; if(!c) return;
+  if(e.target.closest("[data-pg]")){ igFetchOne(c); return; }
   const pe = e.target.closest("[data-pe]"), ps = e.target.closest("[data-ps]"), pc = e.target.closest("[data-pc]");
   if(pe){ pubEdit = pubEdit === pe.dataset.pe ? "" : pe.dataset.pe; renderPubBox(); const u = $("pbUrl"); if(u) u.focus(); return; }
   if(pc){ pubEdit = ""; renderPubBox(); return; }
@@ -8097,6 +8189,7 @@ function renderPubView(){
     b.append(vaMk("b", "", String(count(x.k)))); cats.append(b);
   });
   const rows = all.filter(x => x.cats.includes(PUBV.cat));
+  if(PUBV.cat === "noig" && rows.some(x => igCan(x.c))){ const gb = vaMk("button", "sm", "📥 인스타 주소 한꺼번에 가져오기"); gb.type = "button"; gb.dataset.igall = "1"; gb.title = "내 컴퓨터 분석툴(post_tracker)에서 인스타 글 주소를 가져와요"; list.append(gb); }
   const when = x => Math.max(pubTime(x.info.yt), pubTime(x.info.ig), pubTime(x.info.tt)) || Date.parse(x.c.doneAt || x.c.createdAt || "") || 0;
   rows.sort((a, b) => when(b) - when(a));
   if(PUBV.loading) list.append(vaMk("div", "pb-note", "새로 확인하는 중…"));
@@ -8130,6 +8223,7 @@ $("pbChan").addEventListener("change", () => { PUBV.chan = $("pbChan").value; PU
 $("pbCats").addEventListener("click", e => { const b = e.target.closest("[data-cat]"); if(b){ PUBV.cat = b.dataset.cat; renderPubView(); $("pbList").scrollTop = 0; } });
 $("pbList").addEventListener("click", e => {
   if(e.target.closest("[data-re]")){ loadPubRows(true); return; }
+  if(e.target.closest("[data-igall]")){ igFetchAll(); return; }
   const it = e.target.closest(".pb-it"); if(!it) return;
   const c = S.contents.find(z => z.id === it.dataset.id);
   if(!c){ toast("목록을 새로 받는 중이에요. 잠시 뒤 다시 눌러 주세요."); boot(true); return; }
