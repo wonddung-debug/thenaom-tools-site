@@ -1,8 +1,0 @@
-{
-  "name": "thenaom-tools-site",
-  "private": true,
-  "description": "Thenaom Tools 사이트. dependencies 는 /up/ 올리기 페이지의 목록 보관(netlify/functions/up.mjs)에만 써요.",
-  "dependencies": {
-    "@netlify/blobs": "^8.1.0"
-  }
-}
