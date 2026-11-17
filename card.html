@@ -887,11 +887,13 @@
       <span class="split-lbl" style="padding-top:8px">유튜브 마지막 광고</span>
       <textarea class="adta" id="adYt" spellcheck="false" placeholder="다운로드(유튜브용) 마지막 장에 들어갈 글 (줄바꿈으로 여러 줄)" aria-label="유튜브 마지막 광고"></textarea>
     </div>
+    <div class="adlk" id="plHostYt"></div>
     <div class="split-row" style="align-items:flex-start">
       <span class="split-lbl" style="padding-top:8px">인스타 마지막 광고</span>
       <textarea class="adta" id="adIg" spellcheck="false" placeholder="인스타 공유 마지막 장에 들어갈 글 (줄바꿈으로 여러 줄)" aria-label="인스타 마지막 광고"></textarea>
     </div>
-    <p class="hint" id="adHint">마지막 광고는 이 글의 마지막 장에만 들어가요. 본문 아래, 안내문구(채널 디자인) 바로 위에 들어가고, 안내문구가 없으면 맨 아래에 들어가요. 비워 두면 안 들어가요. 광고 글의 디자인은 채널 디자인에서 골라요.</p>
+    <div class="adlk" id="plHostIg"></div>
+    <p class="hint" id="adHint">마지막 광고는 이 글의 마지막 장에만 들어가요. 본문 아래, 안내문구(채널 디자인) 바로 위에 들어가고, 안내문구가 없으면 맨 아래에 들어가요. 비워 두면 안 들어가요. 광고 글의 디자인은 기본으로 채널 디자인을 따르고, 위 「디자인」에서 이 글만 따로 고를 수도 있어요.</p>
     <div class="split-row">
       <span class="split-lbl">안내문구</span>
       <div class="fo-inline">
@@ -900,6 +902,14 @@
       </div>
     </div>
     <p class="hint" id="noteHint">체크를 빼면 이 글에서만 그 안내문구(채널 디자인)가 빠져요.</p>
+    <div class="split-row" style="align-items:flex-start">
+      <span class="split-lbl" style="padding-top:8px">유튜브 이 글 안내문구</span>
+      <textarea class="adta" id="pnYt" maxlength="240" spellcheck="false" placeholder="비우면 채널의 고정 안내문구가 그대로 들어가요. 적으면 고정 문구 대신 이 글에만 이 문구가 (같은 디자인으로) 들어가요" aria-label="유튜브 이 글 안내문구"></textarea>
+    </div>
+    <div class="split-row" style="align-items:flex-start">
+      <span class="split-lbl" style="padding-top:8px">인스타 이 글 안내문구</span>
+      <textarea class="adta" id="pnIg" maxlength="240" spellcheck="false" placeholder="비우면 채널의 고정 안내문구가 그대로 들어가요. 적으면 고정 문구 대신 이 글에만 이 문구가 (같은 디자인으로) 들어가요" aria-label="인스타 이 글 안내문구"></textarea>
+    </div>
     <p class="hint" id="foHint">쓰는 설명 칸은 채널 디자인 → ‘설명 칸’에서 채널마다 정해요 (그 채널의 모든 글에 똑같이 적용). ‘인스타 자동 DM’ 칸을 쓰지 않는 채널은 인스타 공유 이미지에 VS 숫자를 넣지 않아요.</p>
   </div>
         </details>
@@ -2990,6 +3000,34 @@ function adLook(pre){
     op: getOpt(pre + "AdOp"), rad: getOpt(pre + "AdRad"), bw: getOpt(pre + "AdBW"), pad: getOpt(pre + "AdPad")      /* 0 이면 모양마다 정해진 값 */
   };
 }
+/* ----- 글마다 마지막 광고 디자인 (m: "ch" 채널 광고 디자인 그대로 · "note" 고정 안내문구와 같은 디자인 · "own" 이 글만 따로) ----- */
+function plGet(c, pre){
+  try{ const o = JSON.parse((c && c.f && c.f[pre + "_last_ad_look"]) || ""); if(o && typeof o === "object") return o; }catch(e){}
+  return {m:"ch"};
+}
+function postLookSig(pre){
+  return (S.mode === "work" && S.cur && S.cur.f) ? ((S.cur.f[pre + "_last_ad_look"] || "") + "|" + postNote(pre)) : "";
+}
+function plOwnDefaults(pre){
+  return {style:getOpt(pre + "AdStyle"), color:getOpt(pre + "AdColor"), custom:getOpt(pre + "AdCustom"), bg:getOpt(pre + "AdBg"), bgCustom:getOpt(pre + "AdBgCustom"),
+    size:getOpt(pre + "AdSize"), align:getOpt(pre + "AdAlign"), bold:getOpt(pre + "AdBold"), op:getOpt(pre + "AdOp"), rad:getOpt(pre + "AdRad"), bw:getOpt(pre + "AdBW"), pad:getOpt(pre + "AdPad")};
+}
+function adLookFor(pre){
+  const base = adLook(pre);
+  if(S.mode !== "work" || !S.cur) return base;
+  const o = plGet(S.cur, pre);
+  if(o.m !== "own") return base;
+  const al = o.align;
+  return {
+    style: AD_STYLES.includes(o.style) ? o.style : base.style,
+    color: o.color || base.color, custom: o.custom || base.custom,
+    bg: o.bg || base.bg, bgCustom: o.bgCustom || base.bgCustom,
+    size: Math.max(18, Math.min(64, Math.round(Number(o.size)) || base.size)),
+    align: ["left", "center", "right"].includes(al) ? al : base.align,
+    bold: o.bold ? o.bold === "bold" : base.bold,
+    op: Number(o.op) || 0, rad: Number(o.rad) || 0, bw: Number(o.bw) || 0, pad: Number(o.pad) || 0
+  };
+}
 function layoutAdText(ctx, f, text, maxW, maxH, look){
   look = look || {style:"text", size:34, align:"center", bold:false};
   const wt = look.bold ? Math.max(f.cover, 700) : f.weight;
@@ -3103,14 +3141,18 @@ function drawAdText(ctx, box, look, inkCol, hlCol, padX){
 }
 const AD_ALIGNS = ["left", "center", "right"];
 /* 안내문구 글자 / VS 숫자를 붙일 장인지 (유튜브·인스타 공통) */
-const noteTxt = pre => String(getOpt(pre + "Note") || "").trim();
+/* 이 글 안내문구(글마다) · 광고 글을 ‘고정 안내문구와 같은 디자인’으로 쓰는 경우는 고정 문구 대신 그 문구가 안내문구 자리에 들어갑니다 */
+const postNote = pre => (S.mode === "work" && S.cur && S.cur.f) ? String(S.cur.f[pre + "_note_text"] || "").trim() : "";
+const adAsNote = pre => (S.mode === "work" && S.cur && S.cur.f && plGet(S.cur, pre).m === "note") ? String(S.cur.f[pre + "_last_ad"] || "").trim() : "";
+const noteTxt = pre => adAsNote(pre) || postNote(pre) || String(getOpt(pre + "Note") || "").trim();
+const noteOn = pre => !!noteTxt(pre) && (!NOTEOFF[pre] || !!(adAsNote(pre) || postNote(pre)));
 const numShown = (p, pre) => !!p && p.type === "vs" && !p.ox && getOpt(pre + "NumOn") !== "off";
 /* 인스타용 마지막 장이 유튜브용과 달라지는지: 안내문구가 있거나(이 글에서 안 뺐을 때), 숫자를 붙일 VS 장(‘자동 DM’을 쓰는 글) */
 function needsIgLast(p, igOff){
-  return (!NOTEOFF.ig && !!noteTxt("ig")) || (!igOff && numShown(p, "ig"));
+  return noteOn("ig") || (!igOff && numShown(p, "ig"));
 }
 /* 유튜브용(다운로드) 마지막 장이 원래 이미지와 달라지는지: 안내문구, 또는 숫자를 붙일 VS 장 */
-const needsYtLast = p => (!NOTEOFF.yt && !!noteTxt("yt")) || numShown(p, "yt");
+const needsYtLast = p => noteOn("yt") || numShown(p, "yt");
 
 /* VS·A/B·O/X 장 맨 위 질문 줄 (질문이 있는 장에서만). 맨 위에 굵게 그리고, 차지한 높이를 돌려줍니다 (질문이 없으면 0) */
 /* 질문 줄을 정해진 글자 크기로 배치 (선택지와 같은 크기로 맞출 때 씁니다) */
@@ -3783,7 +3825,7 @@ function draw(page, idx, total, f, ig, opt){
      다만 이 글의 ‘이 글 옵션 → 안내문구’에서 뺀 쪽은 넣지 않습니다. VS 숫자는 VS 장에만 붙고, 인스타는 ‘인스타 자동 DM’을 쓰는 글에서만 붙습니다 */
   const pre = ig ? "ig" : "yt";
   let noteText = "", noteStyle = "pill";
-  if(isLast && !NOTEOFF[pre]){ noteText = noteTxt(pre); noteStyle = getOpt(pre + "NoteStyle"); }
+  if(isLast && noteOn(pre)){ noteText = noteTxt(pre); noteStyle = getOpt(pre + "NoteStyle"); }
   /* 선택지가 3개 이상이면 문구 속 ‘1 또는 2’를 ‘1~4’처럼 바꿔 줍니다 (인스타용) */
   if(ig && noteText && page.type === "choice" && page.items.length > 2){
     noteText = noteText.replace(/1\s*(또는|이나|or|,|\/)\s*2/, `${page.items[0].num}~${page.items[page.items.length - 1].num}`);
@@ -3793,8 +3835,8 @@ function draw(page, idx, total, f, ig, opt){
   const lbl = i => (ig && IGW) ? IGW[i] : String(i + 1);      /* VS 선택지 옆 표시: 캡션에 댓글 단어가 있으면 단어, 없으면 1·2 */
   const igNum = isLast && numShown(page, pre) && !(ig && igRender.off);
   /* 마지막 광고 글(글마다 다름): 본문과 안내문구 사이에, 안내문구가 없으면 맨 아래에 들어갑니다. 모양·색·크기는 채널 디자인에서 */
-  const adText = isLast ? (ig ? ADS.ig : ADS.yt) : "";
-  const adLk = adText ? adLook(pre) : null;
+  const adText = (isLast && !adAsNote(pre)) ? (ig ? ADS.ig : ADS.yt) : "";
+  const adLk = adText ? adLookFor(pre) : null;
   /* 본문 칸이 끝나는 자리를 아래에서부터 안내 줄 → 광고 글 순서로 위로 줄입니다 */
   let bodyBottom = H - padY - footH/2;
   const noteBox = noteText ? layoutNote(ctx, f, noteText, padX, {size:getOpt(pre + "NoteSize"), bold:getOpt(pre + "NoteBold") === "bold"}) : null;      /* 안내문구가 여러 줄이면 그만큼 위로 자리를 더 씁니다 */
@@ -4196,7 +4238,7 @@ async function render(){
   for(let i = 0; i < m; i++){
     const ig = i === n;
     const pi = ig ? n - 1 : i;
-    const adSig = pi === n - 1 ? (ig ? ADS.ig + "|w:" + (IGW ? IGW.join("/") : "") : ADS.yt) + "|" + (NOTEOFF[ig ? "ig" : "yt"] ? "nn" : "") : "";   /* 광고 글·안내문구 빼기가 바뀌면 마지막 장을 새로 그립니다 */
+    const adSig = pi === n - 1 ? (ig ? ADS.ig + "|w:" + (IGW ? IGW.join("/") : "") : ADS.yt) + "|" + (NOTEOFF[ig ? "ig" : "yt"] ? "nn" : "") + "|" + postLookSig(ig ? "ig" : "yt") : "";   /* 광고 글·안내문구 빼기가 바뀌면 마지막 장을 새로 그립니다 */
     const sig = dsig + "|" + (ig ? "ig|" + (igOffNow ? "off|" : "") : "") + pi + "|" + n + "|" + JSON.stringify(snapPages[pi]) + "|" + adSig + phSigOf(pi);
     const hit = imgCache.get(sig);
     if(hit){ imgCache.delete(sig); imgCache.set(sig, hit); entries[i] = hit; }
@@ -5378,6 +5420,11 @@ const FIELDS = [
   /* 마지막 장에 들어가는 광고 글 (글마다 다름). 화면의 ‘이 글 옵션’ 안에서 입력하고, 한 번에 붙여넣기로도 채워져요 */
   {kind:"yt_last_ad",          label:"유튜브 마지막 광고", short:"", hidden:true, flag:true},
   {kind:"ig_last_ad",          label:"인스타 마지막 광고", short:"", hidden:true, flag:true},
+  /* 이 글 마지막 광고의 디자인(JSON: {m:"ch"|"note"|"own", …}) 과 이 글 안내문구(고정 안내문구 대신 들어가는 문구) */
+  {kind:"yt_last_ad_look",     label:"유튜브 마지막 광고 디자인", short:"", hidden:true, flag:true},
+  {kind:"ig_last_ad_look",     label:"인스타 마지막 광고 디자인", short:"", hidden:true, flag:true},
+  {kind:"yt_note_text",        label:"유튜브 이 글 안내문구", short:"", hidden:true, flag:true},
+  {kind:"ig_note_text",        label:"인스타 이 글 안내문구", short:"", hidden:true, flag:true},
   /* 이 글에서 안내문구(채널 디자인)를 뺄 쪽 목록(JSON, 예: ["yt","ig"]). 비어 있으면 아직 안 만진 글 → 예전 방식을 따릅니다 */
   {kind:"note_off",            label:"안내문구 안 넣기",   short:"", hidden:true, flag:true},
   /* 후기 글이 붙어 있는 원글의 ID (후기가 아닌 글은 비어 있음) */
@@ -7505,6 +7552,7 @@ function syncAdBoxes(){
     const el = $(a.id);
     if(el && act !== el) el.value = (c && c.f && c.f[a.kind]) || "";
   });
+  syncPostLooks();
 }
 AD_BOXES.forEach(a => {
   $(a.id).addEventListener("input", () => {
@@ -7517,6 +7565,113 @@ AD_BOXES.forEach(a => {
     scheduleRender(false);
   });
   $(a.id).addEventListener("blur", () => flushSoon(150));
+});
+
+/* ----- 이 글 마지막 광고 디자인 칸 + 이 글 안내문구 칸 ----- */
+const PL_STYLE_LABELS = {soft:"연한 바탕 박스", text:"글자만", solid:"진한 박스 (강조색 바탕)", box:"테두리 박스", bar:"왼쪽 세로줄", underline:"형광펜 밑줄 (줄마다)", pill:"둥근 알약 (연한 바탕)", dashed:"점선 박스", double:"이중 테두리", card:"그림자 카드", topbar:"위쪽 굵은 줄 + 연한 바탕"};
+const PL_PRESETS = [
+  ["연한 박스", {style:"soft", color:"ink", bg:"hl", bold:"normal", op:0, rad:0, bw:0, pad:0}],
+  ["진한 박스", {style:"solid", color:"ink", bg:"hl", bold:"bold", op:0, rad:0, bw:0, pad:0}],
+  ["빨강 강조 박스", {style:"solid", color:"custom", custom:"#ffffff", bg:"custom", bgCustom:"#e11d48", bold:"bold", op:0, rad:0, bw:0, pad:0}],
+  ["노랑 형광펜", {style:"underline", color:"ink", bg:"custom", bgCustom:"#ffe14d", bold:"bold", op:0, rad:0, bw:0, pad:0}],
+  ["둥근 알약", {style:"pill", color:"ink", bg:"hl", bold:"bold", op:0, rad:0, bw:0, pad:0}],
+  ["점선 박스", {style:"dashed", color:"ink", bg:"hl", bold:"normal", op:0, rad:0, bw:0, pad:0}],
+  ["이중 테두리", {style:"double", color:"ink", bg:"hl", bold:"normal", op:0, rad:0, bw:0, pad:0}],
+  ["그림자 카드", {style:"card", color:"ink", bg:"hl", bold:"bold", op:0, rad:0, bw:0, pad:0}],
+  ["위쪽 굵은 줄", {style:"topbar", color:"ink", bg:"hl", bold:"normal", op:0, rad:0, bw:0, pad:0}],
+  ["글자만", {style:"text", color:"ink", bold:"normal", op:0, rad:0, bw:0, pad:0}]
+];
+const PL_FIELDS = ["style", "color", "custom", "bg", "bgCustom", "size", "align", "bold", "op", "rad", "bw", "pad"];
+function buildPostLook(pre, hostId){
+  const host = $(hostId); if(!host) return;
+  const id = k => "pl_" + pre + "_" + k;
+  host.innerHTML = `
+    <div class="split-row">
+      <span class="split-lbl">${pre === "yt" ? "유튜브" : "인스타"} 광고 디자인</span>
+      <select id="${id("m")}" style="flex:1 1 auto;min-width:0;">
+        <option value="ch">채널 광고 디자인 그대로 (기본)</option>
+        <option value="note">고정 안내문구와 같은 디자인 (광고 글이 안내문구 자리에 들어가요)</option>
+        <option value="own">이 글만 따로 꾸미기</option>
+      </select>
+    </div>
+    <div id="${id("own")}" hidden>
+      <div class="qlooks"><span class="qk-t">✨ 한 번에 꾸미기 (누르면 아래 칸이 바뀌어요. 그 뒤에 하나씩 더 고칠 수 있어요)</span>${PL_PRESETS.map((x, i) => `<button type="button" data-plp="${pre}:${i}">${x[0]}</button>`).join("")}</div>
+      <div class="grid2">
+        <div><label class="lbl">모양</label><select id="${id("style")}">${AD_STYLES.map(k => `<option value="${k}">${PL_STYLE_LABELS[k]}</option>`).join("")}</select></div>
+        <div><label class="lbl">글자 색</label><select id="${id("color")}"><option value="ink">글자색</option><option value="hl">강조색</option><option value="custom">직접 고르기</option></select></div>
+        <div><label class="lbl">글자 크기(px)</label><input type="number" id="${id("size")}" step="2" min="18" max="64"></div>
+        <div><label class="lbl">정렬</label><select id="${id("align")}"><option value="center">가운데</option><option value="left">왼쪽</option><option value="right">오른쪽</option></select></div>
+        <div><label class="lbl">굵기</label><select id="${id("bold")}"><option value="normal">보통</option><option value="bold">굵게</option></select></div>
+        <div><label class="lbl">박스·줄 색</label><select id="${id("bg")}"><option value="hl">강조색 (기본)</option><option value="ink">글자색</option><option value="custom">직접 고르기</option></select></div>
+      </div>
+      <div class="row-flex" style="margin-top:8px;"><span style="font-size:12.5px;font-weight:600;">글자 직접 고른 색</span><input type="color" id="${id("custom")}" value="#ff6b6b"></div>
+      <div class="row-flex" style="margin-top:8px;"><span style="font-size:12.5px;font-weight:600;">박스·줄 직접 고른 색</span><input type="color" id="${id("bgCustom")}" value="#ff6b6b"></div>
+      <div class="grid2" style="margin-top:8px;">
+        <div><label class="lbl">박스 바탕 진하기(%) · 0 = 자동</label><input type="number" id="${id("op")}" step="5" min="0" max="100"></div>
+        <div><label class="lbl">모서리 둥글기(px) · 0 = 자동, 1 = 각지게</label><input type="number" id="${id("rad")}" step="2" min="0" max="80"></div>
+        <div><label class="lbl">테두리·줄 굵기(px) · 0 = 자동</label><input type="number" id="${id("bw")}" step="1" min="0" max="20"></div>
+        <div><label class="lbl">박스 안쪽 여백(px) · 0 = 자동</label><input type="number" id="${id("pad")}" step="2" min="0" max="80"></div>
+      </div>
+    </div>`;
+  const readOwn = () => {
+    const o = {m:"own"};
+    PL_FIELDS.forEach(k => { const el = $(id(k)); if(el) o[k] = el.value; });
+    return o;
+  };
+  const save = o => {
+    const c = S.cur; if(!c || S.mode !== "work") return;
+    const v = JSON.stringify(o), key = pre + "_last_ad_look";
+    if((c.f[key] || "") === v) return;
+    c.f[key] = v;
+    if(hasAny(c)) queueSave(c, {postFields:{[key]: v}}, 500);
+    scheduleRender(false);
+  };
+  $(id("m")).addEventListener("change", () => {
+    const c = S.cur; if(!c || S.mode !== "work") return;
+    const m = $(id("m")).value, old = plGet(c, pre);
+    if(m === "own"){
+      const o = Object.assign(plOwnDefaults(pre), PL_FIELDS.reduce((a, k) => { if(old.m === "own" && old[k] !== undefined) a[k] = old[k]; return a; }, {}), {m:"own"});
+      save(o);
+    }else save(Object.assign({}, old, {m}));
+    syncPostLooks();
+  });
+  PL_FIELDS.forEach(k => {
+    const el = $(id(k)); if(!el) return;
+    const fn = () => { const c = S.cur; if(c && plGet(c, pre).m === "own") save(readOwn()); };
+    el.addEventListener("input", fn); el.addEventListener("change", fn);
+    el.addEventListener("blur", () => flushSoon(150));
+  });
+  host.addEventListener("click", e => {
+    const b = e.target.closest && e.target.closest("button[data-plp]"); if(!b) return;
+    const c = S.cur; if(!c || S.mode !== "work") return;
+    const pr = PL_PRESETS[Number(b.getAttribute("data-plp").split(":")[1])][1];
+    save(Object.assign(plOwnDefaults(pre), plGet(c, pre).m === "own" ? plGet(c, pre) : {}, pr, {m:"own"}));
+    syncPostLooks();
+  });
+}
+buildPostLook("yt", "plHostYt");
+buildPostLook("ig", "plHostIg");
+function syncPostLooks(){
+  const c = S.cur, act = document.activeElement;
+  ["yt", "ig"].forEach(pre => {
+    const id = k => "pl_" + pre + "_" + k, o = plGet(c, pre), m = ["ch", "note", "own"].includes(o.m) ? o.m : "ch";
+    if($(id("m"))) $(id("m")).value = m;
+    if($(id("own"))) $(id("own")).hidden = m !== "own";
+    if(m === "own") PL_FIELDS.forEach(k => { const el = $(id(k)); if(el && act !== el && o[k] !== undefined) el.value = o[k]; });
+    const nb = $(pre === "yt" ? "pnYt" : "pnIg");
+    if(nb && act !== nb) nb.value = (c && c.f && c.f[pre + "_note_text"]) || "";
+  });
+}
+[["yt", "pnYt"], ["ig", "pnIg"]].forEach(([pre, nid]) => {
+  $(nid).addEventListener("input", () => {
+    const c = S.cur; if(!c || S.mode !== "work") return;
+    const v = $(nid).value, key = pre + "_note_text";
+    if((c.f[key] || "") === v) return;
+    c.f[key] = v;
+    if(hasAny(c)) queueSave(c, {postFields:{[key]: v}}, 600);
+    scheduleRender(false);
+  });
+  $(nid).addEventListener("blur", () => flushSoon(150));
 });
 
 /* 원글: 고치는 대로 저장 + 이미지 다시 그리기 (붙여넣기는 바로) */
