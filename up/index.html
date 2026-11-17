@@ -24,6 +24,7 @@ h1{font-size:1.25rem;margin:6px 0 2px}
 .fx{white-space:pre-wrap;word-break:break-word;font-size:.93rem;max-height:9.5em;overflow:auto}
 button{border:0;background:var(--text);color:#fff;border-radius:10px;padding:9px 16px;font-size:.9rem;font-weight:700}
 button.ok{background:var(--ok)}
+button.del{width:100%;margin-top:12px;background:#fff;color:#b91c1c;border:1px solid #fecaca;padding:12px}
 .empty{text-align:center;color:var(--muted);padding:40px 0}
 </style>
 </head>
@@ -34,18 +35,20 @@ button.ok{background:var(--ok)}
 <div id="list"></div>
 </main>
 <script>
+const GS='https://script.google.com/macros/s/AKfycbxvnVbX0Osj9juORLLEUtf9YfNo3wbmwDFpJKma5pcvqBcdpHI8JVB5XqXfco_Gcq9n/exec'; // 구글 창구 주소 (비어 있으면 data.json 을 읽어요)
 const esc=(s)=>String(s||'').replace(/[&<>"]/g,(c)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 async function copy(text,btn){
   try{await navigator.clipboard.writeText(text);}catch(e){const t=document.createElement('textarea');t.value=text;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();}
   const o=btn.textContent;btn.textContent='복사됨 ✔';btn.classList.add('ok');setTimeout(()=>{btn.textContent=o;btn.classList.remove('ok');},1500);
 }
 (async()=>{
-  let d;try{d=await fetch('data.json?t='+Date.now(),{cache:'no-store'}).then((r)=>r.json());}catch(e){document.getElementById('upd').textContent='목록을 불러오지 못했어요';return;}
-  document.getElementById('upd').textContent='올릴 것 '+d.items.length+'개 · '+d.updated+' 기준';
+  let d;try{d=GS?await fetch(GS).then((r)=>r.json()):await fetch('data.json?t='+Date.now(),{cache:'no-store'}).then((r)=>r.json());}catch(e){document.getElementById('upd').textContent='목록을 불러오지 못했어요';return;}
+  document.getElementById('upd').textContent='올릴 것 '+d.items.length+'개';
   const list=document.getElementById('list');const texts=[];
-  list.innerHTML=d.items.map((it)=>`<div class="item"><div class="ch">${esc(it.ch)}</div><div class="tt">${esc(it.title)}</div><div class="st">${esc(it.state)}</div>
+  list.innerHTML=d.items.map((it)=>`<div class="item"><div class="ch">${esc(it.ch)}</div><div class="tt">${esc(it.title)}</div>${it.state?`<div class="st">${esc(it.state)}</div>`:''}
     ${(it.videos||[]).map((v)=>v.url?`<a class="dl" href="${esc(v.url)}">⬇ ${esc(v.label)} 받기 (${v.mb}MB)</a>`:`<span class="dl off">⬇ ${esc(v.label)} — 영상 준비 중</span>`).join('')}
-    ${(it.groups||[]).map((g)=>`<div class="g">${esc(g.name)}</div>`+g.fields.map((f)=>{texts.push(f.text);return `<div class="f"><div class="fl"><span>${esc(f.label)}</span><button data-i="${texts.length-1}">복사</button></div><div class="fx">${esc(f.text)}</div></div>`;}).join('')).join('')}</div>`).join('')||'<div class="empty">지금 올릴 것이 없어요 🎉</div>';
+    ${(it.groups||[]).map((g)=>`<div class="g">${esc(g.name)}</div>`+g.fields.map((f)=>{texts.push(f.text);return `<div class="f"><div class="fl"><span>${esc(f.label)}</span><button data-i="${texts.length-1}">복사</button></div><div class="fx">${esc(f.text)}</div></div>`;}).join('')).join('')}${GS?`<button class="del" data-del="${esc(it.id)}">✔ 다 올렸어요 · 목록에서 지우기</button>`:''}</div>`).join('')||'<div class="empty">지금 올릴 것이 없어요 🎉</div>';
+  list.querySelectorAll('button[data-del]').forEach((b)=>b.onclick=async()=>{if(!confirm('이 소재를 목록에서 지울까요?'))return;b.disabled=true;b.textContent='지우는 중…';try{await fetch(GS,{method:'POST',headers:{'content-type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'del',id:b.dataset.del})});location.reload();}catch(e){b.disabled=false;b.textContent='지우지 못했어요. 다시 눌러 주세요';}});
   list.querySelectorAll('button[data-i]').forEach((b)=>b.onclick=()=>copy(texts[+b.dataset.i],b));
 })();
 </script>
