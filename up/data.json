@@ -8,8 +8,13 @@
    "videos": [
     {
      "label": "틱톡·인스타용 쇼츠",
-     "url": "",
+     "url": "https://drive.google.com/uc?export=download&id=1XHhXe69S8pJi1JK8b8YKH26ocHs0AvSM",
      "mb": 68
+    },
+    {
+     "label": "유튜브 쇼츠",
+     "url": "https://drive.google.com/uc?export=download&id=1dq_STqo7wEL1R4eJ2vskFYB9S-xH0Xj4",
+     "mb": 64
     }
    ],
    "groups": [
@@ -61,6 +66,37 @@
      ]
     }
    ]
+  },
+  {
+   "ch": "사랑추구권",
+   "title": "호캉스반반결제_복지포인트0원",
+   "state": "유튜브 쇼츠는 올림 · 나머지 남음",
+   "videos": [
+    {
+     "label": "틱톡·인스타용 쇼츠",
+     "url": "https://drive.google.com/uc?export=download&id=15qFYx75QQ6bwxh4R0JLmY8VOtEDEWoiC",
+     "mb": 22
+    },
+    {
+     "label": "유튜브 쇼츠",
+     "url": "https://drive.google.com/uc?export=download&id=1O-ZqL7OjM151b_jaQiD241mVRyktY7om",
+     "mb": 61
+    }
+   ],
+   "groups": []
+  },
+  {
+   "ch": "사랑추구권",
+   "title": "결혼한달전고백",
+   "state": "쇼츠 올리기 남음",
+   "videos": [
+    {
+     "label": "쇼츠",
+     "url": "https://drive.google.com/uc?export=download&id=18bbFtAPZmR4Tm46NcH-fwQEbZ0cp3nxD",
+     "mb": 15
+    }
+   ],
+   "groups": []
   }
  ]
 }
