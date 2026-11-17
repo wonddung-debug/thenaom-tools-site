@@ -3164,7 +3164,7 @@ function sideGeom(page, padX, num, pre){
 }
 function drawSideBySide(ctx, page, f, css, padX, padY, areaH, maxFont, lhRatio, bgCol, inkCol, hlCol, hlStyle, num, pre, labels, capSize){
   const {nS, sidePad, gap, colW, markH} = sideGeom(page, padX, num, pre);
-  const r = fit(ctx, css, [page.top, page.bottom], colW, areaH - markH, capSize || Math.min(maxFont, 50), 18, lhRatio, tru, !capSize);
+  const r = fit(ctx, css, [page.top, page.bottom], colW, areaH - markH, capSize || Math.min(maxFont, 50), 18, lhRatio, true, !capSize);
   [[r.all[0], sidePad], [r.all[1], sidePad + colW + gap]].forEach(([ls, x], i)=>{
     const top = padY + markH + (areaH - markH - ls.length*r.lh)/2;
     if(num && !page.ox) drawNumBadge(ctx, labels ? labels[i] : String(i + 1), x + colW/2, padY + nS/2 + 10, nS, f, hlCol, inkCol, pre);
@@ -3849,7 +3849,7 @@ function draw(page, idx, total, f, ig, opt){
     const qH = drawVsQuestion(ctx, page, f, tTop, tH, padX, maxFont, lhRatio, curAlign, inkCol, hlCol, hlStyle, qs);     /* 질문 줄이 있으면 맨 위에, 그 아래로 위/VS/아래 (없으면 qH=0이라 예전과 똑같음) */
     const vTop = tTop + qH;
     const halfH = (tH - qH - vsH)/2;
-    const r = fit(ctx, css, [page.top, page.bottom], tW, halfH, qs || Math.min(maxFont, 58), 20, lhRatio, tru, !qs);
+    const r = fit(ctx, css, [page.top, page.bottom], tW, halfH, qs || Math.min(maxFont, 58), 20, lhRatio, true, !qs);
     const tl = r.all[0], bl = r.all[1];
 
     const topY = vTop + (halfH - tl.length*r.lh)/2 + r.lh/2;
