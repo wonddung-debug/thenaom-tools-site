@@ -2513,8 +2513,19 @@ function wrapBalanced(ctx, text, maxW, fold){
   return wrap(ctx, text, hi);
 }
 
-function fit(ctx, fontCss, texts, maxW, maxH, maxSize, minSize, lhRatio, fold){
+function fit(ctx, fontCss, texts, maxW, maxH, maxSize, minSize, lhRatio, fold, preferNat){
   maxSize = Math.round(maxSize); minSize = Math.min(Math.round(minSize), maxSize);
+  /* 선택지(VS·좌우)용: 줄이 칸보다 살짝만 길어서 짧게 쪼개지는 것을 막기 위해, 글자를 조금(최대 약 14%) 줄여서 내가 친 줄 그대로 들어가면 그 크기를 씁니다 */
+  if(preferNat && fold && getOpt("fitMode") !== "fixed"){
+    const lowS = Math.max(minSize, Math.round(maxSize*0.86));
+    for(let s=maxSize; s>=lowS; s-=2){
+      ctx.font = fontCss(s);
+      const nat = texts.every(t => String(t).split("\n").every(par => !par.trim() || ctx.measureText(stripMd(par)).width <= maxW + 1));
+      if(!nat) continue;
+      const lh = s*lhRatio, all = texts.map(t=>wrapBalanced(ctx, t, maxW, fold));
+      if(all.every(ls => ls.length*lh <= maxH)) return {size:s, lh, all};
+    }
+  }
   /* 모든 글(선택지 위·아래·왼·오른쪽)은 같은 글자 크기로 함께 줄어듦 */
   const lay = s => { ctx.font = fontCss(s); return texts.map(t=>wrapBalanced(ctx, t, maxW, fold)); };
   if(getOpt("fitMode") === "fixed") return {size:maxSize, lh:maxSize*lhRatio, all:lay(maxSize)};
@@ -3153,7 +3164,7 @@ function sideGeom(page, padX, num, pre){
 }
 function drawSideBySide(ctx, page, f, css, padX, padY, areaH, maxFont, lhRatio, bgCol, inkCol, hlCol, hlStyle, num, pre, labels, capSize){
   const {nS, sidePad, gap, colW, markH} = sideGeom(page, padX, num, pre);
-  const r = fit(ctx, css, [page.top, page.bottom], colW, areaH - markH, capSize || Math.min(maxFont, 50), 18, lhRatio, true);
+  const r = fit(ctx, css, [page.top, page.bottom], colW, areaH - markH, capSize || Math.min(maxFont, 50), 18, lhRatio, tru, !capSize);
   [[r.all[0], sidePad], [r.all[1], sidePad + colW + gap]].forEach(([ls, x], i)=>{
     const top = padY + markH + (areaH - markH - ls.length*r.lh)/2;
     if(num && !page.ox) drawNumBadge(ctx, labels ? labels[i] : String(i + 1), x + colW/2, padY + nS/2 + 10, nS, f, hlCol, inkCol, pre);
@@ -3838,7 +3849,7 @@ function draw(page, idx, total, f, ig, opt){
     const qH = drawVsQuestion(ctx, page, f, tTop, tH, padX, maxFont, lhRatio, curAlign, inkCol, hlCol, hlStyle, qs);     /* 질문 줄이 있으면 맨 위에, 그 아래로 위/VS/아래 (없으면 qH=0이라 예전과 똑같음) */
     const vTop = tTop + qH;
     const halfH = (tH - qH - vsH)/2;
-    const r = fit(ctx, css, [page.top, page.bottom], tW, halfH, qs || Math.min(maxFont, 58), 20, lhRatio, true);
+    const r = fit(ctx, css, [page.top, page.bottom], tW, halfH, qs || Math.min(maxFont, 58), 20, lhRatio, tru, !qs);
     const tl = r.all[0], bl = r.all[1];
 
     const topY = vTop + (halfH - tl.length*r.lh)/2 + r.lh/2;
