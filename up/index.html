@@ -26,6 +26,11 @@ button{border:0;background:var(--text);color:#fff;border-radius:10px;padding:9px
 button.ok{background:var(--ok)}
 button.del{width:100%;margin-top:12px;background:#fff;color:#b91c1c;border:1px solid #fecaca;padding:12px}
 .empty{text-align:center;color:var(--muted);padding:40px 0}
+.pg{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:8px 0}
+.pg img,.pg span{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:8px;background:#e5e7eb;display:block}
+.allimg{width:100%;padding:14px;font-size:1rem;background:#db2777;margin:4px 0 2px}
+.allimg:disabled{background:#d1d5db;color:#4b5563}
+.hint2{font-size:.78rem;color:var(--muted);text-align:center}
 </style>
 </head>
 <body>
@@ -47,9 +52,26 @@ async function copy(text,btn){
   const list=document.getElementById('list');const texts=[];
   list.innerHTML=d.items.map((it)=>`<div class="item"><div class="ch">${esc(it.ch)}</div><div class="tt">${esc(it.title)}</div>${it.state?`<div class="st">${esc(it.state)}</div>`:''}
     ${(it.videos||[]).map((v)=>v.url?`<a class="dl" href="${esc(v.url)}">⬇ ${esc(v.label)} 받기 (${v.mb}MB)</a>`:`<span class="dl off">⬇ ${esc(v.label)} — 영상 준비 중</span>`).join('')}
+    ${(it.images||[]).length?`<div class="g">📣 홍보 게시글 그림 ${it.images.length}장</div><div class="pg" id="pg${esc(it.id)}">${it.images.map(()=>'<span></span>').join('')}</div><button class="allimg" data-img="${esc(it.id)}" disabled>그림 불러오는 중…</button><div class="hint2">한 번 누르면 ${it.images.length}장을 한꺼번에 받아요</div>`:''}
     ${(it.groups||[]).map((g)=>`<div class="g">${esc(g.name)}</div>`+g.fields.map((f)=>{texts.push(f.text);return `<div class="f"><div class="fl"><span>${esc(f.label)}</span><button data-i="${texts.length-1}">복사</button></div><div class="fx">${esc(f.text)}</div></div>`;}).join('')).join('')}${GS?`<button class="del" data-del="${esc(it.id)}">✔ 다 올렸어요 · 목록에서 지우기</button>`:''}</div>`).join('')||'<div class="empty">지금 올릴 것이 없어요 🎉</div>';
   list.querySelectorAll('button[data-del]').forEach((b)=>b.onclick=async()=>{if(!confirm('이 소재를 목록에서 지울까요?'))return;b.disabled=true;b.textContent='지우는 중…';try{await fetch(GS,{method:'POST',headers:{'content-type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'del',id:b.dataset.del})});location.reload();}catch(e){b.disabled=false;b.textContent='지우지 못했어요. 다시 눌러 주세요';}});
   list.querySelectorAll('button[data-i]').forEach((b)=>b.onclick=()=>copy(texts[+b.dataset.i],b));
+  // (2026-11-19) 홍보 게시글 그림: 미리 불러 두고, 버튼 한 번에 전부 받기 (아이폰은 '이미지 N개 저장', 그 밖에는 차례로 다운로드)
+  const isIOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  list.querySelectorAll('button[data-img]').forEach(async(b)=>{
+    const id=b.dataset.img;let files=[];
+    try{const r=await fetch(GS+'?img='+encodeURIComponent(id)).then((x)=>x.json());if(r.error)throw new Error(r.error);
+      files=(r.images||[]).map((m)=>{const bin=atob(m.b64);const a=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);return new File([a],m.name,{type:m.type||'image/jpeg'});});}
+    catch(e){b.textContent='그림을 불러오지 못했어요 (새로고침해 주세요)';return;}
+    if(!files.length){b.textContent='그림이 아직 드라이브에 올라가는 중이에요 (잠시 뒤 새로고침)';return;}
+    const g=document.getElementById('pg'+id);if(g)g.innerHTML=files.map((f)=>`<img src="${URL.createObjectURL(f)}" alt="">`).join('');
+    b.disabled=false;b.textContent=`📥 그림 ${files.length}장 한꺼번에 받기`;
+    b.onclick=async()=>{
+      if(isIOS&&navigator.canShare&&navigator.canShare({files})){try{await navigator.share({files});return;}catch(e){if(e&&e.name==='AbortError')return;}}
+      for(const f of files){const u=URL.createObjectURL(f);const a=document.createElement('a');a.href=u;a.download=f.name;document.body.appendChild(a);a.click();a.remove();await new Promise((ok)=>setTimeout(ok,400));}
+      b.textContent=`받았어요 ✔ (${files.length}장)`;
+    };
+  });
 })();
 </script>
 </body>
