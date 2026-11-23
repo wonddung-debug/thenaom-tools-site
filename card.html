@@ -448,6 +448,8 @@
   #topTools{order:-1; display:flex; gap:8px}
   #topTools button{flex:1 1 0; min-height:46px; padding:0 10px; font-size:15px; font-weight:800; border-radius:10px; white-space:nowrap}
   #topPaste{border:1px dashed var(--accent); color:var(--accent); background:var(--accent-bg)}
+  #topAutoFill{border:1px solid var(--accent); color:var(--accent)}
+  #topAutoFill:disabled{opacity:.6; cursor:wait}
   /* 등록 정보: 이 글을 실제로 어디에 언제 올렸는지 */
   #pubBox{margin:6px 0 4px; border:1px solid var(--line); border-radius:10px; background:var(--panel); padding:8px 10px; display:flex; flex-direction:column; gap:6px; font-size:14px}
   #pubBox[hidden]{display:none}
@@ -825,6 +827,7 @@
       <!-- 맨 위 줄: 원글 붙여넣기 · 전체 보기 -->
       <div id="topTools">
         <button type="button" class="ghost" id="topPaste" title="복사해 둔 글을 원글에 바로 넣어요">📋 원글 붙여넣기</button>
+        <button type="button" class="ghost" id="topAutoFill" hidden title="원글을 보고 게시글·고정 댓글·캡션·틱톡 칸을 Claude가 채워요 (후기가 있으면 멤버십 칸도)">✨ 칸 채우기</button>
         <button type="button" class="ghost" id="viewAllBtn" title="게시글·고정 댓글 등 채워진 칸의 글을 잘림 없이 한 번에 봐요">📖 전체 보기</button>
       </div>
       <div id="loadMsg" hidden><span id="loadTxt"></span><button type="button" class="ghost sm" id="loadRetry" hidden>다시 불러오기</button></div>
@@ -6792,6 +6795,7 @@ function updateShareMarks(){
   /* 틱톡 칸을 안 쓰는 채널·후기 글에는 틱톡 공유 버튼을 숨겨요 */
   const ttOff = !S.cur || isReview(S.cur) || !fieldOn(S.cur, {kind:"tiktok_post"});
   $("tbShareTt").hidden = ttOff; $("shareAllTt").hidden = ttOff;
+  updateAutoFillBtn();
 }
 
 /* 설명 4칸 만들기 — 원글처럼 접고 펴는 칸. 폰에서는 접힌 채로 열리고, 제목 줄의 ‘복사’로 펴지 않고 바로 복사 */
@@ -8231,6 +8235,69 @@ $("pbList").addEventListener("click", e => {
 });
 document.addEventListener("keydown", e => { if(e.key === "Escape" && !$("pbBack").hidden) closePubView(); });
 $("viewAllBtn").addEventListener("click", openViewAll);
+
+/* ---------- ✨ 칸 채우기 (Claude API, 2026-11-24) ----------
+   원글을 보고 설명 칸만 채워요. 원글·후기 글은 건드리지 않아요. 버튼을 누를 때만 실행.
+   글 쓰는 규칙은 서버가 ‘카드 콘텐츠 DB’ 시트의 「칸채우기 규칙」 탭에서 읽어요. */
+var AF_KINDS = {
+  "사랑추구권": ["youtube_description", "coupang_description", "instagram_caption", "tiktok_post"],
+  "굿리뷰":    ["tiktok_post", "instagram_caption", "youtube_description", "coupang_description"]
+};
+var AF_NEED_REVIEW = {"사랑추구권": ["coupang_description"]};    /* 후기가 없으면 비워 두는 칸 (후기 맛보기가 들어가는 칸) */
+var afBusy = false;
+function afChannel(c){ const ch = channelFor(c); return ch ? ch.name : String((c && c.channel) || ""); }
+function updateAutoFillBtn(){
+  const b = $("topAutoFill"); if(!b || !AF_KINDS) return;      /* 화면을 처음 그리는 중이면 건너뜀 */
+  const c = S.cur;
+  b.hidden = !c || isReview(c) || !AF_KINDS[afChannel(c)];
+  b.disabled = afBusy;
+}
+async function autoFill(){
+  const c = S.cur;
+  if(!c || afBusy) return;
+  const chn = afChannel(c), all = AF_KINDS[chn];
+  if(!all || isReview(c)) return;
+  if(!(c.rawText || "").trim()){ alert("원글이 비어 있어요. 원글을 먼저 넣어 주세요."); return; }
+  if(!c.id){ flushSoon(50); alert("글이 아직 저장 중이에요. 몇 초 뒤에 다시 눌러 주세요."); return; }
+  const rv = reviewsOf(c)[0] || null;
+  if(!rv && !confirm("후기가 없어요. 후기 없이 할까요?\n(후기가 필요한 칸은 비워 둬요)")) return;
+  let kinds = all.filter(k => fieldOn(c, {kind:k}));
+  if(!rv) kinds = kinds.filter(k => !(AF_NEED_REVIEW[chn] || []).includes(k));
+  const wantMb = !!rv && chn === "사랑추구권";
+  const label = k => (FIELDS.find(x => x.kind === k) || {}).label || k;
+  const full = kinds.filter(k => String(c.f[k] || "").trim()).map(label);
+  if(wantMb && String((rv.f && rv.f.youtube_description) || "").trim()) full.push("후기 멤버십 게시글");
+  if(full.length && !confirm(`이미 글이 있는 칸이 있어요 (${full.join(", ")}).\n지우고 새로 채울까요?`)) return;
+  if(!kinds.length && !wantMb){ alert("채울 칸이 없어요."); return; }
+  const b = $("topAutoFill"), old = b.textContent;
+  afBusy = true; b.disabled = true; b.textContent = "✨ 채우는 중… (1~2분)";
+  try{
+    const r = await callDb({action:"autoFill", contentId:c.id, reviewId:rv && rv.id ? rv.id : "", rawText:c.rawText, kinds:kinds, membership:wantMb}, {timeoutMs:300000});
+    if(!r || r.ok === false) throw new Error((r && r.error) || "서버 응답이 없어요.");
+    const got = r.fields || {}, pf = {};
+    kinds.forEach(k => { if(typeof got[k] === "string" && got[k].trim()){ c.f[k] = got[k]; pf[k] = got[k]; } });
+    if(Object.keys(pf).length) queueSave(c, {postFields:pf}, 300);
+    if(wantMb && rv && typeof r.membership === "string" && r.membership.trim()){
+      rv.f = rv.f || {}; rv.f.youtube_description = r.membership;
+      queueSave(rv, {postFields:{youtube_description:r.membership}}, 300);
+    }
+    if(S.cur === c){
+      Object.keys(pf).forEach(k => { const ta = $("fld_" + k); if(ta){ ta.value = pf[k]; autoGrow(ta); } updateTag(k); });
+    }
+    scheduleListRender();
+    const miss = kinds.filter(k => !pf[k]).map(label);
+    if(wantMb && !(r.membership || "").trim()) miss.push("후기 멤버십 게시글");
+    b.textContent = "✓ 채움";
+    setTimeout(() => { b.textContent = old; }, 2500);
+    if(miss.length) alert("이 칸은 못 채웠어요: " + miss.join(", "));
+  }catch(e){
+    b.textContent = old;
+    alert("칸 채우기 실패: " + (e && e.message ? e.message : e));
+  }finally{
+    afBusy = false; b.disabled = false; updateAutoFillBtn();
+  }
+}
+$("topAutoFill").addEventListener("click", e => { e.preventDefault(); autoFill(); });
 /* 원글 옆 작은 표시(유·인·틱)를 누르면 ‘이 글 옵션’을 펴고 주소 칸으로 가요 */
 $("pubMini").addEventListener("click", e => {
   e.preventDefault(); e.stopPropagation();
