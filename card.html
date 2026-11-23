@@ -6545,6 +6545,7 @@ function updateRvBtn(){
   const c = S.cur;
   const b = $("rvBtn");
   if(b) b.hidden = !c || isReview(c) || !hasAny(c);
+  updateAutoFillBtn();      /* 원글이 비었는지에 따라 ✨ 자동 쓰기 / 칸 채우기 */
 }
 function renderReviewBox(){
   const c = S.cur;
@@ -8251,13 +8252,15 @@ function updateAutoFillBtn(){
   const c = S.cur;
   b.hidden = !c || isReview(c) || !AF_KINDS[afChannel(c)];
   b.disabled = afBusy;
+  if(!afBusy) b.textContent = c && !(c.rawText || "").trim() ? "✨ 자동 쓰기" : "✨ 칸 채우기";
+  b.title = c && !(c.rawText || "").trim() ? "소재를 적으면 원글(사랑추구권은 후기까지)과 설명 칸을 Claude가 한 번에 써요 (미지정으로 저장)" : "원글을 보고 게시글·고정 댓글·캡션·틱톡 칸을 Claude가 채워요 (후기가 있으면 멤버십 칸도)";
 }
 async function autoFill(){
   const c = S.cur;
   if(!c || afBusy) return;
   const chn = afChannel(c), all = AF_KINDS[chn];
   if(!all || isReview(c)) return;
-  if(!(c.rawText || "").trim()){ alert("원글이 비어 있어요. 원글을 먼저 넣어 주세요."); return; }
+  if(!(c.rawText || "").trim()){ autoWrite(c); return; }
   if(!c.id){ flushSoon(50); alert("글이 아직 저장 중이에요. 몇 초 뒤에 다시 눌러 주세요."); return; }
   const rv = reviewsOf(c)[0] || null;
   if(!rv && !confirm("후기가 없어요. 후기 없이 할까요?\n(후기가 필요한 칸은 비워 둬요)")) return;
@@ -8298,6 +8301,72 @@ async function autoFill(){
   }
 }
 $("topAutoFill").addEventListener("click", e => { e.preventDefault(); autoFill(); });
+
+/* ---------- ✨ 자동 쓰기 (새 글: 원글 → 사랑추구권은 후기 → 설명 칸, 2026-11-24) ----------
+   소재(비우면 알아서)·후기 결말 방향(비우면 알아서)을 받아 서버가 한 번에 써요. 저장은 ‘미지정’(보류 아님). */
+async function autoWrite(c){
+  const chn = afChannel(c), all = AF_KINDS[chn];
+  if(!all || afBusy) return;
+  const topic = prompt(`[${chn}] 새 글 자동 쓰기\n소재를 적어 주세요. 비우고 확인하면 기존 글과 겹치지 않게 알아서 정해요.`, "");
+  if(topic === null) return;
+  const withReview = chn === "사랑추구권";
+  let ending = "";
+  if(withReview){
+    ending = prompt("후기 결말 방향을 적어 주세요. 비우고 확인하면 원글에 맞게 알아서 정해요.", "");
+    if(ending === null) return;
+  }
+  const kinds = all.filter(k => fieldOn(c, {kind:k}));
+  const b = $("topAutoFill"), old = b.textContent;
+  afBusy = true; b.disabled = true; b.textContent = "✨ 쓰는 중… (2~3분)";
+  try{
+    const r = await callDb({action:"autoWrite", channelId:c.channelId, topic:topic.trim(), ending:ending.trim(), withReview:withReview, kinds:kinds}, {timeoutMs:420000});
+    if(!r || r.ok === false) throw new Error((r && r.error) || "서버 응답이 없어요.");
+    if(!(r.rawText || "").trim()) throw new Error("원글이 비어서 왔어요.");
+    if((c.rawText || "").trim()){ alert("그 사이에 원글에 글이 들어가서 자동 쓰기 결과를 넣지 않았어요."); return; }
+    /* 원글: 직접 붙여 넣은 것과 똑같이 넣어요 (제목·카드 그림·저장이 평소처럼) */
+    if(S.cur === c){
+      $("rawBox").open = true;
+      $("src").value = r.rawText; pasted = true;
+      $("src").dispatchEvent(new Event("input"));
+    }else{
+      c.rawText = r.rawText; c.title = deriveTitle(c.rawText);
+      queueSave(c, {rawText:c.rawText});
+    }
+    /* 설명 칸 */
+    const got = r.fields || {}, pf = {};
+    kinds.forEach(k => { if(typeof got[k] === "string" && got[k].trim()){ c.f[k] = got[k]; pf[k] = got[k]; } });
+    if(Object.keys(pf).length) queueSave(c, {postFields:pf}, 300);
+    if(S.cur === c) Object.keys(pf).forEach(k => { const ta = $("fld_" + k); if(ta){ ta.value = pf[k]; autoGrow(ta); } updateTag(k); });
+    /* 후기: 원글이 서버에 저장돼 번호가 생긴 뒤에 만들어요 */
+    let rvMsg = "";
+    if(withReview && (r.reviewText || "").trim()){
+      for(let i = 0; i < 20 && !c.id; i++){ try{ await flush(); }catch(e){} if(!c.id) await new Promise(res => setTimeout(res, 1500)); }
+      if(c.id){
+        const ch = channelFor(c) || S.channels[0];
+        const rid = "rv_" + c.id + "_" + uuid().slice(0, 8);
+        const rv = {key:rid, id:null, clientId:RV_CID.test(rid) ? rid : uuid(), title:"", channelId:ch.id, channel:ch.name, rawText:r.reviewText, f:emptyF(), extra:[],
+          publishAt:"", doneAt:"", splitMode:"", lastPageType:"", splitDelim:"", createdAt:"", updatedAt:"", ownerId:S.uid, full:true};
+        rv.title = deriveTitle(rv.rawText);
+        rv.f.review_of = c.id;
+        if((r.membership || "").trim()) rv.f.youtube_description = r.membership;
+        queueSave(rv, {rawText:rv.rawText, postFields:{review_of:c.id, youtube_description:rv.f.youtube_description || ""}}, 300);
+        rvMsg = " · 후기도 만들었어요";
+      }else rvMsg = " · 원글 저장이 늦어서 후기는 못 만들었어요";
+    }
+    scheduleListRender();
+    if(S.cur === c){ try{ renderReviewBox(); }catch(e){} }
+    const miss = kinds.filter(k => !pf[k]).map(k => (FIELDS.find(x => x.kind === k) || {}).label || k);
+    b.textContent = "✓ 다 썼어요";
+    setTimeout(() => { updateAutoFillBtn(); }, 2500);
+    toast("자동 쓰기 끝" + rvMsg + (miss.length ? " · 못 채운 칸: " + miss.join(", ") : ""));
+  }catch(e){
+    b.textContent = old;
+    alert("자동 쓰기 실패: " + (e && e.message ? e.message : e));
+  }finally{
+    afBusy = false; b.disabled = false;
+    setTimeout(updateAutoFillBtn, 2600);
+  }
+}
 /* 원글 옆 작은 표시(유·인·틱)를 누르면 ‘이 글 옵션’을 펴고 주소 칸으로 가요 */
 $("pubMini").addEventListener("click", e => {
   e.preventDefault(); e.stopPropagation();
@@ -8347,6 +8416,7 @@ $("chanSel").addEventListener("change", () => {
   if(hasAny(c)) queueSave(c, {channelId:ch.id}, 300);
   fillDetail();
   renderList();
+  updateAutoFillBtn();
 });
 /* ---------- 모바일 화면 전환 (페이지 이동 없음 → 이미지 그대로) ---------- */
 function setView(v, push){
