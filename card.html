@@ -445,11 +445,31 @@
   /* 위에서부터: 원글 → 설명 7칸 → 한 번에 붙여넣기 → 쿠팡 링크 → 완료·삭제 */
   #loadMsg{order:0} #rawBox{order:1} #fields{order:2} #pasteWrap{order:3} #linkBox{order:4} #acts{order:5}
   /* 맨 위 줄: 원글 붙여넣기 · 전체 보기 (사진 설정 칸보다도 위) */
-  #topTools{order:-1; display:flex; gap:8px}
-  #topTools button{flex:1 1 0; min-height:46px; padding:0 10px; font-size:15px; font-weight:800; border-radius:10px; white-space:nowrap}
+  #topTools{order:-1; display:flex; flex-wrap:wrap; gap:8px}
+  #topTools button{flex:1 1 auto; min-height:46px; padding:0 10px; font-size:15px; font-weight:800; border-radius:10px; white-space:nowrap}
   #topPaste{border:1px dashed var(--accent); color:var(--accent); background:var(--accent-bg)}
   #topAutoFill{border:1px solid var(--accent); color:var(--accent)}
   #topAutoFill:disabled{opacity:.6; cursor:wait}
+  #topRevise{border:1px solid var(--accent); color:var(--accent)}
+  #topRevise:disabled{opacity:.6; cursor:wait}
+  #topReviseUndo{border:1px solid var(--line)}
+  #rsBack{position:fixed; inset:0; z-index:300; background:rgba(0,0,0,.55); display:flex; align-items:center; justify-content:center; padding:16px}
+  #rsBack[hidden]{display:none}
+  #rsBox{width:100%; max-width:820px; max-height:94vh; display:flex; flex-direction:column; background:var(--bg); border:1px solid var(--line); border-radius:14px; overflow:hidden; box-shadow:0 12px 32px rgba(0,0,0,.3)}
+  #rsSub{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--sub); font-size:13px}
+  #rsBody{flex:1 1 auto; min-height:0; overflow:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; padding:12px; display:flex; flex-direction:column; gap:12px}
+  #rsFoot{flex:none; display:flex; gap:8px; justify-content:flex-end; padding:10px 12px; background:var(--panel); border-top:1px solid var(--line)}
+  #rsFoot button{min-height:44px; padding:0 18px; font-size:15px; font-weight:800}
+  #rsOrder{display:block; width:100%; box-sizing:border-box; min-height:96px; font-family:inherit; font-size:16px; line-height:1.6; padding:10px; border:1px solid var(--line); border-radius:10px; background:var(--panel); color:var(--ink)}
+  .rs-lb{font-size:14.5px; font-weight:800; margin:0 0 6px}
+  .rs-tip{margin:4px 0 0; font-size:12.5px; color:var(--sub); line-height:1.6}
+  .rs-ck{display:flex; flex-direction:column; gap:6px}
+  .rs-ck label{display:flex; align-items:center; gap:10px; min-height:44px; padding:0 12px; border:1px solid var(--line); border-radius:10px; background:var(--panel); font-size:15px; cursor:pointer}
+  .rs-ck label.off{opacity:.5; cursor:not-allowed}
+  .rs-ck input{width:20px; height:20px}
+  .rs-warn{border:1px solid #d9a400; background:rgba(217,164,0,.1); border-radius:10px; padding:10px 12px; font-size:13.5px; line-height:1.6}
+  .rs-warn ul{margin:4px 0 0; padding-left:18px}
+  .rs-ok{font-size:13.5px; color:var(--ok-ink)}
   /* 등록 정보: 이 글을 실제로 어디에 언제 올렸는지 */
   #pubBox{margin:6px 0 4px; border:1px solid var(--line); border-radius:10px; background:var(--panel); padding:8px 10px; display:flex; flex-direction:column; gap:6px; font-size:14px}
   #pubBox[hidden]{display:none}
@@ -699,6 +719,8 @@
     #topTools{order:1}
 
     #vaBack{padding:0; align-items:stretch}
+    #rsBack{padding:0; align-items:stretch}
+    #rsBox{max-width:none; max-height:none; height:100%; border:0; border-radius:0}
     #pbBack{padding:0; align-items:stretch}
     #pbBox{height:auto; max-width:none; border-radius:0; border:0}
     #vaBox{max-width:none; max-height:none; height:100%; border:0; border-radius:0}
@@ -828,6 +850,8 @@
       <div id="topTools">
         <button type="button" class="ghost" id="topPaste" title="복사해 둔 글을 원글에 바로 넣어요">📋 원글 붙여넣기</button>
         <button type="button" class="ghost" id="topAutoFill" hidden title="원글을 보고 게시글·고정 댓글·캡션·틱톡 칸을 Claude가 채워요 (후기가 있으면 멤버십 칸도)">✨ 칸 채우기</button>
+        <button type="button" class="ghost" id="topRevise" hidden title="원글(필요하면 후기·설명 칸도)을 주문대로 Claude가 고쳐요. 고친 글을 먼저 보여 주고, 확인을 눌러야 들어가요">✏️ 수정 보완</button>
+        <button type="button" class="ghost" id="topReviseUndo" hidden title="방금 수정 보완한 것을 그 전으로 되돌려요 (한 번만)">↩ 되돌리기</button>
         <button type="button" class="ghost" id="viewAllBtn" title="게시글·고정 댓글 등 채워진 칸의 글을 잘림 없이 한 번에 봐요">📖 전체 보기</button>
       </div>
       <div id="loadMsg" hidden><span id="loadTxt"></span><button type="button" class="ghost sm" id="loadRetry" hidden>다시 불러오기</button></div>
@@ -1564,6 +1588,13 @@
   <div id="vaBox" role="dialog" aria-modal="true" aria-labelledby="vaTtl">
     <div class="va-head"><b id="vaTtl">전체 보기</b><span id="vaSub"></span><button type="button" class="ghost sm" id="vaX">닫기 ✕</button></div>
     <div id="vaBody"></div>
+  </div>
+</div>
+<div id="rsBack" hidden>
+  <div id="rsBox" role="dialog" aria-modal="true" aria-labelledby="rsTtl">
+    <div class="va-head"><b id="rsTtl">✏️ 수정 보완</b><span id="rsSub"></span></div>
+    <div id="rsBody"></div>
+    <div id="rsFoot"><button type="button" class="ghost" id="rsCancel">취소</button><button type="button" class="ghost" id="rsOk" style="border-color:var(--accent); color:var(--accent)">확인</button></div>
   </div>
 </div>
 <div id="pbBack" hidden>
@@ -8253,6 +8284,7 @@ function updateAutoFillBtn(){
   b.hidden = !c || isReview(c) || !AF_KINDS[afChannel(c)];
   b.disabled = afBusy;
   if(!afBusy) b.textContent = c && !(c.rawText || "").trim() ? "✨ 자동 쓰기" : "✨ 칸 채우기";
+  try{ updateReviseBtn(); }catch(e){}
   b.title = c && !(c.rawText || "").trim() ? "소재를 적으면 원글(사랑추구권은 후기까지)과 설명 칸을 Claude가 한 번에 써요 (미지정으로 저장)" : "원글을 보고 게시글·고정 댓글·캡션·틱톡 칸을 Claude가 채워요 (후기가 있으면 멤버십 칸도)";
 }
 async function autoFill(){
@@ -8367,6 +8399,174 @@ async function autoWrite(c){
     setTimeout(updateAutoFillBtn, 2600);
   }
 }
+
+/* ---------- ✏️ 수정 보완 (원글 · 후기 · 설명 칸 고치기, 2026-11-24) ----------
+   주문(비우면 장 수·줄 길이·규칙만)과 고칠 것(원글/후기/설명 칸)을 고르면 서버가 고친 글을 돌려줘요.
+   고친 글을 먼저 보여 주고 「확인」을 눌러야 들어가요. 들어간 뒤 「↩ 되돌리기」 한 번(다른 글을 열기 전까지). */
+var rvsBusy = false, rvsUndo = null, rvsStep = "", rvsCtx = null;
+function updateReviseBtn(){
+  const b = $("topRevise"), u = $("topReviseUndo"); if(!b || !u) return;
+  const c = S.cur;
+  if(rvsUndo && rvsUndo.c !== c) rvsUndo = null;                 /* 다른 글을 열면 되돌리기는 사라져요 */
+  b.hidden = !c || isReview(c) || !AF_KINDS[afChannel(c)] || !(c.rawText || "").trim();
+  b.disabled = rvsBusy || afBusy;
+  if(!rvsBusy) b.textContent = "✏️ 수정 보완";
+  u.hidden = !rvsUndo || b.hidden;
+}
+function rvsClose(){ $("rsBack").hidden = true; document.body.classList.remove("va-open"); rvsStep = ""; rvsCtx = null; }
+function rvsOpen(){ $("rsBack").hidden = false; document.body.classList.add("va-open"); $("rsBody").scrollTop = 0; }
+function rvsLabel(k){ return (FIELDS.find(x => x.kind === k) || {}).label || k; }
+async function openRevise(){
+  const c = S.cur;
+  if(!c || rvsBusy || afBusy || isReview(c)) return;
+  if(!AF_KINDS[afChannel(c)] || !(c.rawText || "").trim()) return;
+  if(!c.id){ flushSoon(50); alert("글이 아직 저장 중이에요. 몇 초 뒤에 다시 눌러 주세요."); return; }
+  const rv = reviewsOf(c)[0] || null;
+  rvsCtx = {c:c, rv:rv};
+  rvsStep = "order";
+  $("rsTtl").textContent = "✏️ 수정 보완";
+  $("rsSub").textContent = c.title || "";
+  $("rsBody").innerHTML = `
+    <div><p class="rs-lb">주문</p>
+      <textarea id="rsOrder" placeholder="예) 6장 대사를 더 세게 / 3장을 더 짧게 / 마지막 선택지를 바꿔 줘"></textarea>
+      <p class="rs-tip">적은 대로 고쳐요. <b>비워 두면</b> 장 수·줄 길이·규칙 위반만 고쳐요.</p></div>
+    <div><p class="rs-lb">고칠 것</p>
+      <div class="rs-ck">
+        <label><input type="checkbox" id="rsT_raw" checked> 원글</label>
+        <label class="${rv ? "" : "off"}"><input type="checkbox" id="rsT_rv" ${rv ? "" : "disabled"}> 후기${rv ? " (고친 원글에 맞게)" : " — 이 글은 후기가 없어요"}</label>
+        <label><input type="checkbox" id="rsT_f"> 설명 칸 (고친 원글에 맞게 다시 써요 · 써 둔 칸이 바뀌어요)</label>
+      </div></div>`;
+  $("rsOk").textContent = "고치기";
+  $("rsOk").disabled = false; $("rsCancel").disabled = false;
+  rvsOpen();
+  setTimeout(() => { const t = $("rsOrder"); if(t && isWide()) t.focus(); }, 50);
+}
+async function rvsRun(){
+  const x = rvsCtx; if(!x) return;
+  const c = x.c, chn = afChannel(c);
+  const order = ($("rsOrder").value || "").trim();
+  const tRaw = $("rsT_raw").checked, tRv = !!x.rv && $("rsT_rv").checked, tF = $("rsT_f").checked;
+  if(!tRaw && !tRv && !tF){ alert("고칠 것을 하나 이상 골라 주세요."); return; }
+  let kinds = [];
+  if(tF){
+    kinds = AF_KINDS[chn].filter(k => fieldOn(c, {kind:k}));
+    if(!x.rv) kinds = kinds.filter(k => !(AF_NEED_REVIEW[chn] || []).includes(k));
+  }
+  const wantMb = tF && !!x.rv && chn === "사랑추구권";
+  if(tF && !kinds.length && !wantMb && !tRaw && !tRv){ alert("고칠 설명 칸이 없어요."); return; }
+  x.order = order; x.tRaw = tRaw; x.tRv = tRv; x.tF = tF; x.kinds = kinds; x.wantMb = wantMb;
+  rvsStep = "busy"; rvsBusy = true; updateReviseBtn();
+  $("rsOk").disabled = true; $("rsCancel").disabled = true;
+  const sec = 1 + (tRaw ? 1 : 0) + (tRv ? 1 : 0) + (tF ? 1 : 0);
+  $("rsBody").innerHTML = `<div class="va-none">✏️ 고치는 중… (${sec}~${sec + 2}분쯤)<br>이 창을 닫지 말고 기다려 주세요.</div>`;
+  const b = $("topRevise"); b.textContent = "✏️ 고치는 중…";
+  try{
+    if(x.rv && x.rv.full === false){ await loadFull([x.rv.id]); }
+    x.rvOld = x.rv ? String(x.rv.rawText || "") : "";
+    const r = await callDb({action:"autoRevise", contentId:c.id, reviewId:x.rv && x.rv.id ? x.rv.id : "", rawText:c.rawText,
+      reviewText:x.rv && x.rv.full !== false ? (x.rv.rawText || "") : "", order:order,
+      targets:{raw:tRaw, review:tRv, fields:tF}, kinds:kinds, membership:wantMb}, {timeoutMs:420000});
+    if(!r || r.ok === false) throw new Error((r && r.error) || "서버 응답이 없어요.");
+    x.res = r;
+    rvsShowPreview();
+  }catch(e){
+    rvsClose();
+    alert("수정 보완 실패: " + (e && e.message ? e.message : e));
+  }finally{
+    rvsBusy = false; b.textContent = "✏️ 수정 보완"; updateReviseBtn();
+  }
+}
+function rvsShowPreview(){
+  const x = rvsCtx, r = x.res, c = x.c;
+  const items = [];
+  if(x.tRaw && (r.rawText || "").trim()) items.push({k:"raw", label:"원글", text:r.rawText, same:r.rawText.trim() === String(c.rawText || "").trim()});
+  if(x.tRv && (r.reviewText || "").trim()) items.push({k:"rv", label:"후기", text:r.reviewText, same:r.reviewText.trim() === x.rvOld.trim()});
+  const got = r.fields || {};
+  x.kinds.forEach(k => { if(typeof got[k] === "string" && got[k].trim()) items.push({k:"f_" + k, label:rvsLabel(k), text:got[k]}); });
+  if(x.wantMb && (r.membership || "").trim()) items.push({k:"mb", label:"후기 멤버십 게시글", text:r.membership});
+  x.items = items;
+  const warn = (r.checks || []).concat(r.errors || []);
+  let h = "";
+  if(x.order) h += `<p class="rs-tip" style="margin:0">주문: ${esc(x.order)}</p>`;
+  h += warn.length ? `<div class="rs-warn"><b>⚠️ 끝까지 남은 문제 ${warn.length}개</b> — 넣은 뒤 직접 고쳐 주세요<ul>${warn.map(w => `<li>${esc(w)}</li>`).join("")}</ul></div>`
+                   : `<div class="rs-ok">✓ 장 수·줄 길이 문제 없어요</div>`;
+  if(!items.length) h += `<div class="va-none">고친 글이 오지 않았어요.</div>`;
+  items.forEach(it => {
+    h += `<div class="va-item"><div class="va-ih"><span class="va-l">${esc(it.label)}</span>${it.same ? '<span class="va-n">바뀐 곳 없음</span>' : ""}</div><div class="va-tx">${esc(it.text)}</div></div>`;
+  });
+  $("rsTtl").textContent = "✏️ 고친 글 미리보기";
+  $("rsBody").innerHTML = h;
+  $("rsBody").scrollTop = 0;
+  $("rsOk").textContent = "확인 — 넣기";
+  $("rsOk").disabled = !items.length; $("rsCancel").disabled = false;
+  rvsStep = "preview";
+}
+function rvsSetRaw(c, text){
+  if(S.cur === c && S.mode === "work"){
+    $("rawBox").open = true;
+    $("src").value = text; pasted = true;
+    $("src").dispatchEvent(new Event("input"));
+  }else{
+    c.rawText = text; c.title = deriveTitle(text);
+    queueSave(c, {rawText:text});
+  }
+}
+function rvsSetFields(c, pf){
+  if(!Object.keys(pf).length) return;
+  c.f = c.f || {};
+  Object.keys(pf).forEach(k => { c.f[k] = pf[k]; });
+  queueSave(c, {postFields:pf}, 300);
+  if(S.cur === c) Object.keys(pf).forEach(k => { const ta = $("fld_" + k); if(ta){ ta.value = pf[k]; autoGrow(ta); } try{ updateTag(k); }catch(e){} });
+}
+function rvsSetReview(rv, raw, mb){
+  const pf = {};
+  if(raw !== null){ rv.rawText = raw; rv.title = deriveTitle(raw); }
+  if(mb !== null){ rv.f = rv.f || {}; rv.f.youtube_description = mb; pf.youtube_description = mb; }
+  const fields = {};
+  if(raw !== null) fields.rawText = raw;
+  if(Object.keys(pf).length) fields.postFields = pf;
+  if(Object.keys(fields).length) queueSave(rv, fields, 300);
+}
+function rvsApply(){
+  const x = rvsCtx; if(!x || !x.items) return;
+  const c = x.c, rv = x.rv;
+  const undo = {c:c, rv:rv, raw:null, f:{}, rvRaw:null, rvMb:null};
+  const pf = {};
+  let rvRaw = null, rvMb = null;
+  x.items.forEach(it => {
+    if(it.k === "raw"){ undo.raw = String(c.rawText || ""); }
+    else if(it.k === "rv"){ undo.rvRaw = x.rvOld; rvRaw = it.text; }
+    else if(it.k === "mb"){ undo.rvMb = String((rv.f && rv.f.youtube_description) || ""); rvMb = it.text; }
+    else { const k = it.k.slice(2); undo.f[k] = String((c.f && c.f[k]) || ""); pf[k] = it.text; }
+  });
+  const raw = x.items.find(it => it.k === "raw");
+  if(raw) rvsSetRaw(c, raw.text);
+  rvsSetFields(c, pf);
+  if(rv && (rvRaw !== null || rvMb !== null)) rvsSetReview(rv, rvRaw, rvMb);
+  rvsUndo = undo;
+  rvsClose();
+  scheduleListRender();
+  if(S.cur === c){ try{ renderReviewBox(); }catch(e){} }
+  updateReviseBtn();
+  toast("수정 보완을 넣었어요 · 되돌리려면 「↩ 되돌리기」");
+}
+function rvsDoUndo(){
+  const u = rvsUndo; if(!u || S.cur !== u.c) return;
+  if(!confirm("방금 수정 보완한 것을 그 전으로 되돌릴까요?")) return;
+  if(u.raw !== null) rvsSetRaw(u.c, u.raw);
+  rvsSetFields(u.c, u.f);
+  if(u.rv && (u.rvRaw !== null || u.rvMb !== null)) rvsSetReview(u.rv, u.rvRaw, u.rvMb);
+  rvsUndo = null;
+  scheduleListRender();
+  try{ renderReviewBox(); }catch(e){}
+  updateReviseBtn();
+  toast("되돌렸어요");
+}
+$("topRevise").addEventListener("click", e => { e.preventDefault(); openRevise(); });
+$("topReviseUndo").addEventListener("click", e => { e.preventDefault(); rvsDoUndo(); });
+$("rsCancel").addEventListener("click", () => { if(rvsStep !== "busy") rvsClose(); });
+$("rsOk").addEventListener("click", () => { if(rvsStep === "order") rvsRun(); else if(rvsStep === "preview") rvsApply(); });
+document.addEventListener("keydown", e => { if(e.key === "Escape" && !$("rsBack").hidden && rvsStep !== "busy"){ e.preventDefault(); rvsClose(); } });
 /* 원글 옆 작은 표시(유·인·틱)를 누르면 ‘이 글 옵션’을 펴고 주소 칸으로 가요 */
 $("pubMini").addEventListener("click", e => {
   e.preventDefault(); e.stopPropagation();
