@@ -881,6 +881,7 @@
         <button type="button" class="ghost" id="topRevise" hidden title="원글(필요하면 후기·설명 칸도)을 주문대로 Claude가 고쳐요. 고친 글을 먼저 보여 주고, 확인을 눌러야 들어가요">✏️ 수정 보완</button>
         <button type="button" class="ghost" id="topReviseUndo" hidden title="방금 수정 보완한 것을 그 전으로 되돌려요 (한 번만)">↩ 되돌리기</button>
         <button type="button" class="ghost" id="viewAllBtn" title="게시글·고정 댓글 등 채워진 칸의 글을 잘림 없이 한 번에 봐요">📖 전체 보기</button>
+        <button type="button" class="ghost" id="addrCopyBtn" title="이 글을 바로 여는 주소를 복사해요 (로그인한 사람만 열 수 있어요)">🔗 주소 복사</button>
       </div>
       <div id="loadMsg" hidden><span id="loadTxt"></span><button type="button" class="ghost sm" id="loadRetry" hidden>다시 불러오기</button></div>
       <!-- 사진 설정 (PC): 원글 위에 한 칸으로 보여요. 접고 펼 수 있어요 -->
@@ -1421,7 +1422,7 @@
             <select id="ytNumOn"><option value="on">붙이기</option><option value="off" selected>안 붙이기</option></select></div>
           <div><label class="lbl" for="ytNumStyle">숫자 모양</label>
             <select id="ytNumStyle"><option value="circle">색 동그라미</option><option value="plain">숫자만</option></select></div>
-          <div><label class="lbl" for="ytNumColor">색</label>
+          <div><label class="lbl" for="ytNumColor">숫자 색 (VS 1·2 · 번호 보기 1·2·3·4)</label>
             <select id="ytNumColor"><option value="hl">강조색</option><option value="ink">글자색</option><option value="custom">직접 고르기</option></select></div>
           <div><label class="lbl" for="ytNumSize">크기(px)</label>
             <input type="number" id="ytNumSize" value="76" step="2" min="30" max="160"></div>
@@ -1502,7 +1503,7 @@
             <select id="igNumOn"><option value="on">붙이기</option><option value="off">안 붙이기</option></select></div>
           <div><label class="lbl" for="igNumStyle">숫자 모양</label>
             <select id="igNumStyle"><option value="circle">색 동그라미</option><option value="plain">숫자만</option></select></div>
-          <div><label class="lbl" for="igNumColor">색</label>
+          <div><label class="lbl" for="igNumColor">숫자 색 (VS 1·2 · 번호 보기 1·2·3·4)</label>
             <select id="igNumColor"><option value="hl">강조색</option><option value="ink">글자색</option><option value="custom">직접 고르기</option></select></div>
           <div><label class="lbl" for="igNumSize">크기(px)</label>
             <input type="number" id="igNumSize" value="76" step="2" min="30" max="160"></div>
@@ -2682,7 +2683,7 @@ function isDarkColor(hex){
   return (r*0.299 + g*0.587 + b*0.114) < 128;
 }
 
-function drawChoiceLayout(ctx, page, f, padX, padY, areaH, maxFont, lhRatio, bgCol, inkCol, hlCol, hlStyle){
+function drawChoiceLayout(ctx, page, f, padX, padY, areaH, maxFont, lhRatio, bgCol, inkCol, hlCol, hlStyle, pre){
   const style = page.choiceStyle || "box";
   const maxW = WIDTH - padX * 2;
   const startMax = Math.min(maxFont, 54);
@@ -2726,7 +2727,7 @@ function drawChoiceLayout(ctx, page, f, padX, padY, areaH, maxFont, lhRatio, bgC
     }
 
     const darkBg = isDarkColor(bgCol);
-    const badgeFill = hlCol;
+    const badgeFill = pre ? numColor(pre, hlCol, inkCol) : hlCol;     /* 번호 보기(1·2·3·4) 숫자 칸 색 = 마지막 장의 숫자 색 옵션 (11/26) */
     const badgeTextCol = isDarkColor(badgeFill) ? "#ffffff" : "#111111";
 
     page.items.forEach((it, idx) => {
@@ -3938,7 +3939,7 @@ function draw(page, idx, total, f, ig, opt){
     drawFormattedLines(ctx, lines, startY, r.lh, r.size, curAlign, padX, inkCol, hlCol, hlStyle, f, coverB, sideX, sideW);
     if(page.cta) drawCta(ctx, f, hlCol, padY, areaH);
   }else if(page.type === "choice"){
-    drawChoiceLayout(ctx, page, f, padX, tTop, tH, maxFont, lhRatio, bgCol, inkCol, hlCol, hlStyle);
+    drawChoiceLayout(ctx, page, f, padX, tTop, tH, maxFont, lhRatio, bgCol, inkCol, hlCol, hlStyle, pre);
   }else if(page.dir === "h"){
     const sg = sideGeom(page, padX, igNum, pre);
     const qs = pickVsSize(ctx, page, f, padX, tH, maxFont, lhRatio, (sz, qh) => fitOk(ctx, css, [page.top, page.bottom], sg.colW, tH - qh - sg.markH, sz, lhRatio, true));     /* 질문·선택지 같은 크기 */
@@ -5396,8 +5397,9 @@ $("phSample").addEventListener("change", () => scheduleRender(false));
 function updateIgNumUI(){
   ["ig", "yt"].forEach(p => {
     const off = $(p + "NumOn").value === "off";
-    $(p + "NumCustomRow").hidden = off || $(p + "NumColor").value !== "custom";
-    [p + "NumStyle", p + "NumColor", p + "NumSize"].forEach(id => { $(id).disabled = off; });
+    $(p + "NumCustomRow").hidden = $(p + "NumColor").value !== "custom";
+    [p + "NumStyle", p + "NumSize"].forEach(id => { $(id).disabled = off; });
+    $(p + "NumColor").disabled = false;                    /* 색은 번호 보기(1·2·3·4) 장에도 쓰여서 항상 고를 수 있어요 */
     $(p + "AdCustomRow").hidden = $(p + "AdColor").value !== "custom";
     /* 안내문구: ‘글자만’ 모양이면 바탕·줄 색은 쓰이지 않아요 / 광고 글: ‘글자만’ 모양이면 박스·줄 색은 쓰이지 않아요 */
     const noteTextOnly = $(p + "NoteStyle").value === "text", adTextOnly = $(p + "AdStyle").value === "text";
@@ -5896,8 +5898,35 @@ function cacheSnapshot(n){
 function storeChannels(){ if(S.uid && !LS.set(keyOf("ch"), {chVer:S.chVer, channels:S.channels})) LS.set(keyOf("ch"), {chVer:"", channels:[]}); }
 function saveOut(){ if(S.uid) LS.set(keyOf("out"), OUT); }
 function saveCopied(){ if(S.uid) LS.set(keyOf("copied"), COPIED); }
+/* ---------- 글마다 주소 (11/26): card.html#g=글번호 → 그 주소로 들어오면 바로 그 글이 열려요 ---------- */
+let pendingAddrId = "";
+function addrIdFromHash(){ const m = /[#&]g=([^&]+)/.exec(location.hash || ""); try{ return m ? decodeURIComponent(m[1]) : ""; }catch(e){ return ""; } }
+function addrOf(c){ return c && c.id ? location.origin + location.pathname + "#g=" + encodeURIComponent(c.id) : ""; }
+function findByAddrId(id){ return id ? S.contents.find(x => x.id && String(x.id) === String(id)) : null; }
+function syncAddr(){
+  if(pendingAddrId) return;                                /* 주소로 들어온 글을 아직 못 찾았으면(목록 받는 중) 주소를 지우지 않음 */
+  try{
+    const show = S.cur && S.cur.id && (isWide() || S.view === "detail");
+    const want = show ? "#g=" + encodeURIComponent(S.cur.id) : "";
+    if((location.hash || "") !== want) history.replaceState(history.state, "", location.pathname + location.search + want);
+  }catch(e){}
+}
+function openPendingAddr(){
+  if(!pendingAddrId) return;
+  const c = findByAddrId(pendingAddrId), id = pendingAddrId;
+  pendingAddrId = "";
+  if(c){ if(S.cur !== c) openContent(c, {restore:true}); }
+  else{ toast("주소의 글을 찾지 못했어요 (삭제됐거나 볼 수 없는 채널)", "bad"); syncAddr(); }
+}
+window.addEventListener("hashchange", () => {
+  const id = addrIdFromHash();
+  if(!id || !S.uid || (S.cur && S.cur.id && String(S.cur.id) === String(id))) return;
+  const c = findByAddrId(id);
+  if(c) openContent(c); else { pendingAddrId = id; boot(true); }
+});
 function saveState(){
   if(!S.uid) return;
+  syncAddr();
   LS.set(keyOf("state"), {tab:S.tab, chanF:S.chanF, curKey:S.cur && hasAny(S.cur) ? S.cur.key : "", view:S.view,
     rawOpen:S.rawOpen, scroll:Math.round(window.scrollY || 0), listScroll:Math.round(listScrollY || 0), dzTab:S.dzTab, at:Date.now()});
 }
@@ -6055,6 +6084,7 @@ function boot(silent){
       syncAdminUI();
       renderChanFilter();
       renderList();
+      openPendingAddr();                                   /* 주소(#g=)로 들어왔는데 목록에 없던 글: 목록을 받은 뒤 엽니다 */
       if(m.curGone){
         toast("열려 있던 글이 목록에서 사라졌어요 (삭제됐거나 채널 권한이 바뀜)", "bad");
         S.cur = null;
@@ -6073,6 +6103,7 @@ function boot(silent){
     }catch(e){
       if(!silent || !S.loaded) toast("목록을 불러오지 못했어요: " + (e.message || e), "bad");
       if(!S.loaded){ S.loaded = true; renderList(); }
+      if(pendingAddrId){ pendingAddrId = ""; syncAddr(); }
     }finally{
       booted = null;
     }
@@ -8308,6 +8339,12 @@ $("pbList").addEventListener("click", e => {
 });
 document.addEventListener("keydown", e => { if(e.key === "Escape" && !$("pbBack").hidden) closePubView(); });
 $("viewAllBtn").addEventListener("click", openViewAll);
+$("addrCopyBtn").addEventListener("click", async () => {
+  const a = addrOf(S.cur);
+  if(!a){ toast("아직 저장 전이라 주소가 없어요. 글을 쓰고 잠시 뒤 다시 눌러 주세요", "bad"); return; }
+  if(await copyText(a)) toast("✓ 이 글 주소를 복사했어요"); else toast("복사하지 못했어요. 주소창에서 직접 복사해 주세요", "bad");
+  syncAddr();
+});
 
 /* ---------- ✨ 칸 채우기 (Claude API, 2026-11-24) ----------
    원글을 보고 설명 칸만 채워요. 원글·후기 글은 건드리지 않아요. 버튼을 누를 때만 실행.
@@ -9330,10 +9367,12 @@ function startApp(){
   syncAdminUI();
   renderChanFilter();
   renderList();
-  const c = st.curKey ? S.contents.find(x => x.key === st.curKey) : null;
-  if(c && (isWide() || st.view === "detail")){
-    if(!isWide()) pendingScroll = st.scroll || 0;
-    openContent(c, {restore:true, scroll:st.scroll || 0});
+  const addrId = addrIdFromHash(), addrC = findByAddrId(addrId);       /* 글 주소(#g=)로 들어왔으면 그 글이 먼저 */
+  pendingAddrId = addrId && !addrC ? addrId : "";
+  const c = addrC || (st.curKey ? S.contents.find(x => x.key === st.curKey) : null);
+  if(c && (addrC || isWide() || st.view === "detail")){
+    if(!isWide()) pendingScroll = addrC ? 0 : (st.scroll || 0);
+    openContent(c, {restore:true, scroll:addrC ? 0 : (st.scroll || 0)});
   }else{
     setView("list");
     if(!isWide() && listScrollY) requestAnimationFrame(() => window.scrollTo(0, listScrollY));
